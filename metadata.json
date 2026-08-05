@@ -1,0 +1,6 @@
+{
+  "name": "Screenwriter Pro",
+  "description": "A professional screenplay editor with predictive formatting, local-first IndexedDB persistence, story structure navigator, and Hollywood standard exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

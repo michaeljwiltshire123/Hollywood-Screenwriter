@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Hide scrollbars for toolbar overflow */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ContentEditable Placeholder Styling */
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  display: block;
+}
+
+/* Print CSS for Hollywood Standard PDF Generation */
+@media print {
+  header,
+  aside,
+  nav,
+  .sticky,
+  button,
+  .select-none {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12pt !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow-md {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Dedicated Title Page centering & page break */
+  .title-page-container {
+    page-break-after: always;
+    break-after: page;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Page numbering in top right starting on page 2 */
+  @page {
+    size: letter;
+    margin: 1in;
+    @top-right {
+      content: counter(page);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10pt;
+    }
+  }
+
+  @page:first {
+    @top-right {
+      content: '';
+    }
+  }
+}
+
