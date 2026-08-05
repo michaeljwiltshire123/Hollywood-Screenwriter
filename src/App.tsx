@@ -7,16 +7,11 @@ import {
   RevisionHistoryItem,
   TitlePage,
 } from './types';
-import {
-  saveRevisionToIDB,
-  getRevisionsForScriptIDB,
-  INITIAL_SAMPLE_SCRIPT,
-} from './lib/db';
+import { INITIAL_SAMPLE_SCRIPT } from './lib/sampleScript';
 import {
   generateDocxExport,
   parseUploadedFile,
 } from './lib/screenplayUtils';
-import { mirrorScriptToGoogleDrive } from './lib/googleDriveSync';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { FormattingToolbar } from './components/FormattingToolbar';
@@ -45,11 +40,22 @@ export default function App() {
   const [latencyMs, setLatencyMs] = useState<number>(1);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(new Date());
 
+  // RAM-Only History (Max 20 items)
   const [history, setHistory] = useState<ScreenplayDocument[]>([INITIAL_SAMPLE_SCRIPT]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
   const [editorFont, setEditorFont] = useState<'Courier Prime' | 'Courier New'>('Courier Prime');
+
+  // File System Access API handles
+  const [fileHandle, setFileHandle] = useState<any>(null);
+  const [linkedFileName, setLinkedFileName] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('screenwriter_linked_filename');
+    } catch {
+      return null;
+    }
+  });
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -82,11 +88,6 @@ export default function App() {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  // Google Drive Mirror state
-  const [isDriveConnected, setIsDriveConnected] = useState<boolean>(false);
-  const [driveAccessToken, setDriveAccessToken] = useState<string>('');
-  const [driveLastSync, setDriveLastSync] = useState<Date | null>(null);
-
   // Side Panel & Modals State
   const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(true);
   const [isTitlePageOpen, setIsTitlePageOpen] = useState<boolean>(true); // Fresh load opens Title Page modal automatically
@@ -108,15 +109,19 @@ export default function App() {
     }
   });
 
-  const handleGameCompleted = (gameId: string) => {
-    const next = [...playedGames, gameId];
-    setPlayedGames(next);
-    try {
-      localStorage.setItem('screenwriter_played_games', JSON.stringify(next));
-    } catch (e) {}
-  };
+  // Revisions in RAM
+  const [revisions, setRevisions] = useState<RevisionHistoryItem[]>([]);
 
-  // Pomodoro timer effect & sound
+  // Jump function ref for scene navigation
+  const jumpFnRef = useRef<((idx: number) => void) | null>(null);
+
+  // Script Ref for background tasks without causing re-renders
+  const scriptRef = useRef(script);
+  useEffect(() => {
+    scriptRef.current = script;
+  }, [script]);
+
+  // Pomodoro timer effect
   useEffect(() => {
     if (!isPomodoroRunning) return;
     const timer = setInterval(() => {
@@ -159,6 +164,214 @@ export default function App() {
     }
   }
 
+  // --- FILE SYSTEM ACCESS API & OVERWRITE SOVEREIGNTY ---
+  const saveScriptToFileHandle = async (targetHandle: any, doc: ScreenplayDocument) => {
+    try {
+      const writable = await targetHandle.createWritable();
+      await writable.write(JSON.stringify(doc, null, 2));
+      await writable.close();
+      setIsDirty(false);
+      setLastSavedAt(new Date());
+      setFileHandle(targetHandle);
+      setLinkedFileName(targetHandle.name);
+      try {
+        localStorage.setItem('screenwriter_linked_filename', targetHandle.name);
+      } catch (e) {}
+      return true;
+    } catch (err: any) {
+      console.error('File system write error:', err);
+      return false;
+    }
+  };
+
+  const triggerFallbackDownload = (doc: ScreenplayDocument = script) => {
+    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(doc.title || 'screenplay').toLowerCase().replace(/[^a-z0-9]/g, '_')}.screenplay`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsDirty(false);
+    setLastSavedAt(new Date());
+  };
+
+  const saveFileWithPicker = async (doc: ScreenplayDocument = script) => {
+    if ('showSaveFilePicker' in window) {
+      try {
+        const options = {
+          suggestedName: `${(doc.title || 'screenplay').toLowerCase().replace(/[^a-z0-9]/g, '_')}.screenplay`,
+          types: [
+            {
+              description: 'Screenplay File (*.screenplay)',
+              accept: { 'application/json': ['.screenplay', '.json'] },
+            },
+          ],
+        };
+        const handle = await (window as any).showSaveFilePicker(options);
+        await saveScriptToFileHandle(handle, doc);
+        return true;
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Save file picker error:', err);
+          triggerFallbackDownload(doc);
+        }
+        return false;
+      }
+    } else {
+      triggerFallbackDownload(doc);
+      return true;
+    }
+  };
+
+  const loadNativeFile = async () => {
+    if ('showOpenFilePicker' in window) {
+      try {
+        const options = {
+          types: [
+            {
+              description: 'Screenplay Files (*.screenplay, *.json, *.txt, *.fountain)',
+              accept: {
+                'application/json': ['.screenplay', '.json'],
+                'text/plain': ['.txt', '.fountain'],
+              },
+            },
+          ],
+          multiple: false,
+        };
+        const [handle] = await (window as any).showOpenFilePicker(options);
+        const file = await handle.getFile();
+        const text = await file.text();
+        let loadedDoc: ScreenplayDocument;
+
+        if (file.name.endsWith('.screenplay') || file.name.endsWith('.json')) {
+          try {
+            loadedDoc = JSON.parse(text);
+          } catch {
+            const parsedElems = await parseUploadedFile(file);
+            loadedDoc = { ...script, id: `script-${Date.now()}`, title: file.name.replace(/\.[^/.]+$/, '').toUpperCase(), elements: parsedElems };
+          }
+        } else {
+          const parsedElems = await parseUploadedFile(file);
+          loadedDoc = { ...script, id: `script-${Date.now()}`, title: file.name.replace(/\.[^/.]+$/, '').toUpperCase(), elements: parsedElems };
+        }
+
+        setScript(loadedDoc);
+        if (loadedDoc.elements && loadedDoc.elements[0]) {
+          setActiveElementId(loadedDoc.elements[0].id);
+          setActiveType(loadedDoc.elements[0].type);
+        }
+        setHistory([loadedDoc]);
+        setHistoryIndex(0);
+        setFileHandle(handle);
+        setLinkedFileName(handle.name);
+        try {
+          localStorage.setItem('screenwriter_linked_filename', handle.name);
+        } catch (e) {}
+        setIsDirty(false);
+        setLastSavedAt(new Date());
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Open file error:', err);
+        }
+      }
+    }
+  };
+
+  // Keyboard shortcut Ctrl + S / Cmd + S for Overwrite Sovereignty
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        const currentDoc = scriptRef.current;
+        if (fileHandle) {
+          saveScriptToFileHandle(fileHandle, currentDoc);
+        } else {
+          saveFileWithPicker(currentDoc);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fileHandle]);
+
+  // Exit Leash: beforeunload warning if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes! Save to Drive or Export before leaving.';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  // RAM-Only Keystroke Handler with History Cap (Max 20) & Dirty State
+  const handleScriptChange = useCallback((updated: ScreenplayDocument) => {
+    setHistory((prev) => {
+      const newStack = prev.slice(0, historyIndex + 1);
+      const updatedStack = [...newStack, updated];
+      if (updatedStack.length > 20) {
+        return updatedStack.slice(updatedStack.length - 20);
+      }
+      return updatedStack;
+    });
+    setHistoryIndex((prev) => Math.min(prev + 1, 19));
+    setScript(updated);
+    setIsDirty(true);
+  }, [historyIndex]);
+
+  // Revision Snapshot (RAM only)
+  const saveSnapshot = useCallback(() => {
+    const rev: RevisionHistoryItem = {
+      id: `rev-${Date.now()}`,
+      scriptId: script.id,
+      timestamp: new Date().toISOString(),
+      label: `Snapshot - ${script.elements.length} elements`,
+      elementCount: script.elements.length,
+      elements: [...script.elements],
+    };
+    setRevisions((prev) => [rev, ...prev].slice(0, 20));
+  }, [script]);
+
+  // Rollback Revision
+  const handleRollback = (rev: RevisionHistoryItem) => {
+    const updated: ScreenplayDocument = {
+      ...script,
+      elements: [...rev.elements],
+      updatedAt: new Date().toISOString(),
+    };
+    handleScriptChange(updated);
+    if (updated.elements[0]) {
+      setActiveElementId(updated.elements[0].id);
+      setActiveType(updated.elements[0].type);
+    }
+  };
+
+  // Title update
+  const handleUpdateTitle = (newTitle: string) => {
+    handleScriptChange({
+      ...script,
+      title: newTitle,
+      titlePage: { ...script.titlePage, title: newTitle },
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  // Draft status update
+  const handleUpdateDraftStatus = (status: ScreenplayDocument['draftStatus']) => {
+    handleScriptChange({
+      ...script,
+      draftStatus: status,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  // Start New Script
   const handleStartNewScript = async () => {
     const newDoc: ScreenplayDocument = {
       id: `script-${Date.now()}`,
@@ -197,220 +410,40 @@ export default function App() {
     setActiveType(newDoc.elements[0].type);
     setHistory([newDoc]);
     setHistoryIndex(0);
+    setFileHandle(null);
     setIsDirty(true);
   };
 
+  // Load Sample Script
   const handleOpenSampleScript = async () => {
     setScript(INITIAL_SAMPLE_SCRIPT);
     setActiveElementId(INITIAL_SAMPLE_SCRIPT.elements[0].id);
     setActiveType(INITIAL_SAMPLE_SCRIPT.elements[0].type);
     setHistory([INITIAL_SAMPLE_SCRIPT]);
     setHistoryIndex(0);
+    setFileHandle(null);
     setIsDirty(true);
   };
 
-  // Google Drive Connect / Disconnect handlers
-  const handleConnectDrive = (token: string) => {
-    setDriveAccessToken(token);
-    setIsDriveConnected(true);
-    // Immediately mirror once on connection
-    mirrorScriptToGoogleDrive(token, script)
-      .then((res) => {
-        if (res.success) {
-          setDriveLastSync(res.timestamp);
-          setIsDirty(false);
-        }
-      })
-      .catch((err) => console.error('Initial drive mirror error', err));
-  };
-
-  const handleDisconnectDrive = () => {
-    setIsDriveConnected(false);
-    setDriveAccessToken('');
-    setDriveLastSync(null);
-  };
-
-  // Exit Leash: beforeunload warning if there are unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved changes! Save to Drive or Export before leaving.';
-        return e.returnValue;
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
-
-  // Script Ref for background tasks without causing re-renders or resetting intervals
-  const scriptRef = useRef(script);
-  useEffect(() => {
-    scriptRef.current = script;
-  }, [script]);
-
-  // 2-Minute Google Drive Auto-Mirror Sync
-  useEffect(() => {
-    if (!isDriveConnected || !driveAccessToken) return;
-    const interval = setInterval(async () => {
-      try {
-        const currentScript = scriptRef.current;
-        if (!currentScript) return;
-        const res = await mirrorScriptToGoogleDrive(driveAccessToken, currentScript);
-        if (res.success) {
-          setDriveLastSync(res.timestamp);
-          setIsDirty(false);
-        }
-      } catch (err) {
-        console.error('Google Drive auto-mirror sync failed', err);
-      }
-    }, 120000); // 2 minutes
-    return () => clearInterval(interval);
-  }, [isDriveConnected, driveAccessToken]);
-
-  // Revisions history
-  const [revisions, setRevisions] = useState<RevisionHistoryItem[]>([]);
-
-  // Jump function ref for scene navigation
-  const jumpFnRef = useRef<((idx: number) => void) | null>(null);
-
-  // 1. Initial Load of Revisions
-  useEffect(() => {
-    async function loadInitial() {
-      try {
-        const revs = await getRevisionsForScriptIDB(INITIAL_SAMPLE_SCRIPT.id);
-        setRevisions(revs);
-      } catch (err) {
-        console.error('Failed loading revisions', err);
-      }
-    }
-    loadInitial();
-  }, []);
-
-  // 2. RAM-Only Keystroke Handler with History Cap (Max 20) & Dirty State
-  const handleScriptChange = useCallback((updated: ScreenplayDocument) => {
-    setHistory((prev) => {
-      const newStack = prev.slice(0, historyIndex + 1);
-      const updatedStack = [...newStack, updated];
-      if (updatedStack.length > 20) {
-        return updatedStack.slice(updatedStack.length - 20);
-      }
-      return updatedStack;
-    });
-    setHistoryIndex((prev) => Math.min(prev + 1, 19));
-    setScript(updated);
-    setIsDirty(true);
-  }, [historyIndex]);
-
-  // Periodic Revision Snapshot (every 10 keystrokes / edits)
-  const saveSnapshot = useCallback(async () => {
-    const rev: RevisionHistoryItem = {
-      id: `rev-${Date.now()}`,
-      scriptId: script.id,
-      timestamp: new Date().toISOString(),
-      label: `Snapshot - ${script.elements.length} elements`,
-      elementCount: script.elements.length,
-      elements: [...script.elements],
-    };
-    await saveRevisionToIDB(rev);
-    const revs = await getRevisionsForScriptIDB(script.id);
-    setRevisions(revs);
-  }, [script]);
-
-  // Rollback Revision
-  const handleRollback = (rev: RevisionHistoryItem) => {
-    const updated: ScreenplayDocument = {
-      ...script,
-      elements: [...rev.elements],
-      updatedAt: new Date().toISOString(),
-    };
-    handleScriptChange(updated);
-    if (updated.elements[0]) {
-      setActiveElementId(updated.elements[0].id);
-      setActiveType(updated.elements[0].type);
-    }
-  };
-
-  // Title update
-  const handleUpdateTitle = (newTitle: string) => {
-    handleScriptChange({
-      ...script,
-      title: newTitle,
-      titlePage: { ...script.titlePage, title: newTitle },
-      updatedAt: new Date().toISOString(),
-    });
-  };
-
-  // Draft status update
-  const handleUpdateDraftStatus = (status: ScreenplayDocument['draftStatus']) => {
-    handleScriptChange({
-      ...script,
-      draftStatus: status,
-      updatedAt: new Date().toISOString(),
-    });
-  };
-
-  // Title Page save
-  const handleSaveTitlePage = (updatedTitlePage: TitlePage) => {
-    handleScriptChange({
+  // Title Page Save
+  const handleSaveTitlePage = async (updatedTitlePage: TitlePage) => {
+    const updatedDoc: ScreenplayDocument = {
       ...script,
       titlePage: updatedTitlePage,
       title: updatedTitlePage.title || script.title,
       author: updatedTitlePage.author || script.author,
       updatedAt: new Date().toISOString(),
-    });
-  };
-
-  // New Blank Script
-  const handleNewScript = async () => {
-    const newId = `script-${Date.now()}`;
-    const newDoc: ScreenplayDocument = {
-      id: newId,
-      title: 'UNTITLED SCREENPLAY',
-      author: 'Writer',
-      description: 'New screenplay draft',
-      draftStatus: 'DRAFT',
-      version: 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      titlePage: {
-        title: 'UNTITLED SCREENPLAY',
-        credit: 'Written by',
-        author: 'Writer',
-        source: '',
-        contact: '',
-        date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      },
-      elements: [
-        {
-          id: `elem-${Date.now()}-1`,
-          type: 'SCENE HEADING',
-          content: 'INT. LOCATION - DAY',
-          sceneNumber: '1',
-        },
-        {
-          id: `elem-${Date.now()}-2`,
-          type: 'ACTION',
-          content: 'Describe the scene...',
-        },
-      ],
     };
-    setScript(newDoc);
-    setActiveElementId(newDoc.elements[0].id);
-    setActiveType(newDoc.elements[0].type);
-    setIsDirty(true);
-  };
-
-  // Load Sample Script
-  const handleLoadSample = async () => {
-    setScript(INITIAL_SAMPLE_SCRIPT);
-    setActiveElementId(INITIAL_SAMPLE_SCRIPT.elements[0].id);
-    setActiveType(INITIAL_SAMPLE_SCRIPT.elements[0].type);
-    setIsDirty(true);
+    handleScriptChange(updatedDoc);
+    if (fileHandle) {
+      await saveScriptToFileHandle(fileHandle, updatedDoc);
+    } else {
+      await saveFileWithPicker(updatedDoc);
+    }
   };
 
   // Export handlers
-  const handleExport = async (format: 'pdf' | 'docx' | 'drive') => {
+  const handleExport = async (format: 'pdf' | 'docx' | 'screenplay') => {
     saveSnapshot();
 
     if (format === 'pdf') {
@@ -419,20 +452,11 @@ export default function App() {
       return;
     }
 
-    if (format === 'drive') {
-      if (isDriveConnected && driveAccessToken) {
-        try {
-          const res = await mirrorScriptToGoogleDrive(driveAccessToken, script);
-          if (res.success) {
-            setDriveLastSync(res.timestamp);
-            setIsDirty(false);
-            alert('Successfully synced script to Google Drive!');
-          }
-        } catch (err: any) {
-          alert(`Google Drive sync failed: ${err.message}`);
-        }
+    if (format === 'screenplay') {
+      if (fileHandle) {
+        await saveScriptToFileHandle(fileHandle, script);
       } else {
-        setIsSettingsOpen(true);
+        await saveFileWithPicker(script);
       }
       return;
     }
@@ -456,7 +480,7 @@ export default function App() {
     }
   };
 
-  // Import Handler
+  // Fallback Input File Import Handler
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -478,6 +502,8 @@ export default function App() {
         setActiveElementId(elements[0].id);
         setActiveType(elements[0].type);
       }
+      setHistory([newDoc]);
+      setHistoryIndex(0);
       setIsDirty(true);
       setImportBannerMessage('Heuristic import complete. Use TAB or Alt+1-8 to verify your formatting.');
     } catch (err: any) {
@@ -608,8 +634,10 @@ export default function App() {
                 latencyMs={latencyMs}
                 lastSavedAt={lastSavedAt}
                 onEmergencyExport={() => handleExport('docx')}
-                isDriveConnected={isDriveConnected}
                 isDirty={isDirty}
+                linkedFileName={linkedFileName}
+                hasFileHandle={!!fileHandle}
+                onRelinkFile={loadNativeFile}
               />
             </div>
           )}
@@ -621,10 +649,11 @@ export default function App() {
         isOpen={isTitlePageOpen}
         onClose={() => setIsTitlePageOpen(false)}
         titlePage={script.titlePage}
-        onSave={(updatedTitlePage) => handleScriptChange({ ...script, titlePage: updatedTitlePage })}
+        onSave={handleSaveTitlePage}
         onStartNewScript={handleStartNewScript}
         onLoadFile={handleImport}
         onOpenSampleScript={handleOpenSampleScript}
+        onLoadNativeFile={'showOpenFilePicker' in window ? loadNativeFile : undefined}
       />
 
       <RevisionHistoryModal
@@ -638,10 +667,6 @@ export default function App() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        isDriveConnected={isDriveConnected}
-        driveLastSync={driveLastSync}
-        onConnectDrive={handleConnectDrive}
-        onDisconnectDrive={handleDisconnectDrive}
         editorFont={editorFont}
         onUpdateFont={setEditorFont}
       />

@@ -10,6 +10,7 @@ interface TitlePageModalProps {
   onStartNewScript: () => void;
   onLoadFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onOpenSampleScript: () => void;
+  onLoadNativeFile?: () => void;
 }
 
 export const TitlePageModal: React.FC<TitlePageModalProps> = ({
@@ -20,6 +21,7 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
   onStartNewScript,
   onLoadFile,
   onOpenSampleScript,
+  onLoadNativeFile,
 }) => {
   if (!isOpen) return null;
 
@@ -61,10 +63,24 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                 <span>Start New Script</span>
               </button>
 
-              <label className="px-3 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-sky-400 text-sky-300 font-bold rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer transition">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onLoadNativeFile) {
+                    onLoadNativeFile();
+                    onClose();
+                  }
+                }}
+                className={`px-3 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-sky-400 text-sky-300 font-bold rounded-lg flex flex-col items-center justify-center gap-1 transition ${!onLoadNativeFile ? 'hidden' : ''}`}
+              >
                 <Upload className="w-4 h-4 text-sky-400" />
                 <span>Load File</span>
-                <input type="file" accept=".pdf,.docx,.txt,.fountain,.json" onChange={(e) => { onLoadFile(e); onClose(); }} className="hidden" />
+              </button>
+
+              <label className={`px-3 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-sky-400 text-sky-300 font-bold rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer transition ${onLoadNativeFile ? 'hidden' : ''}`}>
+                <Upload className="w-4 h-4 text-sky-400" />
+                <span>Load File</span>
+                <input type="file" accept=".pdf,.docx,.txt,.fountain,.json,.screenplay" onChange={(e) => { onLoadFile(e); onClose(); }} className="hidden" />
               </label>
 
               <button

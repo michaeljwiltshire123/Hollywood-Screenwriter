@@ -39,7 +39,7 @@ interface HeaderProps {
   onOpenDebugModal: () => void;
   onNewScript: () => void;
   onLoadSample: () => void;
-  onExport: (format: 'pdf' | 'docx' | 'drive') => void;
+  onExport: (format: 'pdf' | 'docx' | 'screenplay') => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   latencyMs: number;
   draftModeActive: boolean;
@@ -280,14 +280,14 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden lg:inline">TITLE PAGE</span>
             </button>
 
-            {/* Connect to Drive Modal */}
+            {/* Settings Modal */}
             <button
               onClick={onOpenSettingsModal}
               className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300 hover:bg-slate-750 text-xs font-medium flex items-center gap-1.5 transition"
-              title="Connect to Google Drive & Font Settings"
+              title="Editor Font Settings"
             >
               <Settings className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden lg:inline">CONNECT TO DRIVE</span>
+              <span className="hidden lg:inline">SETTINGS</span>
             </button>
 
             {/* Export Dropdown */}
@@ -331,13 +331,13 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                   <button
                     onClick={() => {
-                      onExport('drive');
+                      onExport('screenplay');
                       setIsExportOpen(false);
                     }}
                     className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 border-t border-slate-700"
                   >
-                    <Cloud className="w-3.5 h-3.5 text-sky-400" />
-                    Sync to Google Drive
+                    <FileCode className="w-3.5 h-3.5 text-sky-400" />
+                    Screenplay File (.screenplay)
                   </button>
                 </div>
               )}

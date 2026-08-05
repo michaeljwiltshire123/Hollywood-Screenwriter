@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle2, HardDrive, Download, Clock, Zap } from 'lucide-react';
+import { ShieldAlert, HardDrive, Link2 } from 'lucide-react';
 import { ScreenplayDocument } from '../types';
 import { calculatePageEstimate } from '../lib/screenplayUtils';
 
@@ -8,19 +8,20 @@ interface FooterProps {
   latencyMs: number;
   lastSavedAt: Date | null;
   onEmergencyExport: () => void;
-  isDriveConnected?: boolean;
   isDirty?: boolean;
+  linkedFileName?: string | null;
+  hasFileHandle?: boolean;
+  onRelinkFile?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   script,
-  latencyMs,
-  lastSavedAt,
   onEmergencyExport,
-  isDriveConnected = false,
   isDirty = false,
+  linkedFileName = null,
+  hasFileHandle = false,
+  onRelinkFile,
 }) => {
-  const [justSaved, setJustSaved] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const elements = script?.elements || [];
   const pageStats = calculatePageEstimate(elements);
@@ -36,16 +37,12 @@ export const Footer: React.FC<FooterProps> = ({
     };
   }, []);
 
-  const formattedTime = lastSavedAt
-    ? lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    : 'Ready';
-
   const isCloudOffline = !isOnline;
 
   return (
     <footer className="bg-slate-900 border-t border-slate-800 text-slate-300 py-2 px-4 text-xs font-mono select-none sticky bottom-0 z-20">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-        {/* Left: Synced vs Unsaved Status Indicator / Cloud Offline */}
+        {/* Left: Status Indicator & Relink Button */}
         <div className="flex items-center gap-3">
           {isCloudOffline ? (
             <div className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-rose-500/80 bg-rose-950/90 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.4)]">
@@ -55,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({
               </span>
               <HardDrive className="w-3.5 h-3.5 text-rose-400" />
               <span className="font-bold tracking-wide text-[11px] text-rose-300 uppercase">
-                CLOUD OFFLINE - SYNC PAUSED
+                OFFLINE
               </span>
             </div>
           ) : !isDirty ? (
@@ -65,7 +62,7 @@ export const Footer: React.FC<FooterProps> = ({
               </span>
               <HardDrive className="w-3.5 h-3.5 text-emerald-400" />
               <span className="font-bold tracking-wide text-[11px] text-emerald-400 uppercase">
-                SYNCED
+                SAVED
               </span>
             </div>
           ) : (
@@ -79,6 +76,19 @@ export const Footer: React.FC<FooterProps> = ({
                 UNSAVED CHANGES
               </span>
             </div>
+          )}
+
+          {/* Relink Button if file was previously linked but handle was lost on refresh */}
+          {linkedFileName && !hasFileHandle && onRelinkFile && (
+            <button
+              type="button"
+              onClick={onRelinkFile}
+              className="px-2.5 py-1 rounded bg-sky-950/90 hover:bg-sky-900 border border-sky-500/80 text-sky-300 font-bold flex items-center gap-1.5 transition text-[11px] shadow-xs active:scale-95"
+              title="Click to re-select the file and restore Ctrl+S direct disk overwrite"
+            >
+              <Link2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span>Relink {linkedFileName}</span>
+            </button>
           )}
         </div>
 
