@@ -10,6 +10,7 @@ import {
   Sparkles,
   Clock,
   X,
+  ChevronLeft,
   ChevronRight,
   TrendingUp,
   Lightbulb,
@@ -129,6 +130,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
   revisions,
   onRollbackRevision,
 }) => {
+  const tabNavRef = React.useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'scenes' | 'shotlist' | 'arc' | 'inspiration' | 'characters' | 'stats'>('scenes');
   const [sceneSearch, setSceneSearch] = useState('');
 
@@ -464,78 +466,101 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex items-center border-b border-slate-800 bg-slate-950/50 text-[10px] font-mono overflow-x-auto no-scrollbar">
+        {/* Tabs Carousel */}
+        <div className="relative flex items-center border-b border-slate-800 bg-slate-950/50 text-[10px] font-mono group">
           <button
-            onClick={() => setActiveTab('scenes')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'scenes'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+            type="button"
+            onClick={() => tabNavRef.current?.scrollBy({ left: -100, behavior: 'smooth' })}
+            className="absolute left-0 z-10 p-1 bg-slate-900/90 text-amber-400 hover:text-white rounded-r opacity-0 group-hover:opacity-100 transition shadow"
+            title="Scroll left"
           >
-            <Layers className="w-3 h-3" />
-            SCENES
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
-          <button
-            onClick={() => setActiveTab('shotlist')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'shotlist'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+          <div
+            ref={tabNavRef}
+            className="flex-nowrap overflow-x-auto no-scrollbar scroll-smooth gap-1 select-none flex items-center w-full px-4 py-1"
           >
-            <Camera className="w-3 h-3 text-sky-400" />
-            SHOT LIST
-          </button>
+            <button
+              onClick={() => setActiveTab('scenes')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'scenes'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Layers className="w-3 h-3" />
+              SCENES
+            </button>
+
+            <button
+              onClick={() => setActiveTab('shotlist')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'shotlist'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Camera className="w-3 h-3 text-sky-400" />
+              SHOT LIST
+            </button>
+
+            <button
+              onClick={() => setActiveTab('arc')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'arc'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <TrendingUp className="w-3 h-3 text-emerald-400" />
+              STORY ARC
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inspiration')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'inspiration'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Lightbulb className="w-3 h-3 text-amber-400" />
+              INSPIRATIONS
+            </button>
+
+            <button
+              onClick={() => setActiveTab('characters')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'characters'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3 h-3" />
+              CHARACTERS
+            </button>
+
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`min-w-max shrink-0 px-3 py-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 ${
+                activeTab === 'stats'
+                  ? 'border-amber-400 text-amber-300 bg-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <BarChart3 className="w-3 h-3" />
+              STATS
+            </button>
+          </div>
 
           <button
-            onClick={() => setActiveTab('arc')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'arc'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+            type="button"
+            onClick={() => tabNavRef.current?.scrollBy({ left: 100, behavior: 'smooth' })}
+            className="absolute right-0 z-10 p-1 bg-slate-900/90 text-amber-400 hover:text-white rounded-l opacity-0 group-hover:opacity-100 transition shadow"
+            title="Scroll right"
           >
-            <TrendingUp className="w-3 h-3 text-emerald-400" />
-            STORY ARC
-          </button>
-
-          <button
-            onClick={() => setActiveTab('inspiration')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'inspiration'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Lightbulb className="w-3 h-3 text-amber-400" />
-            INSPIRATIONS
-          </button>
-
-          <button
-            onClick={() => setActiveTab('characters')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'characters'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Users className="w-3 h-3" />
-            CHARACTERS
-          </button>
-
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`flex-1 py-2 px-2 text-center border-b-2 font-semibold transition flex items-center justify-center gap-1 shrink-0 ${
-              activeTab === 'stats'
-                ? 'border-amber-400 text-amber-300 bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <BarChart3 className="w-3 h-3" />
-            STATS
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 

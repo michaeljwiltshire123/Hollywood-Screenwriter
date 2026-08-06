@@ -215,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               {isPomodoroSettingsOpen && (
                 <div
-                  className="absolute right-0 mt-8 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-xl p-3 z-50 text-xs font-mono"
+                  className="absolute right-0 top-full mt-2 z-50 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-xl p-3 text-xs font-mono"
                   onMouseLeave={() => setIsPomodoroSettingsOpen(false)}
                 >
                   <div className="font-bold text-amber-300 mb-2">Pomodoro Settings</div>

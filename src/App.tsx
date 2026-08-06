@@ -520,18 +520,9 @@ export default function App() {
         onUpdateDraftStatus={handleUpdateDraftStatus}
         isSidePanelOpen={isSidePanelOpen}
         onToggleSidePanel={() => setIsSidePanelOpen(!isSidePanelOpen)}
-        onOpenTitlePage={() => {
-          window.alert("Button Triggered: Title Page");
-          setIsTitlePageOpen(true);
-        }}
-        onOpenHistoryModal={() => {
-          window.alert("Button Triggered: Revisions");
-          setIsHistoryModalOpen(true);
-        }}
-        onOpenSettingsModal={() => {
-          window.alert("Button Triggered: Settings");
-          setIsSettingsOpen(true);
-        }}
+        onOpenTitlePage={() => setIsTitlePageOpen(true)}
+        onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
+        onOpenSettingsModal={() => setIsSettingsOpen(true)}
         onOpenDebugModal={() => setIsDebugOpen(true)}
         onNewScript={handleStartNewScript}
         onLoadSample={handleOpenSampleScript}
@@ -691,6 +682,10 @@ export default function App() {
       <BreakGameModal
         isOpen={isBreakGameOpen}
         onClose={() => setIsBreakGameOpen(false)}
+        onGetBackToWork={() => {
+          setIsBreakGameOpen(false);
+          setIsPomodoroRunning(true);
+        }}
         playedGames={playedGames}
         onGameCompleted={(gameId) => {
           if (!playedGames.includes(gameId)) {
