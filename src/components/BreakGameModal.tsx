@@ -59,6 +59,12 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
     setTimeout(() => setToast(null), 2500);
   };
 
+  const handleWin = (gameId: string) => {
+    setGameState('won');
+    onGameCompleted(gameId);
+    showToast('Oscar Contender! Game Complete 🏆', 'success');
+  };
+
   // Timer Effect when modal is open
   useEffect(() => {
     if (!isOpen) return;
@@ -298,12 +304,6 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
   };
 
   if (!isOpen) return null;
-
-  const handleWin = (gameId: string) => {
-    setGameState('won');
-    onGameCompleted(gameId);
-    showToast('Oscar Contender! Game Complete 🏆', 'success');
-  };
 
   const selectedGame = ALL_GAMES.find((g) => g.id === activeGameId);
   const isTimeExpired = breakSecondsRemaining <= 0;
