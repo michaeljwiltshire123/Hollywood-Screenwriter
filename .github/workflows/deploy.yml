@@ -62,4 +62,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show deployed URL
+- name: Report Deployment URL
         run: echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
