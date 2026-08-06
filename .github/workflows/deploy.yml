@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -32,15 +32,6 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Check dist
-        run: |
-          if [ ! -d "./dist" ]; then
-            echo "Error: ./dist directory does not exist!"
-            exit 1
-          fi
-          ls -la ./dist
-          du -sh ./dist
-
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -49,16 +40,10 @@ jobs:
   deploy:
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
-    timeout-minutes: 30
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Echo Pages URL
-        run: echo "Pages URL: ${{ steps.deployment.outputs.page_url }}"
-
