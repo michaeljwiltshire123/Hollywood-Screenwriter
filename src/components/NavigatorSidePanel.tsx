@@ -466,84 +466,84 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           </div>
         )}
 
-        {/* 6-Tab Navigation Grid (Always 100% Visible) */}
-        <div className="grid grid-cols-3 gap-1 p-1.5 border-b border-slate-800 bg-slate-950/80 text-[10px] font-mono">
+        {/* 6-Tab Single-Row Icon Grid */}
+        <div className="flex flex-row w-full justify-between items-center bg-slate-950/80 border-b border-slate-800 p-1">
           <button
             onClick={() => setActiveTab('scenes')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'scenes'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Scene Heading Navigator"
           >
-            <Layers className="w-3 h-3 text-amber-400 shrink-0" />
-            <span className="truncate">SCENES</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">SCENES</span>
           </button>
 
           <button
             onClick={() => setActiveTab('shotlist')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'shotlist'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Production Stripboard & Shot List"
           >
-            <Camera className="w-3 h-3 text-sky-400 shrink-0" />
-            <span className="truncate">SHOTS</span>
+            <Camera className="w-3.5 h-3.5 text-sky-400" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">SHOTS</span>
           </button>
 
           <button
             onClick={() => setActiveTab('arc')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'arc'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Story Arc Sandbox"
           >
-            <TrendingUp className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span className="truncate">ARC</span>
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">ARC</span>
           </button>
 
           <button
             onClick={() => setActiveTab('inspiration')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'inspiration'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Creative Inspirations & Provocations"
           >
-            <Lightbulb className="w-3 h-3 text-amber-400 shrink-0" />
-            <span className="truncate">IDEAS</span>
+            <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">SPARK</span>
           </button>
 
           <button
             onClick={() => setActiveTab('characters')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'characters'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Character Bibles & Appearance Logs"
           >
-            <Users className="w-3 h-3 text-purple-400 shrink-0" />
-            <span className="truncate">CHARS</span>
+            <Users className="w-3.5 h-3.5" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">BIBLE</span>
           </button>
 
           <button
             onClick={() => setActiveTab('stats')}
-            className={`py-1.5 px-1 rounded border font-semibold transition flex items-center justify-center gap-1 text-center truncate ${
+            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'stats'
-                ? 'border-amber-400 text-amber-300 bg-slate-900 shadow-sm'
-                : 'border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
+                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Script Page Stats & Breakdown"
           >
-            <BarChart3 className="w-3 h-3 text-rose-400 shrink-0" />
-            <span className="truncate">STATS</span>
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span className="text-[8px] uppercase tracking-wider font-bold">STATS</span>
           </button>
         </div>
 
