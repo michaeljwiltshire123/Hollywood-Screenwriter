@@ -547,7 +547,7 @@ export default function App() {
       {/* Main Container below Header with Independent Scrolling */}
       <div className="h-[calc(100vh-3.5rem)] overflow-hidden flex flex-row w-full relative z-0">
         {isSidePanelOpen && !isFocusMode && (
-          <div className="h-full overflow-y-auto w-80 shrink-0 border-r border-slate-800 bg-slate-900 z-30">
+          <div className="h-full w-80 sm:w-96 shrink-0 border-r border-slate-800 bg-slate-900 z-30 flex flex-col">
             <NavigatorSidePanel
               script={script}
               isOpen={isSidePanelOpen && !isFocusMode}

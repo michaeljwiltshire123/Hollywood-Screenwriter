@@ -438,18 +438,18 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
         />
       )}
 
-      <aside className="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto w-80 sm:w-96 bg-slate-900 border-r border-slate-800 text-slate-200 h-full flex flex-col shadow-2xl shrink-0 select-none transition-all duration-300">
+      <aside className="w-full h-full bg-slate-900 text-slate-200 flex flex-col select-none overflow-hidden">
         {/* Panel Header */}
-        <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <Map className="w-4 h-4 text-amber-400" />
-            <span className="font-mono font-bold text-xs uppercase text-amber-300">
+            <Map className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="font-mono font-bold text-xs uppercase text-amber-300 truncate">
               NAVIGATOR • PRODUCTION
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"
+            className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white shrink-0"
             title="Close panel"
           >
             <X className="w-4 h-4" />
@@ -458,7 +458,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
         {/* Storage Heavy Warning Banner */}
         {isStorageHeavy && (
-          <div className="bg-rose-950/90 border-b border-rose-500/50 p-2.5 flex items-start gap-2 text-[11px] text-rose-200">
+          <div className="bg-rose-950/90 border-b border-rose-500/50 p-2.5 flex items-start gap-2 text-[11px] text-rose-200 shrink-0">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div>
               <strong className="font-bold">STORAGE WARNING:</strong> Base64 images exceed 5MB. IndexedDB JSON size is high ({Math.round(jsonStringSize / (1024 * 1024))}MB). Consider smaller sketches.
@@ -467,83 +467,83 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
         )}
 
         {/* 6-Tab Single-Row Icon Grid */}
-        <div className="flex flex-row w-full justify-between items-center bg-slate-950/80 border-b border-slate-800 p-1">
+        <div className="flex flex-row w-full justify-between items-center bg-slate-950/80 border-b border-slate-800 p-1 shrink-0">
           <button
             onClick={() => setActiveTab('scenes')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'scenes'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Scene Heading Navigator"
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">SCENES</span>
+            <Layers className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">SCENES</span>
           </button>
 
           <button
             onClick={() => setActiveTab('shotlist')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'shotlist'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Production Stripboard & Shot List"
           >
-            <Camera className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">SHOTS</span>
+            <Camera className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">SHOTS</span>
           </button>
 
           <button
             onClick={() => setActiveTab('arc')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'arc'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Story Arc Sandbox"
           >
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">ARC</span>
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">ARC</span>
           </button>
 
           <button
             onClick={() => setActiveTab('inspiration')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'inspiration'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Creative Inspirations & Provocations"
           >
-            <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">SPARK</span>
+            <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">SPARK</span>
           </button>
 
           <button
             onClick={() => setActiveTab('characters')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'characters'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Character Bibles & Appearance Logs"
           >
-            <Users className="w-3.5 h-3.5" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">BIBLE</span>
+            <Users className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">BIBLE</span>
           </button>
 
           <button
             onClick={() => setActiveTab('stats')}
-            className={`flex-1 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
+            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'stats'
                 ? 'border-amber-400 text-amber-300 bg-slate-900/60'
                 : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
             }`}
             title="Script Page Stats & Breakdown"
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span className="text-[8px] uppercase tracking-wider font-bold">STATS</span>
+            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">STATS</span>
           </button>
         </div>
 
@@ -582,22 +582,22 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                         key={scene.id}
                         className="p-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded transition space-y-2"
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2 min-w-0">
                           <div
                             onClick={() => onJumpToElementIndex(scene.elementIndex)}
-                            className="font-bold text-amber-300 truncate flex items-center gap-1.5 cursor-pointer hover:underline"
+                            className="font-bold text-amber-300 flex items-center gap-1.5 cursor-pointer hover:underline flex-1 min-w-0"
                             title="Jump to scene in script"
                           >
-                            <span className="text-[10px] bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded border border-slate-800">
+                            <span className="text-[10px] bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
                               #{scene.sceneNumber}
                             </span>
-                            <span className="truncate">{scene.heading}</span>
+                            <span className="truncate min-w-0">{scene.heading}</span>
                           </div>
                           <button
                             onClick={() => setActiveShotSceneId(scene.id)}
                             className="px-2 py-1 bg-sky-950 border border-sky-600/60 hover:bg-sky-900 text-sky-200 rounded font-bold text-[10px] flex items-center gap-1 shrink-0 transition"
                           >
-                            <Camera className="w-3 h-3 text-sky-400" />
+                            <Camera className="w-3 h-3 text-sky-400 shrink-0" />
                             <span>Shots ({sceneShots.length})</span>
                           </button>
                         </div>
@@ -738,16 +738,16 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                         key={scene.id}
                         className="p-3 bg-slate-800/90 border border-slate-700 rounded-lg space-y-2.5 shadow-sm"
                       >
-                        <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
-                          <div className="font-bold text-amber-300 flex items-center gap-1.5">
-                            <span className="text-[10px] bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded border border-slate-800">
+                        <div className="flex items-center justify-between border-b border-slate-700/60 pb-2 min-w-0 gap-2">
+                          <div className="font-bold text-amber-300 flex items-center gap-1.5 flex-1 min-w-0">
+                            <span className="text-[10px] bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
                               #{scene.sceneNumber}
                             </span>
-                            <span className="truncate max-w-[180px]">{scene.heading}</span>
+                            <span className="truncate min-w-0">{scene.heading}</span>
                           </div>
                           <button
                             onClick={() => setActiveShotSceneId(scene.id)}
-                            className="px-2 py-1 bg-slate-900 border border-slate-700 hover:bg-slate-750 text-sky-300 rounded text-[10px] font-bold flex items-center gap-1 transition"
+                            className="px-2 py-1 bg-slate-900 border border-slate-700 hover:bg-slate-750 text-sky-300 rounded text-[10px] font-bold flex items-center gap-1 transition shrink-0"
                           >
                             <Plus className="w-3 h-3" />
                             <span>Add Shot</span>
@@ -774,7 +774,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                                   </div>
                                   <span className="text-slate-400">{sh.estimatedTimeMin} min</span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-1 text-[10px] text-slate-300 pt-1">
+                                <div className="flex flex-wrap gap-2 text-[10px] text-slate-300 pt-1">
                                   <div><span className="text-slate-500">Angle:</span> {sh.angle}</div>
                                   <div><span className="text-slate-500">Lens:</span> {sh.lens}</div>
                                   <div><span className="text-slate-500">Equip:</span> {sh.equipment}</div>
@@ -888,8 +888,8 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       </div>
 
                       {/* Scene Link & Sketch Pin Linkage */}
-                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700/50 text-[10px]">
-                        <div>
+                      <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-700/50 text-[10px]">
+                        <div className="flex-1 min-w-[130px]">
                           <label className="block text-slate-400 uppercase font-bold mb-0.5">Scene Link:</label>
                           <select
                             value={card.linkedSceneId || ''}
@@ -903,7 +903,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                           </select>
                         </div>
 
-                        <div>
+                        <div className="flex-1 min-w-[130px]">
                           <label className="block text-slate-400 uppercase font-bold mb-0.5">Pin Sketch Ref:</label>
                           <select
                             value={card.sketchId || ''}
