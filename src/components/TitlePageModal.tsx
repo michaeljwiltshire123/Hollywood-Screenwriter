@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, BookOpen, Save, FilePlus, Upload, Sparkles } from 'lucide-react';
 import { TitlePage } from '../types';
 
@@ -23,9 +23,15 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
   onOpenSampleScript,
   onLoadNativeFile,
 }) => {
-  if (!isOpen) return null;
-
   const [form, setForm] = useState<TitlePage>({ ...titlePage });
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({ ...titlePage });
+    }
+  }, [titlePage, isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

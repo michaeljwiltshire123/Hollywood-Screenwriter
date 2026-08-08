@@ -11,6 +11,7 @@ import { INITIAL_SAMPLE_SCRIPT } from './lib/sampleScript';
 import {
   generateDocxExport,
   parseUploadedFile,
+  calculatePageEstimate,
 } from './lib/screenplayUtils';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -23,6 +24,10 @@ import { SettingsModal } from './components/SettingsModal';
 import { DebugDashboardModal } from './components/DebugDashboardModal';
 import { PomodoroAlertModal } from './components/PomodoroAlertModal';
 import { BreakGameModal } from './components/BreakGameModal';
+import { TableReadModal } from './components/TableReadModal';
+import { FocusGoalModal } from './components/FocusGoalModal';
+import { FocusSummaryModal } from './components/FocusSummaryModal';
+import { FocusTopBar } from './components/FocusTopBar';
 
 export default function App() {
   const [script, setScript] = useState<ScreenplayDocument>(INITIAL_SAMPLE_SCRIPT);
@@ -94,6 +99,17 @@ export default function App() {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isDebugOpen, setIsDebugOpen] = useState<boolean>(false);
+  const [isTableReadOpen, setIsTableReadOpen] = useState<boolean>(false);
+
+  // Focus Sprint Goal state
+  const [isFocusGoalModalOpen, setIsFocusGoalModalOpen] = useState<boolean>(false);
+  const [isFocusSummaryOpen, setIsFocusSummaryOpen] = useState<boolean>(false);
+  const [focusTargetMins, setFocusTargetMins] = useState<number>(45);
+  const [focusTargetWords, setFocusTargetWords] = useState<number>(500);
+  const [focusInitialWordCount, setFocusInitialWordCount] = useState<number>(0);
+  const [focusElapsedSeconds, setFocusElapsedSeconds] = useState<number>(0);
+  const [focusGoalHitTimeSeconds, setFocusGoalHitTimeSeconds] = useState<number | null>(null);
+  const [focusHasCelebrated, setFocusHasCelebrated] = useState<boolean>(false);
 
   // Pomodoro & Break Suite state
   const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(2700); // 45 minutes
@@ -121,22 +137,68 @@ export default function App() {
     scriptRef.current = script;
   }, [script]);
 
-  // Pomodoro timer effect
+  // Pomodoro & Focus Sprint timer effect
   useEffect(() => {
     if (!isPomodoroRunning) return;
     const timer = setInterval(() => {
       setPomodoroSeconds((prev) => {
         if (prev <= 1) {
           setIsPomodoroRunning(false);
-          setIsPomodoroAlertOpen(true);
           playDingSound();
+          if (isFocusMode) {
+            setIsFocusSummaryOpen(true);
+          } else {
+            setIsPomodoroAlertOpen(true);
+          }
           return 0;
         }
         return prev - 1;
       });
+
+      if (isFocusMode) {
+        setFocusElapsedSeconds((prevElapsed) => {
+          const nextElapsed = prevElapsed + 1;
+          const currentWords = calculatePageEstimate(scriptRef.current.elements).totalWords;
+          const net = Math.max(0, currentWords - focusInitialWordCount);
+          if (net >= focusTargetWords && !focusHasCelebrated) {
+            setFocusHasCelebrated(true);
+            setFocusGoalHitTimeSeconds(nextElapsed);
+            playCelebratoryChime();
+          }
+          return nextElapsed;
+        });
+      }
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPomodoroRunning]);
+  }, [isPomodoroRunning, isFocusMode, focusInitialWordCount, focusTargetWords, focusHasCelebrated]);
+
+  function playCelebratoryChime() {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const tones = [
+        { freq: 523.25, time: 0 },
+        { freq: 659.25, time: 100 },
+        { freq: 783.99, time: 200 },
+        { freq: 1046.50, time: 300 },
+      ];
+      tones.forEach(({ freq, time }) => {
+        setTimeout(() => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.6);
+        }, time);
+      });
+    } catch (e) {
+      console.error('AudioContext chime error', e);
+    }
+  }
 
   function playDingSound() {
     try {
@@ -165,6 +227,62 @@ export default function App() {
   }
 
   // --- FILE SYSTEM ACCESS API & OVERWRITE SOVEREIGNTY ---
+  const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+
+  const processImportedFile = async (file: File): Promise<ScreenplayDocument> => {
+    const fileName = file.name.toLowerCase();
+    const text = await file.text();
+
+    if (fileName.endsWith('.screenplay') || fileName.endsWith('.json')) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.elements)) {
+          return {
+            ...parsed,
+            id: parsed.id || `script-${Date.now()}`,
+            title: parsed.title || file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').toUpperCase(),
+            elements: parsed.elements,
+            titlePage: parsed.titlePage || {
+              title: parsed.title || 'UNTITLED',
+              credit: 'Written by',
+              author: parsed.author || 'Author Name',
+              source: '',
+              contact: '',
+              date: new Date().toLocaleDateString(),
+              draftColor: 'White Draft',
+            },
+          };
+        }
+      } catch (e) {
+        console.warn('File has .screenplay or .json extension but is not valid JSON, using text parser fallback.', e);
+      }
+    }
+
+    const parsedElems = await parseUploadedFile(file);
+    const titleClean = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ').toUpperCase();
+
+    return {
+      id: `script-${Date.now()}`,
+      title: titleClean,
+      author: 'Author Name',
+      description: `Imported from ${file.name}`,
+      draftStatus: 'DRAFT',
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      titlePage: {
+        title: titleClean,
+        credit: 'Written by',
+        author: 'Author Name',
+        source: `Based on story from ${file.name}`,
+        contact: '',
+        date: new Date().toLocaleDateString(),
+        draftColor: 'White Draft',
+      },
+      elements: parsedElems,
+    };
+  };
+
   const saveScriptToFileHandle = async (targetHandle: any, doc: ScreenplayDocument) => {
     try {
       const writable = await targetHandle.createWritable();
@@ -177,10 +295,12 @@ export default function App() {
       try {
         localStorage.setItem('screenwriter_linked_filename', targetHandle.name);
       } catch (e) {}
+      setImportBannerMessage(`Saved changes directly to "${targetHandle.name}".`);
+      setTimeout(() => setImportBannerMessage(null), 3000);
       return true;
     } catch (err: any) {
       console.error('File system write error:', err);
-      return false;
+      return await saveFileWithPicker(doc);
     }
   };
 
@@ -196,6 +316,8 @@ export default function App() {
     URL.revokeObjectURL(url);
     setIsDirty(false);
     setLastSavedAt(new Date());
+    setImportBannerMessage(`Downloaded "${(doc.title || 'screenplay')}.screenplay".`);
+    setTimeout(() => setImportBannerMessage(null), 3000);
   };
 
   const saveFileWithPicker = async (doc: ScreenplayDocument = script) => {
@@ -216,6 +338,10 @@ export default function App() {
       } catch (err: any) {
         if (err.name !== 'AbortError') {
           console.error('Save file picker error:', err);
+          if (err.name === 'SecurityError' || err.message?.includes('subframe')) {
+            setImportBannerMessage(`Preview iFrame restricts native file dialogs. Downloaded file. Open app in a new tab for direct disk saving!`);
+            setTimeout(() => setImportBannerMessage(null), 6000);
+          }
           triggerFallbackDownload(doc);
         }
         return false;
@@ -232,10 +358,12 @@ export default function App() {
         const options = {
           types: [
             {
-              description: 'Screenplay Files (*.screenplay, *.json, *.txt, *.fountain)',
+              description: 'Screenplay Files (*.screenplay, *.json, *.pdf, *.docx, *.fountain, *.fdx, *.txt)',
               accept: {
                 'application/json': ['.screenplay', '.json'],
                 'text/plain': ['.txt', '.fountain'],
+                'application/pdf': ['.pdf'],
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
               },
             },
           ],
@@ -243,20 +371,7 @@ export default function App() {
         };
         const [handle] = await (window as any).showOpenFilePicker(options);
         const file = await handle.getFile();
-        const text = await file.text();
-        let loadedDoc: ScreenplayDocument;
-
-        if (file.name.endsWith('.screenplay') || file.name.endsWith('.json')) {
-          try {
-            loadedDoc = JSON.parse(text);
-          } catch {
-            const parsedElems = await parseUploadedFile(file);
-            loadedDoc = { ...script, id: `script-${Date.now()}`, title: file.name.replace(/\.[^/.]+$/, '').toUpperCase(), elements: parsedElems };
-          }
-        } else {
-          const parsedElems = await parseUploadedFile(file);
-          loadedDoc = { ...script, id: `script-${Date.now()}`, title: file.name.replace(/\.[^/.]+$/, '').toUpperCase(), elements: parsedElems };
-        }
+        const loadedDoc = await processImportedFile(file);
 
         setScript(loadedDoc);
         if (loadedDoc.elements && loadedDoc.elements[0]) {
@@ -272,25 +387,59 @@ export default function App() {
         } catch (e) {}
         setIsDirty(false);
         setLastSavedAt(new Date());
+
+        const fileNameLower = file.name.toLowerCase();
+        if (!fileNameLower.endsWith('.screenplay') && !fileNameLower.endsWith('.json')) {
+          setIsTitlePageOpen(true);
+          setImportBannerMessage(`Story "${loadedDoc.title}" imported! Confirm Title Page details.`);
+        } else {
+          setImportBannerMessage(`Opened project "${loadedDoc.title}" (${handle.name}).`);
+          setTimeout(() => setImportBannerMessage(null), 4000);
+        }
       } catch (err: any) {
         if (err.name !== 'AbortError') {
           console.error('Open file error:', err);
+          hiddenFileInputRef.current?.click();
         }
       }
+    } else {
+      hiddenFileInputRef.current?.click();
     }
   };
 
-  // Keyboard shortcut Ctrl + S / Cmd + S for Overwrite Sovereignty
+  const handleSaveProject = async () => {
+    const currentDoc = scriptRef.current;
+    if (fileHandle) {
+      await saveScriptToFileHandle(fileHandle, currentDoc);
+    } else {
+      await saveFileWithPicker(currentDoc);
+    }
+  };
+
+  const handleSaveAsProject = async () => {
+    const currentDoc = scriptRef.current;
+    await saveFileWithPicker(currentDoc);
+  };
+
+  // Keyboard shortcut Ctrl + S / Cmd + S for Overwrite Sovereignty & Ctrl + O / Cmd + O for Open
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (cmdOrCtrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
         const currentDoc = scriptRef.current;
-        if (fileHandle) {
+        if (e.shiftKey) {
+          saveFileWithPicker(currentDoc);
+        } else if (fileHandle) {
           saveScriptToFileHandle(fileHandle, currentDoc);
         } else {
           saveFileWithPicker(currentDoc);
         }
+      } else if (cmdOrCtrl && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        loadNativeFile();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -412,6 +561,7 @@ export default function App() {
     setHistoryIndex(0);
     setFileHandle(null);
     setIsDirty(true);
+    setIsTitlePageOpen(true);
   };
 
   // Load Sample Script
@@ -486,33 +636,65 @@ export default function App() {
     if (!file) return;
 
     try {
-      const elements = await parseUploadedFile(file);
-      const titleClean = file.name.replace(/\.[^/.]+$/, '').toUpperCase();
+      const loadedDoc = await processImportedFile(file);
 
-      const newDoc: ScreenplayDocument = {
-        ...script,
-        id: `script-${Date.now()}`,
-        title: titleClean,
-        elements,
-        updatedAt: new Date().toISOString(),
-      };
-
-      setScript(newDoc);
-      if (elements[0]) {
-        setActiveElementId(elements[0].id);
-        setActiveType(elements[0].type);
+      setScript(loadedDoc);
+      if (loadedDoc.elements && loadedDoc.elements[0]) {
+        setActiveElementId(loadedDoc.elements[0].id);
+        setActiveType(loadedDoc.elements[0].type);
       }
-      setHistory([newDoc]);
+      setHistory([loadedDoc]);
       setHistoryIndex(0);
-      setIsDirty(true);
-      setImportBannerMessage('Heuristic import complete. Use TAB or Alt+1-8 to verify your formatting.');
+      setIsDirty(false);
+      setLastSavedAt(new Date());
+
+      const fileNameLower = file.name.toLowerCase();
+      if (!fileNameLower.endsWith('.screenplay') && !fileNameLower.endsWith('.json')) {
+        setIsTitlePageOpen(true);
+        setImportBannerMessage(`Story "${loadedDoc.title}" imported! Confirm Title Page details.`);
+      } else {
+        setImportBannerMessage(`Opened project "${loadedDoc.title}".`);
+        setTimeout(() => setImportBannerMessage(null), 4000);
+      }
     } catch (err: any) {
       alert(`Import failed: ${err.message}`);
     }
+    e.target.value = '';
+  };
+
+  const handleToggleFocusMode = () => {
+    if (isFocusMode) {
+      setIsFocusMode(false);
+    } else {
+      setIsFocusGoalModalOpen(true);
+    }
+  };
+
+  const handleStartFocusSprint = (mins: number, words: number) => {
+    const currentWords = calculatePageEstimate(script.elements).totalWords;
+    setFocusTargetMins(mins);
+    setFocusTargetWords(words);
+    setFocusInitialWordCount(currentWords);
+    setFocusElapsedSeconds(0);
+    setFocusGoalHitTimeSeconds(null);
+    setFocusHasCelebrated(false);
+    setPomodoroSeconds(mins * 60);
+    setIsPomodoroRunning(true);
+    setIsFocusMode(true);
+    setIsFocusGoalModalOpen(false);
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col pt-14 font-sans selection:bg-amber-400 selection:text-slate-950">
+      {/* Hidden File Input for Native Open Fallback */}
+      <input
+        type="file"
+        ref={hiddenFileInputRef}
+        accept=".screenplay,.json,.pdf,.docx,.fdx,.fountain,.txt"
+        onChange={handleImport}
+        className="hidden"
+      />
+
       {/* Header */}
       <Header
         script={script}
@@ -536,13 +718,32 @@ export default function App() {
         canUndo={canUndo}
         canRedo={canRedo}
         isFocusMode={isFocusMode}
-        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+        onToggleFocusMode={handleToggleFocusMode}
         pomodoroSeconds={pomodoroSeconds}
         onOpenBreakModal={() => setIsBreakGameOpen(true)}
         isPomodoroRunning={isPomodoroRunning}
         onTogglePomodoro={() => setIsPomodoroRunning(!isPomodoroRunning)}
         onSetPomodoroMinutes={(mins) => setPomodoroSeconds(mins * 60)}
+        onOpenTableRead={() => setIsTableReadOpen(true)}
+        linkedFileName={linkedFileName}
+        hasFileHandle={!!fileHandle}
+        isDirty={isDirty}
+        onSave={handleSaveProject}
+        onSaveAs={handleSaveAsProject}
+        onOpenProject={loadNativeFile}
       />
+
+      {/* Top Sleek Dual Progress Bars during Focus Mode */}
+      {isFocusMode && (
+        <FocusTopBar
+          targetMins={focusTargetMins}
+          targetWords={focusTargetWords}
+          netWords={Math.max(0, calculatePageEstimate(script.elements).totalWords - focusInitialWordCount)}
+          elapsedSeconds={focusElapsedSeconds}
+          onExitFocus={() => setIsFocusMode(false)}
+          onFinishEarly={() => setIsFocusSummaryOpen(true)}
+        />
+      )}
 
       {/* Main Container below Header with Independent Scrolling */}
       <div className="h-[calc(100vh-3.5rem)] overflow-hidden flex flex-row w-full relative z-0">
@@ -698,6 +899,35 @@ export default function App() {
             }
           }
         }}
+      />
+
+      <TableReadModal
+        isOpen={isTableReadOpen}
+        onClose={() => setIsTableReadOpen(false)}
+        script={script}
+      />
+
+      {/* Focus Sprint Modals */}
+      <FocusGoalModal
+        isOpen={isFocusGoalModalOpen}
+        onClose={() => setIsFocusGoalModalOpen(false)}
+        onStartFocus={handleStartFocusSprint}
+        defaultMins={focusTargetMins}
+        defaultWords={focusTargetWords}
+      />
+
+      <FocusSummaryModal
+        isOpen={isFocusSummaryOpen}
+        onClose={() => {
+          setIsFocusSummaryOpen(false);
+          setIsFocusMode(false);
+        }}
+        targetMins={focusTargetMins}
+        targetWords={focusTargetWords}
+        netWords={Math.max(0, calculatePageEstimate(script.elements).totalWords - focusInitialWordCount)}
+        elapsedSeconds={focusElapsedSeconds}
+        goalHitTimeSeconds={focusGoalHitTimeSeconds}
+        scriptTitle={script.title}
       />
     </div>
   );

@@ -55,6 +55,13 @@ interface HeaderProps {
   isPomodoroRunning?: boolean;
   onTogglePomodoro?: () => void;
   onSetPomodoroMinutes?: (minutes: number) => void;
+  onOpenTableRead?: () => void;
+  linkedFileName?: string | null;
+  hasFileHandle?: boolean;
+  isDirty?: boolean;
+  onSave?: () => void;
+  onSaveAs?: () => void;
+  onOpenProject?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -85,6 +92,13 @@ export const Header: React.FC<HeaderProps> = ({
   isPomodoroRunning = true,
   onTogglePomodoro,
   onSetPomodoroMinutes,
+  onOpenTableRead,
+  linkedFileName,
+  hasFileHandle,
+  isDirty = false,
+  onSave,
+  onSaveAs,
+  onOpenProject,
 }) => {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isScriptMenuOpen, setIsScriptMenuOpen] = useState(false);
@@ -151,34 +165,42 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Saved Status */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-950/80 border border-slate-800 px-3 py-1 rounded-full text-xs font-mono text-slate-300">
-          <Save className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-emerald-400 font-semibold">IndexedDB Local-First</span>
-        </div>
+        {/* Center: Table Read Button */}
+        {!isFocusMode && (
+          <button
+            onClick={onOpenTableRead}
+            className="hidden lg:flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3.5 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
+            title="Open Table Read Rehearsal Studio"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span>TABLE READ</span>
+          </button>
+        )}
 
         {/* Right Section: Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
           {/* Atomic Undo / Redo */}
-          <div className="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded overflow-hidden">
-            <button
-              onClick={onUndo}
-              disabled={!canUndo}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
-              title="Undo last change"
-            >
-              <Undo2 className="w-3.5 h-3.5" />
-            </button>
-            <div className="w-px bg-slate-700 h-4" />
-            <button
-              onClick={onRedo}
-              disabled={!canRedo}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
-              title="Redo change"
-            >
-              <Redo2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {!isFocusMode && (
+            <div className="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded overflow-hidden">
+              <button
+                onClick={onUndo}
+                disabled={!canUndo}
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
+                title="Undo last change"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <div className="w-px bg-slate-700 h-4" />
+              <button
+                onClick={onRedo}
+                disabled={!canRedo}
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
+                title="Redo change"
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Focus Mode Toggle & Pomodoro Break Button */}
           <div className="flex items-center gap-1.5">
@@ -258,8 +280,38 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Desktop Actions (Hidden on mobile < 768px) */}
-          <div className="hidden md:flex items-center gap-1.5">
+          {/* Desktop Actions (Hidden on mobile < 768px, or in Focus Mode) */}
+          {!isFocusMode && (
+            <div className="hidden md:flex items-center gap-1.5">
+            {/* Open Project / File */}
+            <button
+              onClick={onOpenProject}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 hover:bg-slate-750 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+              title="Open Project or Import Story (Ctrl+O)"
+            >
+              <Upload className="w-3.5 h-3.5 text-sky-400" />
+              <span>OPEN</span>
+            </button>
+
+            {/* Quick Save / Direct Overwrite */}
+            <button
+              onClick={onSave}
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-xs ${
+                isDirty
+                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse'
+                  : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-750'
+              }`}
+              title={linkedFileName ? `Save directly to "${linkedFileName}" (Ctrl+S)` : 'Save screenplay to file (Ctrl+S)'}
+            >
+              <Save className={`w-3.5 h-3.5 ${isDirty ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span>SAVE</span>
+              {linkedFileName && (
+                <span className="hidden xl:inline max-w-[80px] truncate text-[10px] opacity-80 font-mono">
+                  ({linkedFileName})
+                </span>
+              )}
+            </button>
+
             {/* History / Revisions */}
             <button
               onClick={onOpenHistoryModal}
@@ -311,6 +363,17 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                   <button
                     onClick={() => {
+                      if (onSaveAs) onSaveAs();
+                      else onExport('screenplay');
+                      setIsExportOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 font-bold"
+                  >
+                    <Save className="w-3.5 h-3.5 text-amber-400" />
+                    Save As... (.screenplay)
+                  </button>
+                  <button
+                    onClick={() => {
                       onExport('pdf');
                       setIsExportOpen(false);
                     }}
@@ -328,16 +391,6 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <FileText className="w-3.5 h-3.5 text-blue-400" />
                     Word Document (.docx)
-                  </button>
-                  <button
-                    onClick={() => {
-                      onExport('screenplay');
-                      setIsExportOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 border-t border-slate-700"
-                  >
-                    <FileCode className="w-3.5 h-3.5 text-sky-400" />
-                    Screenplay File (.screenplay)
                   </button>
                 </div>
               )}
@@ -358,10 +411,43 @@ export const Header: React.FC<HeaderProps> = ({
                   className="absolute right-0 mt-1 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-1 z-50 text-xs"
                   onMouseLeave={() => setIsScriptMenuOpen(false)}
                 >
+                  <button
+                    onClick={() => {
+                      if (onOpenProject) onOpenProject();
+                      setIsScriptMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 font-bold border-b border-slate-700"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Open Project / File (Ctrl+O)</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onSave) onSave();
+                      setIsScriptMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
+                  >
+                    <Save className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Save Project (Ctrl+S)</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onSaveAs) onSaveAs();
+                      setIsScriptMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 border-b border-slate-700"
+                  >
+                    <FileCode className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Save As... (Ctrl+Shift+S)</span>
+                  </button>
+
                   <label className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 cursor-pointer border-b border-slate-700">
                     <Upload className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Load .pdf / .docx / .txt</span>
-                    <input type="file" accept=".pdf,.docx,.fdx,.fountain,.txt,.json" onChange={onImport} className="hidden" />
+                    <span>Import (.pdf/.docx/.txt/.screenplay)</span>
+                    <input type="file" accept=".pdf,.docx,.fdx,.fountain,.txt,.json,.screenplay" onChange={onImport} className="hidden" />
                   </label>
                   <button
                     onClick={() => {
@@ -387,6 +473,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           </div>
+          )}
 
           {/* Mobile "More Actions" Dropdown (< 768px) */}
           <div className="relative md:hidden">
@@ -406,6 +493,36 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="px-3 py-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
                   Script Actions
                 </div>
+                <button
+                  onClick={() => {
+                    if (onSave) onSave();
+                    setIsMobileMoreOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 font-bold"
+                >
+                  <Save className="w-3.5 h-3.5 text-amber-400" />
+                  Save Project (Ctrl+S)
+                </button>
+                <button
+                  onClick={() => {
+                    if (onSaveAs) onSaveAs();
+                    setIsMobileMoreOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
+                >
+                  <FileCode className="w-3.5 h-3.5 text-emerald-400" />
+                  Save As... (Ctrl+Shift+S)
+                </button>
+                <button
+                  onClick={() => {
+                    if (onOpenProject) onOpenProject();
+                    setIsMobileMoreOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 border-b border-slate-800"
+                >
+                  <Upload className="w-3.5 h-3.5 text-sky-400" />
+                  Open Project (Ctrl+O)
+                </button>
                 <button
                   onClick={() => {
                     onOpenHistoryModal();

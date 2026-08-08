@@ -384,8 +384,10 @@ export function calculatePageEstimate(elements: ScreenplayElement[]): { pages: n
 }
 
 /**
- * Intelligent Text / Fountain / FDX Parser
- * Snaps uploaded text into structured ScreenplayElements, preserving Dual Dialogue and complex parentheticals.
+ * Intelligent Text / Fountain / FDX / Prose Parser
+ * Snaps uploaded text or raw prose into structured ScreenplayElements without AI.
+ * Categorizes dialogue quotes ("..."), speech attributions (said Rachel), parentheticals,
+ * character names, transitions, and auto-splits long action blocks into <5 line chunks.
  */
 export function parseScriptText(rawText: string): ScreenplayElement[] {
   const lines = rawText.split(/\r?\n/);
@@ -393,144 +395,192 @@ export function parseScriptText(rawText: string): ScreenplayElement[] {
   let lastType: ElementType = 'ACTION';
   let sceneCounter = 1;
 
-  const speechVerbsPattern = '(?:said|shouted|asked|replied|whispered|exclaimed|muttered|yelled|cried|spoke|screamed|added|continued)';
-  const charVerbRegex = new RegExp(`^([A-Za-z0-9\\s]{2,25})\\s+${speechVerbsPattern}(?:,|:)?\\s*"?([^"]*)"?$`, 'i');
-  const verbCharRegex = new RegExp(`^${speechVerbsPattern}\\s+([A-Za-z0-9\\s]{2,25})(?:,|:)?\\s*"?([^"]*)"?$`, 'i');
-  const locationKeywordsRegex = /^(INT|EXT|INT\/EXT|I\/E|BEDROOM|STREET|OFFICE|KITCHEN|LIVING ROOM|HALLWAY|BASEMENT|PARK|LAB|ROOFTOP|WAREHOUSE)\b/i;
+  const speechVerbs = [
+    'said', 'replied', 'asked', 'muttered', 'shouted', 'whispered', 'exclaimed',
+    'yelled', 'cried', 'spoke', 'screamed', 'added', 'continued', 'stated',
+    'observed', 'thought', 'snarled', 'groaned', 'sighed', 'murmured', 'grumbled',
+    'responded', 'called', 'demanded', 'interrupted', 'told'
+  ];
+  const speechVerbsPattern = `(?:${speechVerbs.join('|')})`;
+  const charVerbRegex = new RegExp(`^([A-Za-z0-9\\s.]{2,25})\\s+${speechVerbsPattern}(?:,|:)?\\s*["“'‘]?([^"”'’]+)["“'’]?$`, 'i');
+  const verbCharRegex = new RegExp(`^${speechVerbsPattern}\\s+([A-Za-z0-9\\s.]{2,25})(?:,|:)?\\s*["“'‘]?([^"”'’]+)["“'’]?$`, 'i');
+  const locationKeywordsRegex = /^(INT|EXT|INT\/EXT|I\/E|BEDROOM|STREET|OFFICE|KITCHEN|LIVING ROOM|HALLWAY|BASEMENT|PARK|LAB|ROOFTOP|WAREHOUSE|DINER|CAFE|ALLEY|CAR|HIGHWAY|HOSPITAL|SCHOOL|COURTROOM|FOREST)\b/i;
 
+  const createElem = (type: ElementType, content: string, extra?: Partial<ScreenplayElement>): ScreenplayElement => ({
+    id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    type,
+    content: content.trim(),
+    ...extra,
+  });
+
+  // PASS 1: Build dictionary of known character names from speech attributions, quotes, and colons
+  const knownCharacters = new Set<string>();
+  const addKnownChar = (name: string) => {
+    const clean = name.trim().toUpperCase().replace(/\s*\(.*?\)\s*/g, '').replace(/[^A-Z0-9\s.]/g, '');
+    if (clean.length >= 2 && clean.length <= 25 && !/^(INT|EXT|CUT|FADE|SCENE|THE|A|AN|AND|IN|ON|AT|TO)\b/i.test(clean)) {
+      knownCharacters.add(clean);
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Colon match: e.g. "RACHEL:", "Rachel:"
+    const colonMatch = line.match(/^([A-Za-z0-9\s.()'’\-]{2,25}):/);
+    if (colonMatch) addKnownChar(colonMatch[1]);
+
+    // Speech verb match: e.g. "Rachel said", "said John"
+    const cv = line.match(charVerbRegex);
+    if (cv) addKnownChar(cv[1]);
+    const vc = line.match(verbCharRegex);
+    if (vc) addKnownChar(vc[1]);
+
+    // Quote attribution match: e.g. "Hello," Rachel said.
+    const qm = line.match(/["“][^"”]+["”]\s*,?\s*(?:said|replied|asked|whispered|shouted|cried)\s+([A-Za-z0-9\s.]{2,20})/i);
+    if (qm) addKnownChar(qm[1]);
+
+    // ALL CAPS candidate
+    if (line === line.toUpperCase() && line.length <= 30 && !line.endsWith('.') && !locationKeywordsRegex.test(line)) {
+      addKnownChar(line);
+    }
+  }
+
+  // PASS 2: Parse script lines into elements using known character dictionary
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     if (!line) continue;
 
-    // Detect Dual Dialogue character marker (Fountain standard caret '^')
     let isDualDialogue = false;
     if (line.endsWith('^') || line.startsWith('^')) {
       isDualDialogue = true;
       line = line.replace(/^[\^]|[\^]$/g, '').trim();
     }
 
-    // 1. Detect Scene Heading with Location Scouting (BEDROOM, STREET, OFFICE, KITCHEN, etc.)
+    // 1. Detect Scene Heading with Location Scouting
     if (locationKeywordsRegex.test(line)) {
       let headingText = line.toUpperCase();
       if (!/^(INT|EXT|INT\/EXT|I\/E)/i.test(headingText)) {
         headingText = `INT. ${headingText}`;
       }
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'SCENE HEADING',
-        content: headingText,
-        sceneNumber: `${sceneCounter++}`,
-      });
+      elements.push(createElem('SCENE HEADING', headingText, { sceneNumber: `${sceneCounter++}` }));
       lastType = 'SCENE HEADING';
       continue;
     }
 
-    // 2. Razor-Sharp Heuristic Verb Detection: [Name] said "Dialogue" or shouted [Name] "Dialogue"
+    // 2. Detect Character Name with Colon (e.g. "RACHEL:", "Leo (V.O.):")
+    const colonNameMatch = line.match(/^([A-Za-z0-9\s.()'’\-]{2,30}):\s*(.*)$/);
+    if (colonNameMatch) {
+      const charName = colonNameMatch[1].trim().toUpperCase();
+      const inlineDialogue = colonNameMatch[2].trim();
+      addKnownChar(charName);
+      elements.push(createElem('CHARACTER', isDualDialogue ? `${charName} (DUAL)` : charName));
+      if (inlineDialogue) {
+        elements.push(createElem('DIALOGUE', inlineDialogue.replace(/^["“']|["”']$/g, '')));
+        lastType = 'DIALOGUE';
+      } else {
+        lastType = 'CHARACTER';
+      }
+      continue;
+    }
+
+    // 3. Speech Attribution Rules: "Name said 'Dialogue'" or "said Name 'Dialogue'"
     const charVerbMatch = line.match(charVerbRegex);
     const verbCharMatch = !charVerbMatch ? line.match(verbCharRegex) : null;
 
     if (charVerbMatch && charVerbMatch[2]?.trim()) {
       const charName = charVerbMatch[1].trim().toUpperCase();
-      const dialogueText = charVerbMatch[2].trim().replace(/^"/, '').replace(/"$/, '');
+      const dialogueText = charVerbMatch[2].trim().replace(/^["“']|["”']$/g, '');
+      addKnownChar(charName);
 
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'CHARACTER',
-        content: isDualDialogue ? `${charName} (DUAL)` : charName,
-      });
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'DIALOGUE',
-        content: dialogueText,
-      });
+      elements.push(createElem('CHARACTER', isDualDialogue ? `${charName} (DUAL)` : charName));
+      elements.push(createElem('DIALOGUE', dialogueText));
       lastType = 'DIALOGUE';
       continue;
     }
 
     if (verbCharMatch && verbCharMatch[2]?.trim()) {
       const charName = verbCharMatch[1].trim().toUpperCase();
-      const dialogueText = verbCharMatch[2].trim().replace(/^"/, '').replace(/"$/, '');
+      const dialogueText = verbCharMatch[2].trim().replace(/^["“']|["”']$/g, '');
+      addKnownChar(charName);
 
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'CHARACTER',
-        content: isDualDialogue ? `${charName} (DUAL)` : charName,
-      });
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'DIALOGUE',
-        content: dialogueText,
-      });
+      elements.push(createElem('CHARACTER', isDualDialogue ? `${charName} (DUAL)` : charName));
+      elements.push(createElem('DIALOGUE', dialogueText));
       lastType = 'DIALOGUE';
       continue;
     }
 
-    // Detect Transition
-    if (/^(CUT TO:|FADE IN:|FADE OUT:|SMASH CUT TO:|DISSOLVE TO:)$/i.test(line) || line.startsWith('>')) {
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'TRANSITION',
-        content: line.replace(/^>/, '').trim().toUpperCase(),
-      });
+    // 4. Standalone Quoted Dialogue with Attribution ("Hello world," Rachel said)
+    const quoteMatch = line.match(/^["“]([^"”]+)["”](?:\s*,?\s*(?:said|replied|asked|muttered|shouted|whispered|cried|added)\s+([A-Za-z0-9\s.]{2,20}))?/i);
+    if (quoteMatch) {
+      const speechText = quoteMatch[1].trim();
+      const speakerName = quoteMatch[2] ? quoteMatch[2].trim().toUpperCase() : lastType === 'CHARACTER' ? '' : 'CHARACTER';
+      if (speakerName) {
+        addKnownChar(speakerName);
+        elements.push(createElem('CHARACTER', speakerName));
+      }
+      elements.push(createElem('DIALOGUE', speechText));
+      lastType = 'DIALOGUE';
+      continue;
+    }
+
+    // 5. Detect Transition
+    if (/^(CUT TO:|FADE IN:|FADE OUT\.|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|BLACKOUT\.|FLASHBACK:)$/i.test(line) || line.startsWith('>')) {
+      elements.push(createElem('TRANSITION', line.replace(/^>/, '').trim().toUpperCase()));
       lastType = 'TRANSITION';
       continue;
     }
 
-    // Detect Parenthetical
+    // 6. Detect Parenthetical
     if ((line.startsWith('(') && line.endsWith(')')) || (line.startsWith('(') && lastType === 'CHARACTER')) {
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'PARENTICAL',
-        content: line,
-      });
+      elements.push(createElem('PARENTICAL', line));
       lastType = 'PARENTICAL';
       continue;
     }
 
-    // Detect Character (ALL CAPS line)
+    // 7. Detect Character using Known Character Dictionary or ALL CAPS
+    const lineUpperClean = line.toUpperCase().replace(/\s*\(.*?\)\s*/g, '').replace(/[^A-Z0-9\s.]/g, '').trim();
+    const isKnownChar = knownCharacters.has(lineUpperClean);
     const isAllCaps = line === line.toUpperCase() && /[A-Z]/.test(line);
+
     if (
-      isAllCaps &&
+      (isKnownChar || isAllCaps) &&
       line.length < 35 &&
       !line.endsWith('.') &&
+      !locationKeywordsRegex.test(line) &&
       (lastType === 'ACTION' || lastType === 'SCENE HEADING' || lastType === 'DIALOGUE')
     ) {
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'CHARACTER',
-        content: isDualDialogue ? `${line} (DUAL)` : line,
-      });
+      const charName = line.toUpperCase();
+      elements.push(createElem('CHARACTER', isDualDialogue ? `${charName} (DUAL)` : charName));
       lastType = 'CHARACTER';
       continue;
     }
 
-    // If last line was CHARACTER or PARENTICAL, this is DIALOGUE
+    // 8. If last line was CHARACTER or PARENTICAL, this line is DIALOGUE
     if (lastType === 'CHARACTER' || lastType === 'PARENTICAL') {
-      elements.push({
-        id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        type: 'DIALOGUE',
-        content: line,
-      });
+      elements.push(createElem('DIALOGUE', line.replace(/^["“']|["”']$/g, '')));
       lastType = 'DIALOGUE';
       continue;
     }
 
-    // Default to ACTION
-    elements.push({
-      id: `elem-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      type: 'ACTION',
-      content: line,
-    });
+    // 9. Default to ACTION - Auto-split long action blocks (>220 chars) to enforce <5 lines rule
+    if (line.length > 220) {
+      const sentences = line.match(/[^.!?]+[.!?]+/g) || [line];
+      let currentChunk = '';
+      for (const sentence of sentences) {
+        if ((currentChunk + sentence).length > 200) {
+          if (currentChunk.trim()) elements.push(createElem('ACTION', currentChunk));
+          currentChunk = sentence;
+        } else {
+          currentChunk += (currentChunk ? ' ' : '') + sentence;
+        }
+      }
+      if (currentChunk.trim()) elements.push(createElem('ACTION', currentChunk));
+    } else {
+      elements.push(createElem('ACTION', line));
+    }
     lastType = 'ACTION';
   }
 
-  return elements.length > 0
-    ? elements
-    : [
-        {
-          id: `elem-${Date.now()}`,
-          type: 'ACTION',
-          content: rawText,
-        },
-      ];
+  return elements.length > 0 ? elements : [createElem('ACTION', rawText)];
 }
