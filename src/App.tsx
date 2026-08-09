@@ -98,7 +98,12 @@ export default function App() {
   const canRedo = historyIndex < history.length - 1;
 
   // Side Panel & Modals State
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(true);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024; // Open by default on desktop, closed on mobile/tablet
+    }
+    return true;
+  });
   const [isTitlePageOpen, setIsTitlePageOpen] = useState<boolean>(true); // Fresh load opens Title Page modal automatically
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -779,13 +784,13 @@ export default function App() {
         {/* Mobile/Tablet Backdrop overlay for drawer mode (< lg) */}
         {isSidePanelOpen && !isFocusMode && (
           <div
-            className="fixed inset-0 top-[3.5rem] bg-slate-950/80 backdrop-blur-xs z-30 lg:hidden"
+            className="fixed inset-0 top-[3.5rem] bg-slate-950/70 z-30 lg:hidden cursor-pointer"
             onClick={() => setIsSidePanelOpen(false)}
           />
         )}
 
         {isSidePanelOpen && !isFocusMode && (
-          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-full sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-10 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
+          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-[88vw] max-w-sm sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-10 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
             <NavigatorSidePanel
               script={script}
               isOpen={isSidePanelOpen && !isFocusMode}

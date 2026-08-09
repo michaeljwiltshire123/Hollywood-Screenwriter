@@ -479,13 +479,6 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-30 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-
       <aside className="w-full h-full bg-slate-900 text-slate-200 flex flex-col select-none overflow-hidden">
         {/* Panel Header */}
         <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
