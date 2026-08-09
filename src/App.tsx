@@ -545,25 +545,27 @@ export default function App() {
   };
 
   // Start New Script
-  const handleStartNewScript = async () => {
+  const handleStartNewScript = async (customTitlePage?: TitlePage) => {
+    const finalTitlePage: TitlePage = customTitlePage || {
+      title: 'UNTITLED SCREENPLAY',
+      credit: 'Written by',
+      author: 'J. Onionfist',
+      source: 'Original',
+      contact: '',
+      date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      draftColor: 'White Draft',
+    };
+
     const newDoc: ScreenplayDocument = {
       id: `script-${Date.now()}`,
-      title: 'UNTITLED SCREENPLAY',
-      author: 'Author Name',
+      title: finalTitlePage.title || 'UNTITLED SCREENPLAY',
+      author: finalTitlePage.author || 'J. Onionfist',
       description: 'A new screenplay.',
       draftStatus: 'DRAFT',
       version: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      titlePage: {
-        title: 'UNTITLED SCREENPLAY',
-        credit: 'Written by',
-        author: 'Author Name',
-        source: 'Original',
-        contact: '',
-        date: new Date().toLocaleDateString(),
-        draftColor: 'White Draft',
-      },
+      titlePage: finalTitlePage,
       elements: [
         {
           id: `elem-${Date.now()}-1`,
@@ -584,8 +586,10 @@ export default function App() {
     setHistory([newDoc]);
     setHistoryIndex(0);
     setFileHandle(null);
+    setLinkedFileName(null);
     setIsDirty(true);
-    setIsTitlePageOpen(true);
+    setLastSavedAt(new Date());
+    saveScriptToDB(newDoc);
   };
 
   // Load Sample Script
@@ -772,14 +776,26 @@ export default function App() {
 
       {/* Main Container below Header with Independent Scrolling */}
       <div className="h-[calc(100vh-3.5rem)] overflow-hidden flex flex-row w-full relative z-0">
+        {/* Mobile/Tablet Backdrop overlay for drawer mode (< lg) */}
         {isSidePanelOpen && !isFocusMode && (
-          <div className="h-full w-80 sm:w-96 shrink-0 border-r border-slate-800 bg-slate-900 z-30 flex flex-col">
+          <div
+            className="fixed inset-0 top-[3.5rem] bg-slate-950/80 backdrop-blur-xs z-30 lg:hidden"
+            onClick={() => setIsSidePanelOpen(false)}
+          />
+        )}
+
+        {isSidePanelOpen && !isFocusMode && (
+          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-full sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-10 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
             <NavigatorSidePanel
               script={script}
               isOpen={isSidePanelOpen && !isFocusMode}
               onClose={() => setIsSidePanelOpen(false)}
               onJumpToElementIndex={(idx) => {
                 if (jumpFnRef.current) jumpFnRef.current(idx);
+                // On mobile / tablet screens (< 1024px), close the drawer after jumping so the editor is instantly visible
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setIsSidePanelOpen(false);
+                }
               }}
               onChangeScript={handleScriptChange}
               revisions={revisions}
