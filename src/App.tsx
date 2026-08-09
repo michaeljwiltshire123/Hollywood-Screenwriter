@@ -8,10 +8,13 @@ import {
   TitlePage,
 } from './types';
 import { INITIAL_SAMPLE_SCRIPT } from './lib/sampleScript';
+import { saveScriptToDB, loadScriptFromDB } from './lib/dbPersistence';
 import {
   generateDocxExport,
   parseUploadedFile,
   calculatePageEstimate,
+  extractScenes,
+  extractCharacters,
 } from './lib/screenplayUtils';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -25,6 +28,7 @@ import { DebugDashboardModal } from './components/DebugDashboardModal';
 import { PomodoroAlertModal } from './components/PomodoroAlertModal';
 import { BreakGameModal } from './components/BreakGameModal';
 import { TableReadModal } from './components/TableReadModal';
+import { ProductionScheduleModal } from './components/production/ProductionScheduleModal';
 import { FocusGoalModal } from './components/FocusGoalModal';
 import { FocusSummaryModal } from './components/FocusSummaryModal';
 import { FocusTopBar } from './components/FocusTopBar';
@@ -100,6 +104,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isDebugOpen, setIsDebugOpen] = useState<boolean>(false);
   const [isTableReadOpen, setIsTableReadOpen] = useState<boolean>(false);
+  const [isProductionScheduleOpen, setIsProductionScheduleOpen] = useState<boolean>(false);
 
   // Focus Sprint Goal state
   const [isFocusGoalModalOpen, setIsFocusGoalModalOpen] = useState<boolean>(false);
@@ -459,7 +464,24 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // RAM-Only Keystroke Handler with History Cap (Max 20) & Dirty State
+  // Initial load from IndexedDB / LocalStorage Local-First Store
+  useEffect(() => {
+    let isMounted = true;
+    loadScriptFromDB().then((saved) => {
+      if (isMounted && saved && saved.elements && saved.elements.length > 0) {
+        setScript(saved);
+        setHistory([saved]);
+        setHistoryIndex(0);
+        if (saved.elements[0]) {
+          setActiveElementId(saved.elements[0].id);
+          setActiveType(saved.elements[0].type);
+        }
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  // Local-First Keystroke Handler with History Cap (Max 20), Dirty State & IndexedDB Atomic Persistence
   const handleScriptChange = useCallback((updated: ScreenplayDocument) => {
     setHistory((prev) => {
       const newStack = prev.slice(0, historyIndex + 1);
@@ -472,6 +494,8 @@ export default function App() {
     setHistoryIndex((prev) => Math.min(prev + 1, 19));
     setScript(updated);
     setIsDirty(true);
+    setLastSavedAt(new Date());
+    saveScriptToDB(updated);
   }, [historyIndex]);
 
   // Revision Snapshot (RAM only)
@@ -725,6 +749,7 @@ export default function App() {
         onTogglePomodoro={() => setIsPomodoroRunning(!isPomodoroRunning)}
         onSetPomodoroMinutes={(mins) => setPomodoroSeconds(mins * 60)}
         onOpenTableRead={() => setIsTableReadOpen(true)}
+        onOpenProductionSchedule={() => setIsProductionScheduleOpen(true)}
         linkedFileName={linkedFileName}
         hasFileHandle={!!fileHandle}
         isDirty={isDirty}
@@ -759,6 +784,7 @@ export default function App() {
               onChangeScript={handleScriptChange}
               revisions={revisions}
               onRollbackRevision={handleRollback}
+              onOpenProductionSchedule={() => setIsProductionScheduleOpen(true)}
             />
           </div>
         )}
@@ -905,6 +931,15 @@ export default function App() {
         isOpen={isTableReadOpen}
         onClose={() => setIsTableReadOpen(false)}
         script={script}
+      />
+
+      <ProductionScheduleModal
+        isOpen={isProductionScheduleOpen}
+        onClose={() => setIsProductionScheduleOpen(false)}
+        script={script}
+        scenes={extractScenes(script.elements)}
+        characters={extractCharacters(script.elements)}
+        onChangeScript={handleScriptChange}
       />
 
       {/* Focus Sprint Modals */}

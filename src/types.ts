@@ -65,6 +65,102 @@ export interface ShotInfo {
   equipment: string; // e.g. "Tripod, Gimbal | Handheld with anamorphic lens"
   estimatedTimeMin: number;
   sketchDataUrl?: string; // Base64 image
+  targetCharacter?: string; // Character featured/framed in shot
+  movementDetail?: string; // e.g. Whip pan, Dolly push-in, Handheld
+  transitionFromPrev?: string; // Transition note from previous shot/scene
+  transitionToNext?: string; // Transition note to next shot/scene
+  otherNotes?: string; // Additional director/DOP notes
+}
+
+export interface ProductionScheduleDay {
+  id: string;
+  dayNumber: number;
+  date: string;
+  shootStartTime: string;
+  shootEndTime: string;
+  locationName: string;
+  notes: string;
+  sceneIds: string[]; // Ordered list of scene IDs or banner strings (e.g. "BANNER:LUNCH:13:00")
+}
+
+export interface CallSheetCharacter {
+  id: string;
+  characterName: string;
+  actorName: string;
+  pickupTime: string; // Used as Report Time or Driver Pickup Time
+  hmuTime: string;
+  setCallTime: string;
+  scenes: string;
+  travelType?: 'PICKUP' | 'SELF_REPORT';
+  notes?: string;
+}
+
+export interface DepartmentCall {
+  id: string;
+  department: string;
+  callTime: string;
+  notes: string;
+}
+
+export interface CallSheetLocation {
+  id: string;
+  name: string;
+  address: string;
+  postcode?: string;
+  type: 'SET' | 'BASECAMP' | 'PARKING' | 'HOSPITAL' | 'CATERING';
+  notes?: string;
+}
+
+export interface CallSheetData {
+  shootDate: string;
+  generalCallTime: string;
+  breakfastTime: string;
+  estimatedWrapTime: string;
+  locationName: string;
+  locationAddress: string;
+  nearestHospital: string;
+  weatherForecast: string;
+  sunriseTime: string;
+  sunsetTime: string;
+  characters: CallSheetCharacter[];
+  directorName: string;
+  producerName: string;
+  dopName: string;
+  generalNotes: string;
+  departmentCalls?: DepartmentCall[];
+  locations?: CallSheetLocation[];
+  selectedDayNumber?: number;
+}
+
+export interface RiskAssessmentItem {
+  id: string;
+  hazard: string;
+  category: string; // e.g. "Night Shoot", "Stunts/Fights", "Vehicles/Traffic", "Water/Wet", "Electrical", "General"
+  riskLevel: 'HIGH' | 'MED' | 'LOW';
+  likelihood: 'HIGH' | 'MED' | 'LOW';
+  controlMeasures: string;
+  responsiblePerson: string;
+}
+
+export type ReleaseFormType = 'TALENT' | 'LOCATION' | 'EXTRA' | 'MATERIALS' | 'MINOR' | 'MUSIC' | 'CROWD_NOTICE';
+
+export interface ReleaseFormItem {
+  id: string;
+  formType: ReleaseFormType;
+  grantorName: string;
+  grantorContact: string;
+  projectTitle: string;
+  producerName: string;
+  compensation: string;
+  date: string;
+  locationDetails?: string;
+  notes?: string;
+  status: 'DRAFT' | 'READY TO SIGN' | 'SIGNED';
+  agreementText?: string; // Written body of the contract/release (fully editable)
+  artworkDetails?: string; // For Materials / Artwork release
+  musicDetails?: string; // For Music release
+  parentGuardianName?: string; // For Minor release
+  distributionChannels?: string; // For Crowd Notice / Public filming
 }
 
 export interface ScreenplayDocument {
@@ -84,6 +180,11 @@ export interface ScreenplayDocument {
   productionNotes?: string;
   editorFont?: 'Courier Prime' | 'Courier New';
   targetLength?: number; // Target film length in minutes
+  productionLogoUrl?: string; // Watermark / Production Company Logo Data URL
+  callSheetData?: CallSheetData;
+  riskAssessments?: RiskAssessmentItem[];
+  releaseForms?: ReleaseFormItem[];
+  productionScheduleDays?: ProductionScheduleDay[];
 }
 
 export interface RevisionHistoryItem {

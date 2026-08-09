@@ -24,6 +24,7 @@ import {
   Cloud,
   Coffee,
   MoreVertical,
+  Calendar,
 } from 'lucide-react';
 import { ScreenplayDocument } from '../types';
 
@@ -56,6 +57,7 @@ interface HeaderProps {
   onTogglePomodoro?: () => void;
   onSetPomodoroMinutes?: (minutes: number) => void;
   onOpenTableRead?: () => void;
+  onOpenProductionSchedule?: () => void;
   linkedFileName?: string | null;
   hasFileHandle?: boolean;
   isDirty?: boolean;
@@ -93,6 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
   onTogglePomodoro,
   onSetPomodoroMinutes,
   onOpenTableRead,
+  onOpenProductionSchedule,
   linkedFileName,
   hasFileHandle,
   isDirty = false,
@@ -165,16 +168,27 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Table Read Button */}
+        {/* Center: Table Read & Production Schedule Buttons */}
         {!isFocusMode && (
-          <button
-            onClick={onOpenTableRead}
-            className="hidden lg:flex items-center gap-2 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3.5 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
-            title="Open Table Read Rehearsal Studio"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-            <span>TABLE READ</span>
-          </button>
+          <div className="hidden lg:flex items-center gap-2">
+            <button
+              onClick={onOpenTableRead}
+              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
+              title="Open Table Read Rehearsal Studio"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              <span>TABLE READ</span>
+            </button>
+
+            <button
+              onClick={onOpenProductionSchedule}
+              className="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/40 hover:bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
+              title="Open Production Schedule, Call Sheet & Safety Suite"
+            >
+              <Calendar className="w-3.5 h-3.5 text-sky-400" />
+              <span>PRODUCTION SCHEDULE</span>
+            </button>
+          </div>
         )}
 
         {/* Right Section: Action Controls */}

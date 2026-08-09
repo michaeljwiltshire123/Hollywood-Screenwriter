@@ -4,7 +4,7 @@ import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.mjs`;
 }
 
 /**
@@ -83,7 +83,21 @@ export async function parseUploadedFile(file: File): Promise<ScreenplayElement[]
   const fileName = file.name.toLowerCase();
   if (fileName.endsWith('.pdf')) {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let pdf;
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.mjs`;
+      pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    } catch (err1) {
+      console.warn('Primary PDF worker failed, trying unpkg worker fallback:', err1);
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+        pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      } catch (err2) {
+        console.warn('Secondary worker failed, trying legacy cdnjs worker:', err2);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+        pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      }
+    }
     let fullText = '';
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);

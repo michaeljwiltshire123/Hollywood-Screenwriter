@@ -28,10 +28,10 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
   totalElements,
 }) => {
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-200 sticky top-14 z-20 py-2 px-4 shadow-sm select-none">
+    <div className="bg-slate-900 border-b border-slate-800 text-slate-200 py-2 px-4 shadow-sm select-none shrink-0 w-full">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs">
         {/* Literal Plain English Buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           <span className="text-[10px] uppercase font-mono font-bold text-slate-400 mr-1 shrink-0">
             FORMAT:
           </span>

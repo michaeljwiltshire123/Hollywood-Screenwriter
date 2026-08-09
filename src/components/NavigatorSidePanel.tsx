@@ -24,6 +24,8 @@ import {
   FileText,
   SlidersHorizontal,
   Maximize2,
+  Minimize2,
+  Calendar,
 } from 'lucide-react';
 import {
   ScreenplayDocument,
@@ -45,6 +47,7 @@ interface NavigatorSidePanelProps {
   onChangeScript: (updated: ScreenplayDocument) => void;
   revisions: RevisionHistoryItem[];
   onRollbackRevision: (rev: RevisionHistoryItem) => void;
+  onOpenProductionSchedule?: () => void;
 }
 
 const MASTER_PROVOCATIONS = [
@@ -129,13 +132,15 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
   onChangeScript,
   revisions,
   onRollbackRevision,
+  onOpenProductionSchedule,
 }) => {
   const tabNavRef = React.useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'scenes' | 'shotlist' | 'arc' | 'inspiration' | 'characters' | 'stats'>('scenes');
   const [sceneSearch, setSceneSearch] = useState('');
 
-  // Fullscreen Whiteboard State
+  // Fullscreen Whiteboard & Character Bible States
   const [isWhiteboardMaximized, setIsWhiteboardMaximized] = useState(false);
+  const [isCharacterBibleMaximized, setIsCharacterBibleMaximized] = useState(false);
 
   // Stripboard Sort Toggles
   const [groupByLocation, setGroupByLocation] = useState(true);
@@ -153,6 +158,18 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
     }, 500);
     return () => clearTimeout(timer);
   }, [script]);
+
+  // Handle ESC key to close maximized views safely
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isCharacterBibleMaximized) setIsCharacterBibleMaximized(false);
+        if (isWhiteboardMaximized) setIsWhiteboardMaximized(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCharacterBibleMaximized, isWhiteboardMaximized]);
 
   // Master's Toolkit Provocation State
   const [currentProvocation, setCurrentProvocation] = useState<string>(MASTER_PROVOCATIONS[0]);
@@ -268,7 +285,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
     });
   };
 
-  // Character Bible Saving
+  // Character Bible Saving & Real-Time Sync
   const handleOpenCharacterEdit = (charName: string) => {
     setEditingCharacterName(charName);
     const existing = script.characterBibles?.[charName];
@@ -282,26 +299,57 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
     setTempActorNotes(existing?.actorNotes || '');
   };
 
-  const handleSaveCharacterBible = () => {
+  const handleUpdateCharacterField = (field: string, value: string) => {
     if (!editingCharacterName) return;
+
+    if (field === 'age') setTempAge(value);
+    if (field === 'appearance') setTempAppearance(value);
+    if (field === 'attitude') setTempAttitude(value);
+    if (field === 'actionInFirstScene') setTempActionInFirstScene(value);
+    if (field === 'internalFlaw') setTempFlaw(value);
+    if (field === 'coreMotivation') setTempMotivation(value);
+    if (field === 'visualDescription') setTempVisual(value);
+    if (field === 'actorNotes') setTempActorNotes(value);
+
     const currentBibles = script.characterBibles || {};
+    const existing = currentBibles[editingCharacterName] || {};
+    const updatedChar = {
+      ...existing,
+      [field]: value
+    };
+
     const updatedBibles = {
       ...currentBibles,
-      [editingCharacterName]: {
-        age: tempAge,
-        appearance: tempAppearance,
-        attitude: tempAttitude,
-        actionInFirstScene: tempActionInFirstScene,
-        internalFlaw: tempFlaw,
-        coreMotivation: tempMotivation,
-        visualDescription: tempVisual,
-        actorNotes: tempActorNotes,
-      }
+      [editingCharacterName]: updatedChar
     };
+
     onChangeScript({
       ...script,
       characterBibles: updatedBibles
     });
+  };
+
+  const handleSaveCharacterBible = () => {
+    if (editingCharacterName) {
+      const currentBibles = script.characterBibles || {};
+      const updatedBibles = {
+        ...currentBibles,
+        [editingCharacterName]: {
+          age: tempAge,
+          appearance: tempAppearance,
+          attitude: tempAttitude,
+          actionInFirstScene: tempActionInFirstScene,
+          internalFlaw: tempFlaw,
+          coreMotivation: tempMotivation,
+          visualDescription: tempVisual,
+          actorNotes: tempActorNotes,
+        }
+      };
+      onChangeScript({
+        ...script,
+        characterBibles: updatedBibles
+      });
+    }
     setEditingCharacterName(null);
   };
 
@@ -633,21 +681,27 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
             <div className="space-y-4">
               <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sky-400 font-bold text-xs uppercase">
+                  <div className="flex items-center gap-2 text-sky-400 font-bold text-xs uppercase font-mono">
                     <Camera className="w-4 h-4" />
-                    <span>PRODUCTION STRIPBOARD</span>
+                    <span>PRODUCTION SCHEDULE & SHOTS</span>
                   </div>
-                  <button
-                    onClick={handlePrintShotList}
-                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded text-[10px] flex items-center gap-1 transition"
-                  >
-                    <Printer className="w-3 h-3" />
-                    <span>Print Crew Sheet</span>
-                  </button>
+                  <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
+                    {shots.length} SHOTS LOGGED
+                  </span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Logistical blueprint mapping all script scenes into actionable production shots, lenses, and equipment.
                 </p>
+
+                {onOpenProductionSchedule && (
+                  <button
+                    onClick={onOpenProductionSchedule}
+                    className="w-full py-2.5 bg-gradient-to-r from-sky-500/20 to-amber-500/20 hover:from-sky-500/30 hover:to-amber-500/30 border border-sky-400/40 text-sky-100 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md my-1"
+                  >
+                    <Calendar className="w-4 h-4 text-amber-400" />
+                    <span>Open Full Call Sheet, Risk & Production Suite</span>
+                  </button>
+                )}
 
                 {/* Sort Toggles */}
                 <div className="pt-2 border-t border-slate-800 space-y-2">
@@ -968,9 +1022,19 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           {/* TAB 5: CHARACTERS */}
           {activeTab === 'characters' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">
-                <span>{characters.length} DETECTED CHARACTERS</span>
-                <span className="text-amber-400">Gold border = New (No Notes)</span>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800 px-1">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-amber-400" />
+                  <span className="font-bold text-xs uppercase text-slate-100">{characters.length} Screenplay Characters</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCharacterBibleMaximized(true)}
+                  className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-[10px] flex items-center gap-1 transition shadow cursor-pointer"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Maximize Bible</span>
+                </button>
               </div>
 
               {editingCharacterName ? (
@@ -996,7 +1060,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                         <input
                           type="text"
                           value={tempAge}
-                          onChange={(e) => setTempAge(e.target.value)}
+                          onChange={(e) => handleUpdateCharacterField('age', e.target.value)}
                           placeholder="e.g., Mid 40s"
                           className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                         />
@@ -1008,7 +1072,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                         <input
                           type="text"
                           value={tempAttitude}
-                          onChange={(e) => setTempAttitude(e.target.value)}
+                          onChange={(e) => handleUpdateCharacterField('attitude', e.target.value)}
                           placeholder="e.g., Cynical, hyper-vigilant"
                           className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                         />
@@ -1022,7 +1086,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       <input
                         type="text"
                         value={tempAppearance}
-                        onChange={(e) => setTempAppearance(e.target.value)}
+                        onChange={(e) => handleUpdateCharacterField('appearance', e.target.value)}
                         placeholder="e.g., Frayed tweed jacket, ink-stained fingers"
                         className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                       />
@@ -1035,7 +1099,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       <input
                         type="text"
                         value={tempActionInFirstScene}
-                        onChange={(e) => setTempActionInFirstScene(e.target.value)}
+                        onChange={(e) => handleUpdateCharacterField('actionInFirstScene', e.target.value)}
                         placeholder="What do they do with their hands before speaking?"
                         className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                       />
@@ -1048,7 +1112,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       <input
                         type="text"
                         value={tempFlaw}
-                        onChange={(e) => setTempFlaw(e.target.value)}
+                        onChange={(e) => handleUpdateCharacterField('internalFlaw', e.target.value)}
                         placeholder="e.g., Blind pride, fear of abandonment"
                         className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                       />
@@ -1061,7 +1125,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       <input
                         type="text"
                         value={tempMotivation}
-                        onChange={(e) => setTempMotivation(e.target.value)}
+                        onChange={(e) => handleUpdateCharacterField('coreMotivation', e.target.value)}
                         placeholder="e.g., To win parental approval at all costs"
                         className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
                       />
@@ -1074,7 +1138,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                       <textarea
                         rows={2}
                         value={tempVisual}
-                        onChange={(e) => setTempVisual(e.target.value)}
+                        onChange={(e) => handleUpdateCharacterField('visualDescription', e.target.value)}
                         placeholder="Directorial notes for visual presence..."
                         className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-slate-100 focus:outline-none focus:border-amber-400 resize-none"
                       />
@@ -1326,7 +1390,33 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Target Character</label>
+                            <input
+                              type="text"
+                              list={`target-char-list-${sh.id}`}
+                              value={sh.targetCharacter || ''}
+                              onChange={(e) => handleUpdateShot(sh.id, { targetCharacter: e.target.value })}
+                              placeholder="Select or type character..."
+                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-amber-300 font-bold focus:outline-none focus:border-sky-400"
+                            />
+                            <datalist id={`target-char-list-${sh.id}`}>
+                              {characters.map((c) => (
+                                <option key={c.name} value={c.name} />
+                              ))}
+                            </datalist>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Movement / Dynamics</label>
+                            <input
+                              type="text"
+                              value={sh.movementDetail || ''}
+                              onChange={(e) => handleUpdateShot(sh.id, { movementDetail: e.target.value })}
+                              placeholder="e.g. Slow push-in, Whip pan, Handheld"
+                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
+                            />
+                          </div>
                           <div>
                             <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Angle</label>
                             <input
@@ -1398,41 +1488,90 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                           />
                         </div>
 
-                        {/* Reference Image Upload Slot */}
-                        <div className="pt-2 border-t border-slate-900 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            {sh.sketchDataUrl ? (
-                              <img
-                                src={sh.sketchDataUrl}
-                                alt="Sketch reference"
-                                className="w-16 h-12 object-cover rounded border border-slate-700"
-                              />
-                            ) : (
-                              <div className="w-16 h-12 bg-slate-900 border border-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 italic">
-                                No Sketch
+                        {/* Reference Image & Director Notes Layout */}
+                        <div className="pt-3 border-t border-slate-900 grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                          {/* Left: Reference Image Slot (4 cols) */}
+                          <div className="md:col-span-4 space-y-2 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                            <label className="block text-[10px] text-sky-400 uppercase font-bold">
+                              Reference Sketch / Storyboard
+                            </label>
+                            <div className="flex items-center gap-3">
+                              {sh.sketchDataUrl ? (
+                                <img
+                                  src={sh.sketchDataUrl}
+                                  alt="Sketch reference"
+                                  className="w-24 h-18 object-cover rounded border border-slate-700 shrink-0 shadow"
+                                />
+                              ) : (
+                                <div className="w-24 h-18 bg-slate-950 border border-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 italic shrink-0">
+                                  No Image
+                                </div>
+                              )}
+                              <div className="space-y-1.5 flex-1 min-w-0">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleSketchUpload(e, sh.id)}
+                                  className="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-sky-300 hover:file:bg-slate-700 cursor-pointer w-full"
+                                />
+                                {sh.sketchDataUrl && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateShot(sh.id, { sketchDataUrl: undefined })}
+                                    className="text-[10px] text-rose-400 hover:text-rose-300 font-bold block"
+                                  >
+                                    Remove Image
+                                  </button>
+                                )}
                               </div>
-                            )}
+                            </div>
+                          </div>
+
+                          {/* Right of Reference Image: Director Notes & Transitions Section (8 cols) */}
+                          <div className="md:col-span-8 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 space-y-2">
+                            <label className="block text-[10px] text-amber-400 uppercase font-bold">
+                              Director & DOP Transition Notes
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
+                                  Transition FROM Previous Shot
+                                </label>
+                                <input
+                                  type="text"
+                                  value={sh.transitionFromPrev || ''}
+                                  onChange={(e) => handleUpdateShot(sh.id, { transitionFromPrev: e.target.value })}
+                                  placeholder="e.g. Match cut on door opening, Whip pan left"
+                                  className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
+                                  Transition TO Next Shot
+                                </label>
+                                <input
+                                  type="text"
+                                  value={sh.transitionToNext || ''}
+                                  onChange={(e) => handleUpdateShot(sh.id, { transitionToNext: e.target.value })}
+                                  placeholder="e.g. Hard cut on gunshot, J-cut audio lead"
+                                  className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <label className="block text-[10px] text-slate-400 uppercase font-bold mb-0.5">
-                                Reference Sketch / Storyboard
+                              <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
+                                Additional Director / Acting / Framing Notes
                               </label>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleSketchUpload(e, sh.id)}
-                                className="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-sky-300 hover:file:bg-slate-700 cursor-pointer"
+                              <textarea
+                                rows={2}
+                                value={sh.otherNotes || ''}
+                                onChange={(e) => handleUpdateShot(sh.id, { otherNotes: e.target.value })}
+                                placeholder="e.g. Hold frame for 3s after dialogue; actor moves into shadow as camera pushes in..."
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400 resize-none"
                               />
                             </div>
                           </div>
-                          {sh.sketchDataUrl && (
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateShot(sh.id, { sketchDataUrl: undefined })}
-                              className="text-[10px] text-rose-400 hover:text-rose-300 font-bold"
-                            >
-                              Remove Sketch
-                            </button>
-                          )}
                         </div>
                       </div>
                     ))}
@@ -1440,11 +1579,20 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 )}
               </div>
 
-              <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end shrink-0">
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleAddShot(targetScene.id)}
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg flex items-center gap-1.5 text-xs shadow-md transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Add Shot</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setActiveShotSceneId(null)}
-                  className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold text-xs"
+                  className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold text-xs transition cursor-pointer"
                 >
                   Done
                 </button>
@@ -1506,7 +1654,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
       {/* FULLSCREEN WHITEBOARD MODAL */}
       {isWhiteboardMaximized && (
-        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex flex-col p-6 overflow-y-auto text-slate-100">
+        <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col p-6 overflow-y-auto text-slate-100">
           <div className="max-w-7xl mx-auto w-full space-y-6">
             {/* Header & Controls */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
@@ -1686,6 +1834,230 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 <Plus className="w-8 h-8" />
                 <span className="text-sm">Add New Whiteboard Card</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN MAXIMIZED CHARACTER BIBLE MODAL */}
+      {isCharacterBibleMaximized && (
+        <div className="fixed inset-0 top-14 z-[9999] bg-slate-950 flex flex-col p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0 sticky top-0 bg-slate-950 z-[10000]">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-amber-500/20 text-amber-300 rounded-xl border border-amber-500/30">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
+                  <span>Character Bible & Show-Don't-Tell Studio</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono">
+                    {characters.length} Detected
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Comprehensive character arc analysis, psychological motivation, physical cues, and scene appearance logs.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsCharacterBibleMaximized(false)}
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-2 transition shadow-lg cursor-pointer active:scale-95"
+            >
+              <Minimize2 className="w-4 h-4" />
+              <span>✕ RETURN TO SCRIPT</span>
+            </button>
+          </div>
+
+          {/* Body Content */}
+          <div className="flex-1 min-h-0 pt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+            {/* Left Col: Character Roster List */}
+            <div className="lg:col-span-4 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col min-h-0">
+              <div className="pb-3 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 shrink-0">
+                <span>Select Character</span>
+                <span className="text-[10px] text-amber-400">Click to edit profile</span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2 mt-3 pr-1">
+                {characters.map((char) => {
+                  const bible = script.characterBibles?.[char.name];
+                  const isSelected = editingCharacterName === char.name;
+                  const hasNotes = Boolean(
+                    bible?.age || bible?.appearance || bible?.attitude || bible?.actionInFirstScene || bible?.internalFlaw || bible?.coreMotivation
+                  );
+                  const charScenes = scenes.filter((s) => s.characters.includes(char.name));
+
+                  return (
+                    <div
+                      key={char.name}
+                      onClick={() => handleOpenCharacterEdit(char.name)}
+                      className={`p-3.5 rounded-xl cursor-pointer transition border ${
+                        isSelected
+                          ? 'bg-amber-500/20 border-amber-400 text-slate-100 shadow-md'
+                          : hasNotes
+                          ? 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
+                          : 'bg-amber-950/10 border-amber-500/30 hover:border-amber-400 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-sm text-slate-100">{char.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-400 font-mono">{charScenes.length} scenes</span>
+                          {!hasNotes && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 text-[9px] font-bold">
+                              NEW
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {bible?.attitude ? (
+                        <p className="text-xs text-amber-300/90 truncate">{bible.attitude}</p>
+                      ) : bible?.appearance ? (
+                        <p className="text-xs text-slate-400 truncate">{bible.appearance}</p>
+                      ) : (
+                        <p className="text-[11px] text-slate-500 italic">No notes logged yet...</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Col: Active Character Deep-Dive Editor */}
+            <div className="lg:col-span-8 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col min-h-0 overflow-y-auto">
+              {editingCharacterName ? (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div>
+                      <span className="text-xs font-mono uppercase text-amber-400 font-bold">Editing Character Profile</span>
+                      <h3 className="text-2xl font-bold text-slate-100">{editingCharacterName}</h3>
+                    </div>
+                    <button
+                      onClick={handleSaveCharacterBible}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-lg"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Save Character Profile</span>
+                    </button>
+                  </div>
+
+                  {/* Character Form Fields Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Age / Era / Social Status
+                      </label>
+                      <input
+                        type="text"
+                        value={tempAge}
+                        onChange={(e) => handleUpdateCharacterField('age', e.target.value)}
+                        placeholder="e.g. Late 30s, Former military technician"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Attitude / Vibe / Energy
+                      </label>
+                      <input
+                        type="text"
+                        value={tempAttitude}
+                        onChange={(e) => handleUpdateCharacterField('attitude', e.target.value)}
+                        placeholder="e.g. Stoic, hyper-vigilant, defensive humor"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Appearance (Show, Don't Tell Physicality)
+                      </label>
+                      <input
+                        type="text"
+                        value={tempAppearance}
+                        onChange={(e) => handleUpdateCharacterField('appearance', e.target.value)}
+                        placeholder="e.g. Frayed leather trench coat, constant hand tremor"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Action in First Scene (Opening Physical Impulse)
+                      </label>
+                      <input
+                        type="text"
+                        value={tempActionInFirstScene}
+                        onChange={(e) => handleUpdateCharacterField('actionInFirstScene', e.target.value)}
+                        placeholder="e.g. Checks lock twice before pouring whiskey"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Internal Fatal Flaw
+                      </label>
+                      <input
+                        type="text"
+                        value={tempFlaw}
+                        onChange={(e) => handleUpdateCharacterField('internalFlaw', e.target.value)}
+                        placeholder="e.g. Inability to trust partners, deep-seated guilt"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                        Core Dramatic Motivation
+                      </label>
+                      <input
+                        type="text"
+                        value={tempMotivation}
+                        onChange={(e) => handleUpdateCharacterField('coreMotivation', e.target.value)}
+                        placeholder="e.g. Exonerate family name before trial"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-300 uppercase font-bold mb-1">
+                      Visual Presence & Directorial Camera Notes
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={tempVisual}
+                      onChange={(e) => handleUpdateCharacterField('visualDescription', e.target.value)}
+                      placeholder="Notes for lighting, framing choices, wardrobe details, and specific camera angles for this character..."
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-amber-400 resize-none"
+                    />
+                  </div>
+
+                  {/* Scene Appearance Grid for Active Character */}
+                  <div className="pt-3 border-t border-slate-800 space-y-2">
+                    <label className="block text-xs text-amber-400 font-bold uppercase tracking-wider">
+                      Screenplay Scene Appearances ({scenes.filter(s => s.characters.includes(editingCharacterName)).length} Scenes)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {scenes.filter(s => s.characters.includes(editingCharacterName)).map(s => (
+                        <div key={s.id} className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs space-y-1">
+                          <div className="font-bold text-amber-300">Scene #{s.sceneNumber}</div>
+                          <div className="text-[11px] text-slate-300 truncate max-w-[200px]">{s.heading}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-500 space-y-3">
+                  <Users className="w-12 h-12 text-slate-600" />
+                  <p className="text-sm font-medium">Select any character on the left to edit their full Character Bible, psychological arc, and directorial notes.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
