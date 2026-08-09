@@ -121,13 +121,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="fixed top-0 left-0 right-0 !z-50 bg-slate-900 border-b border-slate-800 text-slate-100 select-none pointer-events-auto shadow-2xl">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+      <div className="w-full px-3 sm:px-5 h-14 flex items-center justify-between gap-2 overflow-x-clip">
         {/* Left Section: Branding, Navigator Toggle, Script Title */}
-        <div className="flex items-center gap-3 min-w-0 pointer-events-auto">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 pointer-events-auto">
           {!isFocusMode && (
             <button
               onClick={onToggleSidePanel}
-              className={`p-2 rounded-lg border transition ${
+              className={`p-2 rounded-lg border transition shrink-0 ${
                 isSidePanelOpen
                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
                   : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
@@ -138,11 +138,11 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-extrabold text-sm tracking-wider uppercase text-amber-400 hidden sm:inline">
+          <div className="flex items-center gap-2 shrink-0 min-w-0">
+            <span className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-amber-400 hidden sm:inline whitespace-nowrap shrink-0">
               SCREENWRITER PRO
             </span>
-            <div className="h-4 w-px bg-slate-700 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-700 hidden sm:block shrink-0" />
 
             {editingTitle ? (
               <input
@@ -154,15 +154,18 @@ export const Header: React.FC<HeaderProps> = ({
                   if (e.key === 'Enter') handleTitleSubmit();
                 }}
                 autoFocus
-                className="bg-slate-950 border border-amber-400 rounded px-2 py-0.5 text-xs font-mono text-amber-300 focus:outline-none"
+                className="bg-slate-950 border border-amber-400 rounded-lg px-2.5 py-1 text-xs font-mono text-amber-300 focus:outline-none shrink-0"
               />
             ) : (
               <button
                 onClick={() => setEditingTitle(true)}
-                className="font-mono text-xs font-semibold text-slate-200 hover:text-amber-300 truncate max-w-[150px] sm:max-w-[220px] transition text-left"
+                className="flex items-center gap-1.5 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-amber-500/50 px-2.5 py-1 rounded-lg transition shrink-0 text-left group"
                 title="Click to rename screenplay title"
               >
-                {script.title || 'UNTITLED SCREENPLAY'}
+                <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0 group-hover:scale-105 transition" />
+                <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-amber-300 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[280px] xl:max-w-[360px] whitespace-nowrap">
+                  {script.title || 'UNTITLED SCREENPLAY'}
+                </span>
               </button>
             )}
           </div>
@@ -170,32 +173,32 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Center: Table Read & Production Schedule Buttons */}
         {!isFocusMode && (
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden xl:flex items-center gap-2 shrink-0 whitespace-nowrap">
             <button
               onClick={onOpenTableRead}
-              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
               title="Open Table Read Rehearsal Studio"
             >
-              <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              <BookOpen className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>TABLE READ</span>
             </button>
 
             <button
               onClick={onOpenProductionSchedule}
-              className="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/40 hover:bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/40 hover:bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
               title="Open Production Schedule, Call Sheet & Safety Suite"
             >
-              <Calendar className="w-3.5 h-3.5 text-sky-400" />
+              <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <span>PRODUCTION SCHEDULE</span>
             </button>
           </div>
         )}
 
         {/* Right Section: Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto shrink-0 whitespace-nowrap">
           {/* Atomic Undo / Redo */}
           {!isFocusMode && (
-            <div className="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded overflow-hidden">
+            <div className="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded-lg overflow-hidden shrink-0">
               <button
                 onClick={onUndo}
                 disabled={!canUndo}
@@ -217,28 +220,28 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Focus Mode Toggle & Pomodoro Break Button */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={onToggleFocusMode}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 border rounded text-xs font-medium flex items-center gap-1.5 transition ${
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 border rounded-lg text-xs font-medium flex items-center gap-1.5 transition shrink-0 whitespace-nowrap ${
                 isFocusMode
                   ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
               }`}
               title="Toggle Zen Focus Mode"
             >
-              {isFocusMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {isFocusMode ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
               <span className="hidden lg:inline">FOCUS</span>
             </button>
 
             {/* Pomodoro Timer with Settings Gear */}
-            <div className="relative flex items-center bg-slate-800 border border-slate-700 hover:border-amber-400 rounded transition">
+            <div className="relative flex items-center bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-lg transition shrink-0">
               <button
                 onClick={onOpenBreakModal}
-                className="px-2 py-1.5 text-amber-300 text-xs font-bold flex items-center gap-1 transition"
+                className="px-2 py-1.5 text-amber-300 text-xs font-bold flex items-center gap-1 transition shrink-0 whitespace-nowrap"
                 title="Pomodoro Break & Game Box"
               >
-                <Coffee className="w-3.5 h-3.5 text-amber-400" />
+                <Coffee className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>{Math.floor(pomodoroSeconds / 60)}:{String(pomodoroSeconds % 60).padStart(2, '0')}</span>
               </button>
               <button
@@ -537,6 +540,31 @@ export const Header: React.FC<HeaderProps> = ({
                   <Upload className="w-3.5 h-3.5 text-sky-400" />
                   Open Project (Ctrl+O)
                 </button>
+                {onOpenTableRead && (
+                  <button
+                    onClick={() => {
+                      onOpenTableRead();
+                      setIsMobileMoreOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-amber-300 hover:bg-slate-800 flex items-center gap-2 font-bold"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                    Table Read Studio
+                  </button>
+                )}
+                {onOpenProductionSchedule && (
+                  <button
+                    onClick={() => {
+                      onOpenProductionSchedule();
+                      setIsMobileMoreOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sky-300 hover:bg-slate-800 flex items-center gap-2 font-bold"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-sky-400" />
+                    Production Schedule
+                  </button>
+                )}
+                <div className="border-t border-slate-800 my-1" />
                 <button
                   onClick={() => {
                     onOpenHistoryModal();

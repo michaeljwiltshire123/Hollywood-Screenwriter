@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { ScreenplayDocument, ScreenplayElement, ElementType, CursorPosition } from '../types';
 import { getPredictiveNextElement, getNextElementTypeOnTab, getElementStyles, extractCharacters } from '../lib/screenplayUtils';
-import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X } from 'lucide-react';
+import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText } from 'lucide-react';
 
 interface ScreenplayEditorProps {
   script: ScreenplayDocument;
@@ -592,8 +592,19 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
           </div>
         </div>
 
-        {/* Page 1 Header */}
-        <div className="text-right text-xs font-mono text-slate-500 pr-2">1.</div>
+        {/* Page 1 Header & Script Title Banner */}
+        <div className="flex items-center justify-between text-xs font-mono px-2 text-slate-400 border-b border-slate-800/80 pb-2">
+          <div className="flex items-center gap-2 font-bold text-amber-400 uppercase tracking-widest text-[11px] sm:text-xs">
+            <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="truncate max-w-[300px] sm:max-w-[500px]">
+              {script.titlePage.title || script.title || 'UNTITLED SCREENPLAY'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+            <span className="hidden sm:inline italic">By {script.titlePage.author || script.author || 'Author'}</span>
+            <span className="font-bold text-slate-400">PAGE 1.</span>
+          </div>
+        </div>
 
         {/* Main Screenplay Page Paper Canvas */}
         <div
