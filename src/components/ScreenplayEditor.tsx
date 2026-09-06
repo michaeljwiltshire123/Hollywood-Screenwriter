@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { ScreenplayDocument, ScreenplayElement, ElementType, CursorPosition } from '../types';
 import { getPredictiveNextElement, getNextElementTypeOnTab, getElementStyles, extractCharacters } from '../lib/screenplayUtils';
+import { extractScriptLocations, getSluglineSuggestions, getGhostText } from '../lib/sluglinePredictor';
+import { SluglineAutocomplete } from './SluglineAutocomplete';
 import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText } from 'lucide-react';
 
 interface ScreenplayEditorProps {
@@ -48,6 +50,14 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
 
   const allCharacterNames = useMemo(() => {
     return extractCharacters(elements).map((c) => c.name);
+  }, [elements]);
+
+  // Slugline Autocomplete & Smart Compose Ghost Text States
+  const [sluglineSelectedIndex, setSluglineSelectedIndex] = useState<number>(0);
+  const [isSluglineMenuDismissed, setIsSluglineMenuDismissed] = useState<boolean>(false);
+
+  const scriptLocations = useMemo(() => {
+    return extractScriptLocations(elements);
   }, [elements]);
 
   // Jump to specific element by index
@@ -236,6 +246,96 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
       if (keyMap[e.key]) {
         e.preventDefault();
         handleTypeChange(elem.id, keyMap[e.key]);
+        return;
+      }
+    }
+
+    // SCENE HEADING INTERCEPTIONS (Ghost Text & Dropdown Autocomplete)
+    if (elem.type === 'SCENE HEADING') {
+      const currentGhost = getGhostText(elem.content || '');
+      const currentSuggestions = getSluglineSuggestions(elem.content || '', scriptLocations);
+
+      const resolveAcceptanceText = (ghost: string, current: string): string => {
+        if (!current || current.trim() === '') {
+          return 'INT. ';
+        }
+        if (ghost === 'NT. LOCATION - DAY') return 'NT. ';
+        if (ghost === 'T. LOCATION - DAY') return 'T. ';
+        if (ghost === '. LOCATION - DAY') return '. ';
+        if (ghost === ' LOCATION - DAY') return ' ';
+        if (ghost === 'XT. LOCATION - DAY') return 'XT. ';
+        if (ghost === 'LOCATION - DAY') return '';
+        return ghost;
+      };
+
+      // TAB: Accept Ghost Text (" - DAY", "INT. ", etc.) or Dropdown Item
+      if (e.key === 'Tab' && !e.shiftKey) {
+        if (currentGhost && offset >= textLen) {
+          const toInsert = resolveAcceptanceText(currentGhost, elem.content || '');
+          if (toInsert) {
+            e.preventDefault();
+            const newContent = elem.content + toInsert;
+            const dom = elementRefs.current[elem.id];
+            if (dom) dom.textContent = newContent;
+            handleContentChange(elem.id, newContent);
+            setCursorPos({ elementId: elem.id, offset: newContent.length });
+            return;
+          }
+        }
+
+        if (currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
+          e.preventDefault();
+          const selected = currentSuggestions[sluglineSelectedIndex] || currentSuggestions[0];
+          const dom = elementRefs.current[elem.id];
+          if (dom) dom.textContent = selected.completionText;
+          handleContentChange(elem.id, selected.completionText);
+          setCursorPos({ elementId: elem.id, offset: selected.completionText.length });
+          return;
+        }
+      }
+
+      // ARROW RIGHT: If at end of line and ghost text is visible, accept it!
+      if (e.key === 'ArrowRight' && offset >= textLen && currentGhost) {
+        const toInsert = resolveAcceptanceText(currentGhost, elem.content || '');
+        if (toInsert) {
+          e.preventDefault();
+          const newContent = elem.content + toInsert;
+          const dom = elementRefs.current[elem.id];
+          if (dom) dom.textContent = newContent;
+          handleContentChange(elem.id, newContent);
+          setCursorPos({ elementId: elem.id, offset: newContent.length });
+          return;
+        }
+      }
+
+      // ENTER: If empty and dropdown visible, Enter accepts highlighted prefix (e.g. INT. )
+      if (e.key === 'Enter' && !e.shiftKey && elem.content.trim() === '') {
+        if (currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
+          e.preventDefault();
+          const selected = currentSuggestions[sluglineSelectedIndex] || currentSuggestions[0];
+          const dom = elementRefs.current[elem.id];
+          if (dom) dom.textContent = selected.completionText;
+          handleContentChange(elem.id, selected.completionText);
+          setCursorPos({ elementId: elem.id, offset: selected.completionText.length });
+          return;
+        }
+      }
+
+      // ARROW UP / DOWN: Navigate dropdown suggestions if open
+      if (e.key === 'ArrowDown' && currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
+        e.preventDefault();
+        setSluglineSelectedIndex((prev) => (prev + 1) % currentSuggestions.length);
+        return;
+      }
+      if (e.key === 'ArrowUp' && currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
+        e.preventDefault();
+        setSluglineSelectedIndex((prev) => (prev - 1 + currentSuggestions.length) % currentSuggestions.length);
+        return;
+      }
+
+      // ESCAPE: Dismiss dropdown
+      if (e.key === 'Escape') {
+        setIsSluglineMenuDismissed(true);
         return;
       }
     }
@@ -623,6 +723,15 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
               ? allCharacterNames.filter((name) => charQuery === '' || (name.includes(charQuery) && name !== charQuery))
               : [];
 
+            // Slugline autocomplete suggestions & Smart Compose Ghost Text
+            const isSlugline = elem.type === 'SCENE HEADING';
+            const isSluglineActive = isSelected && isSlugline;
+            const sluglineSuggestions = isSluglineActive
+              ? getSluglineSuggestions(elem.content || '', scriptLocations)
+              : [];
+            const ghostText = isSlugline ? getGhostText(elem.content || '') : null;
+            const shouldShowGhost = isSlugline && (isSelected || !elem.content || elem.content.trim() === '') && !!ghostText;
+
             return (
               <React.Fragment key={elem.id}>
                 {pageNum && (
@@ -661,22 +770,65 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                     </span>
                   )}
 
-                  {/* ContentEditable Pure Input Container */}
-                  <div
-                    ref={(el) => (elementRefs.current[elem.id] = el)}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onFocus={() => {
-                      setActiveElementId(elem.id);
-                      setActiveType(elem.type);
-                    }}
-                    onInput={(e) => handleContentChange(elem.id, e.currentTarget.textContent || '')}
-                    onKeyDown={(e) => handleKeyDown(e, elem, idx)}
-                    className={`outline-none whitespace-pre-wrap break-words ${styles.containerClass}`}
-                    style={{ textTransform: styles.textTransform, fontFamily: fontStyleValue }}
-                    data-placeholder={styles.placeholder}
-                  >
-                    {elem.content}
+                  {/* ContentEditable & Predictive Overlay Container */}
+                  <div className={`relative ${isSlugline ? 'my-5' : ''}`}>
+                    <div
+                      ref={(el) => (elementRefs.current[elem.id] = el)}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onFocus={() => {
+                        setActiveElementId(elem.id);
+                        setActiveType(elem.type);
+                        setIsSluglineMenuDismissed(false);
+                      }}
+                      onInput={(e) => {
+                        setIsSluglineMenuDismissed(false);
+                        handleContentChange(elem.id, e.currentTarget.textContent || '');
+                      }}
+                      onKeyDown={(e) => handleKeyDown(e, elem, idx)}
+                      className={`outline-none whitespace-pre-wrap break-words ${
+                        isSlugline ? styles.containerClass.replace(/\bmy-5\b/, 'my-0') : styles.containerClass
+                      }`}
+                      style={{ textTransform: styles.textTransform, fontFamily: fontStyleValue }}
+                      data-placeholder={isSlugline ? undefined : styles.placeholder}
+                    >
+                      {elem.content}
+                    </div>
+
+                    {/* Smart Compose Inline Ghost Text (e.g. "INT. LOCATION - DAY" or " - DAY") */}
+                    {shouldShowGhost && ghostText && (
+                      <div
+                        className={`absolute top-0 left-0 w-full h-full pointer-events-none select-none whitespace-pre-wrap break-words ${styles.containerClass.replace(/\bmy-5\b/, 'my-0')}`}
+                        style={{ fontFamily: fontStyleValue, textTransform: styles.textTransform }}
+                        aria-hidden="true"
+                      >
+                        <span className="opacity-0 select-none text-transparent">{elem.content || ''}</span>
+                        <span className="text-slate-400 font-bold opacity-60">
+                          {ghostText}
+                        </span>
+                        {isSelected && (
+                          <span className="ml-2 inline-flex items-center gap-0.5 text-[9px] font-sans font-semibold bg-slate-200/90 text-slate-600 px-1.5 py-0.5 rounded shadow-2xs opacity-85 select-none align-middle">
+                            <span>Tab</span>
+                            <span className="text-[8px]">⇥</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Slick Slugline Autocomplete Dropdown */}
+                    {isSluglineActive && !isSluglineMenuDismissed && sluglineSuggestions.length > 0 && (
+                      <div className="absolute left-0 top-full z-30">
+                        <SluglineAutocomplete
+                          suggestions={sluglineSuggestions}
+                          selectedIndex={sluglineSelectedIndex}
+                          onSelect={(suggestion) => {
+                            handleContentChange(elem.id, suggestion.completionText);
+                            setCursorPos({ elementId: elem.id, offset: suggestion.completionText.length });
+                            setActiveElementId(elem.id);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Alternate Version Badge */}

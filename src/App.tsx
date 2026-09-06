@@ -551,20 +551,21 @@ export default function App() {
 
   // Start New Script
   const handleStartNewScript = async (customTitlePage?: TitlePage) => {
-    const finalTitlePage: TitlePage = customTitlePage || {
-      title: 'UNTITLED SCREENPLAY',
-      credit: 'Written by',
-      author: 'J. Onionfist',
-      source: 'Original',
-      contact: '',
-      date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      draftColor: 'White Draft',
+    const defaultDate = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const finalTitlePage: TitlePage = {
+      title: customTitlePage?.title?.trim() || 'UNTITLED SCREENPLAY',
+      credit: customTitlePage?.credit?.trim() || 'Written by',
+      author: customTitlePage?.author?.trim() || '',
+      source: customTitlePage?.source?.trim() || '',
+      contact: customTitlePage?.contact?.trim() || '',
+      date: customTitlePage?.date?.trim() || defaultDate,
+      draftColor: customTitlePage?.draftColor?.trim() || 'White Draft',
     };
 
     const newDoc: ScreenplayDocument = {
       id: `script-${Date.now()}`,
       title: finalTitlePage.title || 'UNTITLED SCREENPLAY',
-      author: finalTitlePage.author || 'J. Onionfist',
+      author: finalTitlePage.author || '',
       description: 'A new screenplay.',
       draftStatus: 'DRAFT',
       version: 1,

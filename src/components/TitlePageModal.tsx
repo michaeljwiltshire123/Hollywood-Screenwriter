@@ -55,20 +55,48 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
 
   const handleStartNewClick = () => {
     setIsCreatingNew(true);
+    setForm({
+      title: '',
+      credit: '',
+      author: '',
+      source: '',
+      contact: '',
+      date: '',
+      draftColor: '',
+    });
     setShowTitleForm(true);
   };
 
   const handleEditCurrentClick = () => {
     setIsCreatingNew(false);
+    setForm({
+      title: titlePage.title || '',
+      credit: titlePage.credit || 'Written by',
+      author: titlePage.author || '',
+      source: titlePage.source || '',
+      contact: titlePage.contact || '',
+      date: titlePage.date || new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+      draftColor: titlePage.draftColor || 'White Draft',
+    });
     setShowTitleForm(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const currentDate = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const processedForm: TitlePage = {
+      title: form.title.trim() || 'UNTITLED SCREENPLAY',
+      credit: form.credit.trim() || 'Written by',
+      author: form.author.trim() || (isCreatingNew ? '' : (titlePage.author || '')),
+      source: form.source.trim(),
+      contact: form.contact.trim(),
+      date: form.date.trim() || currentDate,
+      draftColor: form.draftColor?.trim() || 'White Draft',
+    };
     if (isCreatingNew) {
-      onStartNewScript(form);
+      onStartNewScript(processedForm);
     } else {
-      onSave(form);
+      onSave(processedForm);
     }
     onClose();
   };
@@ -200,9 +228,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value.toUpperCase() })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-amber-300 font-bold focus:outline-none focus:border-amber-400"
-                  required
-                  placeholder="e.g. THE GREAT ESCAPE"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-amber-300 font-bold placeholder:text-slate-500 placeholder:font-normal focus:outline-none focus:border-amber-400"
+                  placeholder="e.g. THE GREAT ESCAPE or UNTITLED SCREENPLAY"
                   autoFocus
                 />
               </div>
@@ -214,8 +241,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                     type="text"
                     value={form.credit}
                     onChange={(e) => setForm({ ...form, credit: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
-                    placeholder="Written by"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                    placeholder="e.g. Written by"
                   />
                 </div>
                 <div>
@@ -224,9 +251,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                     type="text"
                     value={form.author}
                     onChange={(e) => setForm({ ...form, author: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
-                    required
-                    placeholder="J. Onionfist"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                    placeholder="e.g. Jane Doe / Pen Name"
                   />
                 </div>
               </div>
@@ -237,8 +263,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                   type="text"
                   value={form.source}
                   onChange={(e) => setForm({ ...form, source: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
-                  placeholder="Based on the novel by..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                  placeholder="e.g. Based on the novel by / Original Screenplay"
                 />
               </div>
 
@@ -249,16 +275,18 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                     type="text"
                     value={form.date}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                    placeholder="e.g. August 2026"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold uppercase mb-1">Draft Color / Revisions</label>
+                  <label className="block text-slate-400 font-bold uppercase mb-1">Draft Colour / Revisions</label>
                   <input
                     type="text"
-                    value={form.draftColor || 'White Draft'}
+                    value={form.draftColor || ''}
                     onChange={(e) => setForm({ ...form, draftColor: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                    placeholder="e.g. White Draft / First Draft"
                   />
                 </div>
               </div>
@@ -269,8 +297,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
                   value={form.contact}
                   onChange={(e) => setForm({ ...form, contact: e.target.value })}
                   rows={2}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 resize-none"
-                  placeholder="Agency / Legal Contact info..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400 resize-none"
+                  placeholder="e.g. Contact details, agency representation, email or phone..."
                 />
               </div>
 
