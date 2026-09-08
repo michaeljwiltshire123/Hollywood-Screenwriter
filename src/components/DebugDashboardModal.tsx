@@ -46,8 +46,8 @@ export const DebugDashboardModal: React.FC<DebugDashboardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-4xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/85 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-4xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">

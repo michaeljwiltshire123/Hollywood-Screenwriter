@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { ScreenplayDocument, ScreenplayElement, ElementType, CursorPosition } from '../types';
 import { getPredictiveNextElement, getNextElementTypeOnTab, getElementStyles, extractCharacters } from '../lib/screenplayUtils';
+import { getElementTypeFromKeyboardEvent } from '../lib/screenplayShortcuts';
 import { extractScriptLocations, getSluglineSuggestions, getGhostText } from '../lib/sluglinePredictor';
 import { SluglineAutocomplete } from './SluglineAutocomplete';
+import { CharacterAutocomplete } from './CharacterAutocomplete';
 import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText } from 'lucide-react';
 
 interface ScreenplayEditorProps {
@@ -231,21 +233,13 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
     const offset = getCaretOffset(dom);
     const textLen = elem.content.length;
 
-    // Alt + 1..8 shortcuts for fast element typing
-    if (e.altKey && !e.ctrlKey && !e.metaKey) {
-      const keyMap: { [key: string]: ElementType } = {
-        '1': 'SCENE HEADING',
-        '2': 'ACTION',
-        '3': 'CHARACTER',
-        '4': 'PARENTICAL',
-        '5': 'DIALOGUE',
-        '6': 'TRANSITION',
-        '7': 'SHOT',
-        '8': 'NOTE',
-      };
-      if (keyMap[e.key]) {
+    // Format selection shortcuts: Shift + Alt + [Letter] (menu safe) and Alt + 1..8
+    if (e.altKey && e.key !== 'Tab') {
+      const targetType = getElementTypeFromKeyboardEvent(e);
+      if (targetType) {
         e.preventDefault();
-        handleTypeChange(elem.id, keyMap[e.key]);
+        handleTypeChange(elem.id, targetType);
+        setCursorPos({ elementId: elem.id, offset });
         return;
       }
     }
@@ -267,32 +261,6 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
         if (ghost === 'LOCATION - DAY') return '';
         return ghost;
       };
-
-      // TAB: Accept Ghost Text (" - DAY", "INT. ", etc.) or Dropdown Item
-      if (e.key === 'Tab' && !e.shiftKey) {
-        if (currentGhost && offset >= textLen) {
-          const toInsert = resolveAcceptanceText(currentGhost, elem.content || '');
-          if (toInsert) {
-            e.preventDefault();
-            const newContent = elem.content + toInsert;
-            const dom = elementRefs.current[elem.id];
-            if (dom) dom.textContent = newContent;
-            handleContentChange(elem.id, newContent);
-            setCursorPos({ elementId: elem.id, offset: newContent.length });
-            return;
-          }
-        }
-
-        if (currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
-          e.preventDefault();
-          const selected = currentSuggestions[sluglineSelectedIndex] || currentSuggestions[0];
-          const dom = elementRefs.current[elem.id];
-          if (dom) dom.textContent = selected.completionText;
-          handleContentChange(elem.id, selected.completionText);
-          setCursorPos({ elementId: elem.id, offset: selected.completionText.length });
-          return;
-        }
-      }
 
       // ARROW RIGHT: If at end of line and ghost text is visible, accept it!
       if (e.key === 'ArrowRight' && offset >= textLen && currentGhost) {
@@ -340,10 +308,11 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
       }
     }
 
-    // TAB / SHIFT+TAB: Cycle Element Type
+    // TAB: Cycle Element Type forward (to right) | ALT+TAB or SHIFT+TAB: Cycle left (reverse)
     if (e.key === 'Tab') {
       e.preventDefault();
-      const nextType = getNextElementTypeOnTab(elem.type, e.shiftKey);
+      const isReverse = e.shiftKey || e.altKey;
+      const nextType = getNextElementTypeOnTab(elem.type, isReverse);
       handleTypeChange(elem.id, nextType);
       setCursorPos({ elementId: elem.id, offset });
       return;
@@ -730,7 +699,8 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
               ? getSluglineSuggestions(elem.content || '', scriptLocations)
               : [];
             const ghostText = isSlugline ? getGhostText(elem.content || '') : null;
-            const shouldShowGhost = isSlugline && (isSelected || !elem.content || elem.content.trim() === '') && !!ghostText;
+            const isBlank = !elem.content || elem.content.trim() === '';
+            const shouldShowGhost = isSlugline && (isBlank ? !isSelected : isSelected) && !!ghostText;
 
             return (
               <React.Fragment key={elem.id}>
@@ -807,9 +777,8 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                           {ghostText}
                         </span>
                         {isSelected && (
-                          <span className="ml-2 inline-flex items-center gap-0.5 text-[9px] font-sans font-semibold bg-slate-200/90 text-slate-600 px-1.5 py-0.5 rounded shadow-2xs opacity-85 select-none align-middle">
-                            <span>Tab</span>
-                            <span className="text-[8px]">⇥</span>
+                          <span className="ml-2 inline-flex items-center gap-0.5 text-[9px] font-sans font-medium text-slate-400 opacity-60 select-none align-middle">
+                            <span>→</span>
                           </span>
                         )}
                       </div>
@@ -839,30 +808,15 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                     </div>
                   )}
 
-                  {/* Character Autocomplete Dropdown */}
+                  {/* Minimalist Character Autocomplete Dropdown (Light Mode) */}
                   {isCharActive && matchingChars.length > 0 && (
-                    <div className="absolute left-0 sm:left-[37%] mt-1 z-20 w-64 bg-slate-900 border border-amber-500/60 rounded-lg shadow-2xl py-1 text-slate-100 font-mono text-xs">
-                      <div className="px-3 py-1 text-[9px] uppercase tracking-wider text-amber-400 font-bold border-b border-slate-800 flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        <span>Character Suggestions</span>
-                      </div>
-                      <div className="max-h-36 overflow-y-auto">
-                        {matchingChars.slice(0, 6).map((cName) => (
-                          <div
-                            key={cName}
-                            onMouseDown={(e) => {
-                              e.preventDefault(); // prevent blur
-                              handleContentChange(elem.id, cName);
-                              setActiveElementId(elem.id);
-                            }}
-                            className="px-3 py-1.5 hover:bg-amber-500/20 hover:text-amber-300 cursor-pointer transition flex items-center justify-between"
-                          >
-                            <span className="font-bold">{cName}</span>
-                            <span className="text-[10px] text-slate-500">Select</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <CharacterAutocomplete
+                      characters={matchingChars}
+                      onSelect={(cName) => {
+                        handleContentChange(elem.id, cName);
+                        setActiveElementId(elem.id);
+                      }}
+                    />
                   )}
                 </div>
               </React.Fragment>

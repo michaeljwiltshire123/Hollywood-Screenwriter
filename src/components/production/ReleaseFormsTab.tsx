@@ -437,8 +437,8 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
       {/* Editable Agreement Text Modal */}
       {editingForm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-x-0 top-28 bottom-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[82vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">

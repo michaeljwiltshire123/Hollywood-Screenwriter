@@ -17,7 +17,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
+    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
       <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-lg w-full text-slate-100 overflow-hidden">
         <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">

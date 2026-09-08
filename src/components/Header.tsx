@@ -23,6 +23,7 @@ import {
   EyeOff,
   Cloud,
   Coffee,
+  Lock,
   MoreVertical,
   Calendar,
 } from 'lucide-react';
@@ -53,6 +54,7 @@ interface HeaderProps {
   onToggleFocusMode: () => void;
   pomodoroSeconds: number;
   onOpenBreakModal: () => void;
+  gameCooldownSeconds?: number;
   isPomodoroRunning?: boolean;
   onTogglePomodoro?: () => void;
   onSetPomodoroMinutes?: (minutes: number) => void;
@@ -91,6 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleFocusMode,
   pomodoroSeconds,
   onOpenBreakModal,
+  gameCooldownSeconds = 0,
   isPomodoroRunning = true,
   onTogglePomodoro,
   onSetPomodoroMinutes,
@@ -235,13 +238,25 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Pomodoro Timer with Settings Gear */}
-            <div className="relative flex items-center bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-lg transition shrink-0">
+            <div className={`relative flex items-center bg-slate-800 border rounded-lg transition shrink-0 ${
+              gameCooldownSeconds > 0
+                ? 'border-amber-500/40 hover:border-amber-400'
+                : 'border-slate-700 hover:border-amber-400'
+            }`}>
               <button
                 onClick={onOpenBreakModal}
                 className="px-2 py-1.5 text-amber-300 text-xs font-bold flex items-center gap-1 transition shrink-0 whitespace-nowrap"
-                title="Pomodoro Break & Game Box"
+                title={
+                  gameCooldownSeconds > 0
+                    ? `Focus Sprint Active: Break games locked for another ${Math.floor(gameCooldownSeconds / 60)}m ${gameCooldownSeconds % 60}s. Click for details.`
+                    : 'Pomodoro Break & Game Suite'
+                }
               >
-                <Coffee className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                {gameCooldownSeconds > 0 ? (
+                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                ) : (
+                  <Coffee className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                )}
                 <span>{Math.floor(pomodoroSeconds / 60)}:{String(pomodoroSeconds % 60).padStart(2, '0')}</span>
               </button>
               <button

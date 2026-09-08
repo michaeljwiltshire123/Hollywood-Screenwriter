@@ -16,6 +16,7 @@ import {
   extractScenes,
   extractCharacters,
 } from './lib/screenplayUtils';
+import { getElementTypeFromKeyboardEvent } from './lib/screenplayShortcuts';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { FormattingToolbar } from './components/FormattingToolbar';
@@ -27,6 +28,12 @@ import { SettingsModal } from './components/SettingsModal';
 import { DebugDashboardModal } from './components/DebugDashboardModal';
 import { PomodoroAlertModal } from './components/PomodoroAlertModal';
 import { BreakGameModal } from './components/BreakGameModal';
+import { GameLockoutModal } from './components/GameLockoutModal';
+import {
+  getStoredGameCooldownUntil,
+  setGameCooldown,
+  calculateRemainingCooldown,
+} from './lib/gameCooldownManager';
 import { TableReadModal } from './components/TableReadModal';
 import { ProductionScheduleModal } from './components/production/ProductionScheduleModal';
 import { FocusGoalModal } from './components/FocusGoalModal';
@@ -126,6 +133,13 @@ export default function App() {
   const [isPomodoroRunning, setIsPomodoroRunning] = useState<boolean>(true);
   const [isPomodoroAlertOpen, setIsPomodoroAlertOpen] = useState<boolean>(false);
   const [isBreakGameOpen, setIsBreakGameOpen] = useState<boolean>(false);
+  const [isGameLockoutOpen, setIsGameLockoutOpen] = useState<boolean>(false);
+  const [gameCooldownUntil, setGameCooldownUntil] = useState<number>(() =>
+    getStoredGameCooldownUntil()
+  );
+  const [gameCooldownSeconds, setGameCooldownSeconds] = useState<number>(() =>
+    calculateRemainingCooldown(getStoredGameCooldownUntil())
+  );
   const [playedGames, setPlayedGames] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('screenwriter_played_games');
@@ -134,6 +148,38 @@ export default function App() {
       return [];
     }
   });
+
+  // 10-Minute Focus Sprint Cooldown ticker
+  useEffect(() => {
+    if (gameCooldownUntil <= 0) return;
+    const interval = setInterval(() => {
+      const remaining = calculateRemainingCooldown(gameCooldownUntil);
+      setGameCooldownSeconds(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [gameCooldownUntil]);
+
+  const handleOpenBreakGames = useCallback(() => {
+    const remaining = calculateRemainingCooldown(gameCooldownUntil);
+    if (remaining > 0) {
+      setGameCooldownSeconds(remaining);
+      setIsGameLockoutOpen(true);
+    } else {
+      setIsBreakGameOpen(true);
+    }
+  }, [gameCooldownUntil]);
+
+  const handleCloseBreakGames = useCallback((triggerCooldown: boolean = true) => {
+    setIsBreakGameOpen(false);
+    if (triggerCooldown) {
+      const until = setGameCooldown(600); // 10 minutes focus block
+      setGameCooldownUntil(until);
+      setGameCooldownSeconds(600);
+    }
+  }, []);
 
   // Revisions in RAM
   const [revisions, setRevisions] = useState<RevisionHistoryItem[]>([]);
@@ -146,6 +192,11 @@ export default function App() {
   useEffect(() => {
     scriptRef.current = script;
   }, [script]);
+
+  const activeElementIdRef = useRef(activeElementId);
+  useEffect(() => {
+    activeElementIdRef.current = activeElementId;
+  }, [activeElementId]);
 
   // Pomodoro & Focus Sprint timer effect
   useEffect(() => {
@@ -450,6 +501,23 @@ export default function App() {
       } else if (cmdOrCtrl && e.key.toLowerCase() === 'o') {
         e.preventDefault();
         loadNativeFile();
+      } else if (e.altKey && e.key !== 'Tab') {
+        const targetType = getElementTypeFromKeyboardEvent(e);
+        if (targetType) {
+          const currentDoc = scriptRef.current;
+          const currentActiveId = activeElementIdRef.current || currentDoc.elements[0]?.id;
+          if (currentActiveId) {
+            e.preventDefault();
+            const updated = {
+              ...currentDoc,
+              elements: (currentDoc?.elements || []).map((elem) =>
+                elem.id === currentActiveId ? { ...elem, type: targetType } : elem
+              ),
+            };
+            handleScriptChange(updated);
+            setActiveType(targetType);
+          }
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -576,13 +644,8 @@ export default function App() {
         {
           id: `elem-${Date.now()}-1`,
           type: 'SCENE HEADING',
-          content: 'INT. LOCATION - DAY',
+          content: '',
           sceneNumber: '1',
-        },
-        {
-          id: `elem-${Date.now()}-2`,
-          type: 'ACTION',
-          content: 'Write your action description here...',
         },
       ],
     };
@@ -754,7 +817,8 @@ export default function App() {
         isFocusMode={isFocusMode}
         onToggleFocusMode={handleToggleFocusMode}
         pomodoroSeconds={pomodoroSeconds}
-        onOpenBreakModal={() => setIsBreakGameOpen(true)}
+        onOpenBreakModal={handleOpenBreakGames}
+        gameCooldownSeconds={gameCooldownSeconds}
         isPomodoroRunning={isPomodoroRunning}
         onTogglePomodoro={() => setIsPomodoroRunning(!isPomodoroRunning)}
         onSetPomodoroMinutes={(mins) => setPomodoroSeconds(mins * 60)}
@@ -791,7 +855,7 @@ export default function App() {
         )}
 
         {isSidePanelOpen && !isFocusMode && (
-          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-[88vw] max-w-sm sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-10 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
+          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-[88vw] max-w-sm sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-30 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
             <NavigatorSidePanel
               script={script}
               isOpen={isSidePanelOpen && !isFocusMode}
@@ -824,7 +888,7 @@ export default function App() {
             </div>
           )}
 
-          <div className="shrink-0 z-10">
+          <div className="shrink-0 z-30 relative overflow-visible">
             <FormattingToolbar
               activeType={activeType}
               onChangeType={(newType) => {
@@ -922,17 +986,18 @@ export default function App() {
         isOpen={isPomodoroAlertOpen}
         onSnooze={() => setIsPomodoroAlertOpen(false)}
         onDismiss={() => setIsPomodoroAlertOpen(false)}
+        gameCooldownSeconds={gameCooldownSeconds}
         onOpenGame={() => {
           setIsPomodoroAlertOpen(false);
-          setIsBreakGameOpen(true);
+          handleOpenBreakGames();
         }}
       />
 
       <BreakGameModal
         isOpen={isBreakGameOpen}
-        onClose={() => setIsBreakGameOpen(false)}
+        onClose={() => handleCloseBreakGames(true)}
         onGetBackToWork={() => {
-          setIsBreakGameOpen(false);
+          handleCloseBreakGames(true);
           setIsPomodoroRunning(true);
         }}
         playedGames={playedGames}
@@ -947,6 +1012,12 @@ export default function App() {
             }
           }
         }}
+      />
+
+      <GameLockoutModal
+        isOpen={isGameLockoutOpen}
+        onClose={() => setIsGameLockoutOpen(false)}
+        remainingSeconds={gameCooldownSeconds}
       />
 
       <TableReadModal

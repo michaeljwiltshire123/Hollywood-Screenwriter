@@ -252,8 +252,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
   const isTimeExpired = breakSecondsRemaining <= 0;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-2 sm:p-4 font-mono text-slate-100">
-      <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] max-w-2xl w-full overflow-hidden flex flex-col max-h-[94vh] relative">
+    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-2 sm:p-4 font-mono text-slate-100">
+      <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] max-w-2xl w-full overflow-hidden flex flex-col max-h-[85vh] relative">
 
         {/* Console Toast Overlay */}
         {toast && (
@@ -345,7 +345,7 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
         {/* Modal Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 flex flex-col justify-center items-center text-center">
           {/* Lockout Screen */}
-          {isTimeExpired && !activeGameId ? (
+          {isTimeExpired ? (
             <div className="space-y-6 py-8 text-center my-auto">
               <div className="w-20 h-20 bg-amber-500/20 border-2 border-amber-400 rounded-3xl flex items-center justify-center mx-auto text-amber-400 animate-pulse shadow-[0_0_30px_rgba(245,158,11,0.3)]">
                 <AlertTriangle className="w-10 h-10" />

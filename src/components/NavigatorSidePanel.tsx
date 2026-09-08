@@ -1303,8 +1303,8 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
         if (!targetScene) return null;
 
         return (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
+            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[85vh]">
               <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <Camera className="w-5 h-5 text-sky-400" />
@@ -1596,7 +1596,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
       })()}
       {/* SPARK PROVOCATION MODAL */}
       {isSparkModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-slate-900 border border-amber-500/50 rounded-2xl shadow-2xl max-w-md w-full text-slate-100 overflow-hidden flex flex-col p-6 space-y-5 relative">
             <button
               onClick={() => setIsSparkModalOpen(false)}
@@ -1647,12 +1647,12 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
       {/* FULLSCREEN WHITEBOARD MODAL */}
       {isWhiteboardMaximized && (
-        <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col p-6 overflow-y-auto text-slate-100">
+        <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950 z-50 flex flex-col p-4 sm:p-6 overflow-y-auto text-slate-100 animate-in fade-in duration-150">
           <div className="max-w-7xl mx-auto w-full space-y-6">
             {/* Header & Controls */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+            <div className="sticky top-0 bg-slate-950/95 backdrop-blur-md z-30 pb-4 pt-1 border-b border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
                   <Layers className="w-6 h-6" />
                 </div>
                 <div>
@@ -1665,9 +1665,9 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 z-30 relative">
                 {/* Target Length & Over-length Indicator */}
-                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl shrink-0">
                   <span className="text-[11px] text-slate-400 font-bold uppercase">Target (mins):</span>
                   <input
                     type="number"
@@ -1688,14 +1688,14 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 </div>
 
                 {/* Philosophy Presets */}
-                <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl gap-1">
+                <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl gap-1 shrink-0">
                   {(['3-Act', '5-Act', 'Hero’s Journey', 'Custom'] as const).map((preset) => (
                     <button
                       key={preset}
                       onClick={() => handlePresetChange(preset)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                         storyArc.preset === preset
-                          ? 'bg-emerald-600 text-slate-950 shadow'
+                          ? 'bg-emerald-600 text-slate-950 shadow font-extrabold'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
@@ -1707,10 +1707,11 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsWhiteboardMaximized(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center gap-1.5 transition"
+                  className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 transition shadow-lg cursor-pointer active:scale-95 shrink-0"
+                  title="Return to Script (or press Esc)"
                 >
-                  <X className="w-4 h-4" />
-                  <span>Exit Fullscreen</span>
+                  <Minimize2 className="w-4 h-4" />
+                  <span>✕ RETURN TO SCRIPT</span>
                 </button>
               </div>
             </div>
@@ -1834,9 +1835,9 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
       {/* FULLSCREEN MAXIMIZED CHARACTER BIBLE MODAL */}
       {isCharacterBibleMaximized && (
-        <div className="fixed inset-0 top-14 z-[9999] bg-slate-950 flex flex-col p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150">
+        <div className="fixed inset-x-0 top-28 bottom-0 z-50 bg-slate-950 flex flex-col p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150">
           {/* Header Bar */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0 sticky top-0 bg-slate-950 z-[10000]">
+          <div className="flex items-center justify-between pb-4 pt-1 border-b border-slate-800 shrink-0 sticky top-0 bg-slate-950/95 backdrop-blur-md z-30">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-amber-500/20 text-amber-300 rounded-xl border border-amber-500/30">
                 <Users className="w-6 h-6" />

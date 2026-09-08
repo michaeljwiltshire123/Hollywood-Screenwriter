@@ -118,8 +118,8 @@ export const TableReadModal: React.FC<TableReadModalProps> = ({ isOpen, onClose,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 font-mono text-slate-100">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col h-[90vh] overflow-hidden">
+    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 font-mono text-slate-100">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">

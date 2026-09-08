@@ -69,7 +69,7 @@ ${isGoalAchieved ? `🏆 Target reached in ${goalHitFormatted || formatSecs(elap
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-x-0 top-28 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
       <div
         className="w-full max-w-lg bg-slate-900 border border-amber-500/40 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.25)] overflow-hidden flex flex-col text-slate-100 font-mono"
         onClick={(e) => e.stopPropagation()}
