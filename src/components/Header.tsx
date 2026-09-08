@@ -130,14 +130,23 @@ export const Header: React.FC<HeaderProps> = ({
           {!isFocusMode && (
             <button
               onClick={onToggleSidePanel}
-              className={`p-2 rounded-lg border transition shrink-0 ${
+              className={`flex items-center justify-center gap-2.5 px-3.5 py-1.5 min-h-[44px] rounded-xl border font-mono transition-all duration-150 shrink-0 shadow-sm cursor-pointer active:scale-95 group text-center ${
                 isSidePanelOpen
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                  : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                  ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                  : 'bg-slate-800 hover:bg-slate-750 border-slate-600 hover:border-amber-400 text-slate-100 hover:text-amber-300 hover:shadow-md'
               }`}
-              title="Toggle Navigator Side Panel"
+              title={isSidePanelOpen ? 'Close Navigator & Production Tools Drawer' : 'Open Navigator & Production Tools Drawer'}
+              aria-label="Toggle Navigator and Production Tools"
             >
-              <PanelLeft className="w-4 h-4" />
+              <PanelLeft className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${isSidePanelOpen ? 'text-amber-300' : 'text-amber-400'}`} />
+              <div className="flex flex-col items-center justify-center text-center leading-snug">
+                <span className="tracking-wider uppercase text-xs sm:text-[13px] font-black text-amber-300">
+                  Navigator
+                </span>
+                <span className="tracking-tight text-[11px] font-bold text-slate-200 group-hover:text-amber-200 whitespace-nowrap">
+                  Production Tools
+                </span>
+              </div>
             </button>
           )}
 

@@ -104,13 +104,8 @@ export default function App() {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  // Side Panel & Modals State
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024; // Open by default on desktop, closed on mobile/tablet
-    }
-    return true;
-  });
+  // Side Panel & Modals State (Hidden by default)
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
   const [isTitlePageOpen, setIsTitlePageOpen] = useState<boolean>(true); // Fresh load opens Title Page modal automatically
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
