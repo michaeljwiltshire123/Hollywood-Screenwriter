@@ -1,51 +1,27 @@
-import React, { useState } from 'react';
-import {
-  FileText,
-  Save,
-  Download,
-  Upload,
-  Sparkles,
-  PanelLeft,
-  BookOpen,
-  History,
-  Plus,
-  ShieldCheck,
-  Check,
-  FileCode,
-  Printer,
-  ChevronDown,
-  Settings,
-  Database,
-  Undo2,
-  Redo2,
-  Focus,
-  Eye,
-  EyeOff,
-  Cloud,
-  Coffee,
-  Lock,
-  MoreVertical,
-  Calendar,
-} from 'lucide-react';
+import React from 'react';
+import { BookOpen, Calendar } from 'lucide-react';
 import { ScreenplayDocument } from '../types';
+import { NavigatorToggle } from './header/NavigatorToggle';
+import { ScriptTitleEditor } from './header/ScriptTitleEditor';
+import { HeaderActionButtons } from './header/HeaderActionButtons';
 
 interface HeaderProps {
   script: ScreenplayDocument;
   onUpdateTitle: (newTitle: string) => void;
-  onUpdateDraftStatus: (status: ScreenplayDocument['draftStatus']) => void;
+  onUpdateDraftStatus?: (status: ScreenplayDocument['draftStatus']) => void;
   isSidePanelOpen: boolean;
   onToggleSidePanel: () => void;
   onOpenTitlePage: () => void;
   onOpenHistoryModal: () => void;
   onOpenSettingsModal: () => void;
-  onOpenDebugModal: () => void;
+  onOpenDebugModal?: () => void;
   onNewScript: () => void;
   onLoadSample: () => void;
-  onExport: (format: 'pdf' | 'docx' | 'screenplay') => void;
+  onExport: (format: 'pdf' | 'docx' | 'screenplay' | 'print') => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  latencyMs: number;
-  draftModeActive: boolean;
-  onToggleDraftMode: () => void;
+  latencyMs?: number;
+  draftModeActive?: boolean;
+  onToggleDraftMode?: () => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -68,137 +44,43 @@ interface HeaderProps {
   onOpenProject?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  script,
-  onUpdateTitle,
-  onUpdateDraftStatus,
-  isSidePanelOpen,
-  onToggleSidePanel,
-  onOpenTitlePage,
-  onOpenHistoryModal,
-  onOpenSettingsModal,
-  onOpenDebugModal,
-  onNewScript,
-  onLoadSample,
-  onExport,
-  onImport,
-  latencyMs,
-  draftModeActive,
-  onToggleDraftMode,
-  onUndo,
-  onRedo,
-  canUndo,
-  canRedo,
-  isFocusMode,
-  onToggleFocusMode,
-  pomodoroSeconds,
-  onOpenBreakModal,
-  gameCooldownSeconds = 0,
-  isPomodoroRunning = true,
-  onTogglePomodoro,
-  onSetPomodoroMinutes,
-  onOpenTableRead,
-  onOpenProductionSchedule,
-  linkedFileName,
-  hasFileHandle,
-  isDirty = false,
-  onSave,
-  onSaveAs,
-  onOpenProject,
-}) => {
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isScriptMenuOpen, setIsScriptMenuOpen] = useState(false);
-  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
-  const [isPomodoroSettingsOpen, setIsPomodoroSettingsOpen] = useState(false);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [titleText, setTitleText] = useState(script.title);
-
-  const handleTitleSubmit = () => {
-    setEditingTitle(false);
-    if (titleText.trim()) {
-      onUpdateTitle(titleText.trim().toUpperCase());
-    } else {
-      setTitleText(script.title);
-    }
-  };
+export const Header: React.FC<HeaderProps> = (props) => {
+  const {
+    script,
+    onUpdateTitle,
+    isSidePanelOpen,
+    onToggleSidePanel,
+    isFocusMode,
+    onOpenTableRead,
+    onOpenProductionSchedule,
+  } = props;
 
   return (
-    <header className="fixed top-0 left-0 right-0 !z-50 bg-slate-900 border-b border-slate-800 text-slate-100 select-none pointer-events-auto shadow-2xl">
-      <div className="w-full px-3 sm:px-5 h-14 flex items-center justify-between gap-2 overflow-x-clip">
-        {/* Left Section: Branding, Navigator Toggle, Script Title */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 pointer-events-auto">
+    <header className="fixed top-0 left-0 right-0 !z-50 bg-slate-900 border-b border-slate-800 text-slate-100 select-none shadow-2xl">
+      <div className="w-full px-2 sm:px-4 h-14 flex items-center justify-between gap-1.5 sm:gap-3 min-w-0">
+        {/* Left: Navigator Toggle & Script Title */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {!isFocusMode && (
-            <button
-              onClick={onToggleSidePanel}
-              className={`flex items-center justify-center gap-2.5 px-3.5 py-1.5 min-h-[44px] rounded-xl border font-mono transition-all duration-150 shrink-0 shadow-sm cursor-pointer active:scale-95 group text-center ${
-                isSidePanelOpen
-                  ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
-                  : 'bg-slate-800 hover:bg-slate-750 border-slate-600 hover:border-amber-400 text-slate-100 hover:text-amber-300 hover:shadow-md'
-              }`}
-              title={isSidePanelOpen ? 'Close Navigator & Production Tools Drawer' : 'Open Navigator & Production Tools Drawer'}
-              aria-label="Toggle Navigator and Production Tools"
-            >
-              <PanelLeft className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${isSidePanelOpen ? 'text-amber-300' : 'text-amber-400'}`} />
-              <div className="flex flex-col items-center justify-center text-center leading-snug">
-                <span className="tracking-wider uppercase text-xs sm:text-[13px] font-black text-amber-300">
-                  Navigator
-                </span>
-                <span className="tracking-tight text-[11px] font-bold text-slate-200 group-hover:text-amber-200 whitespace-nowrap">
-                  Production Tools
-                </span>
-              </div>
-            </button>
+            <NavigatorToggle isOpen={isSidePanelOpen} onToggle={onToggleSidePanel} />
           )}
-
-          <div className="flex items-center gap-2 shrink-0 min-w-0">
-            <span className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-amber-400 hidden sm:inline whitespace-nowrap shrink-0">
-              SCREENWRITER PRO
-            </span>
-            <div className="h-4 w-px bg-slate-700 hidden sm:block shrink-0" />
-
-            {editingTitle ? (
-              <input
-                type="text"
-                value={titleText}
-                onChange={(e) => setTitleText(e.target.value)}
-                onBlur={handleTitleSubmit}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleTitleSubmit();
-                }}
-                autoFocus
-                className="bg-slate-950 border border-amber-400 rounded-lg px-2.5 py-1 text-xs font-mono text-amber-300 focus:outline-none shrink-0"
-              />
-            ) : (
-              <button
-                onClick={() => setEditingTitle(true)}
-                className="flex items-center gap-1.5 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-amber-500/50 px-2.5 py-1 rounded-lg transition shrink-0 text-left group"
-                title="Click to rename screenplay title"
-              >
-                <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0 group-hover:scale-105 transition" />
-                <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-amber-300 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[280px] xl:max-w-[360px] whitespace-nowrap">
-                  {script.title || 'UNTITLED SCREENPLAY'}
-                </span>
-              </button>
-            )}
-          </div>
+          <ScriptTitleEditor title={script.title} onUpdateTitle={onUpdateTitle} />
         </div>
 
-        {/* Center: Table Read & Production Schedule Buttons */}
+        {/* Center: Table Read & Production Schedule (Shown on very wide screens, otherwise in Tools) */}
         {!isFocusMode && (
-          <div className="hidden xl:flex items-center gap-2 shrink-0 whitespace-nowrap">
+          <div className="hidden 2xl:flex items-center gap-2 shrink-0">
             <button
               onClick={onOpenTableRead}
-              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0"
               title="Open Table Read Rehearsal Studio"
             >
               <BookOpen className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>TABLE READ</span>
             </button>
-
             <button
               onClick={onOpenProductionSchedule}
-              className="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/40 hover:bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
-              title="Open Production Schedule, Call Sheet & Safety Suite"
+              className="flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/40 hover:bg-sky-500/20 text-sky-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition shadow-xs cursor-pointer shrink-0"
+              title="Open Production Schedule"
             >
               <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <span>PRODUCTION SCHEDULE</span>
@@ -206,470 +88,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Right Section: Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto shrink-0 whitespace-nowrap">
-          {/* Atomic Undo / Redo */}
-          {!isFocusMode && (
-            <div className="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded-lg overflow-hidden shrink-0">
-              <button
-                onClick={onUndo}
-                disabled={!canUndo}
-                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
-                title="Undo last change"
-              >
-                <Undo2 className="w-3.5 h-3.5" />
-              </button>
-              <div className="w-px bg-slate-700 h-4" />
-              <button
-                onClick={onRedo}
-                disabled={!canRedo}
-                className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent transition"
-                title="Redo change"
-              >
-                <Redo2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          {/* Focus Mode Toggle & Pomodoro Break Button */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={onToggleFocusMode}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 border rounded-lg text-xs font-medium flex items-center gap-1.5 transition shrink-0 whitespace-nowrap ${
-                isFocusMode
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
-              }`}
-              title="Toggle Zen Focus Mode"
-            >
-              {isFocusMode ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
-              <span className="hidden lg:inline">FOCUS</span>
-            </button>
-
-            {/* Pomodoro Timer with Settings Gear */}
-            <div className={`relative flex items-center bg-slate-800 border rounded-lg transition shrink-0 ${
-              gameCooldownSeconds > 0
-                ? 'border-amber-500/40 hover:border-amber-400'
-                : 'border-slate-700 hover:border-amber-400'
-            }`}>
-              <button
-                onClick={onOpenBreakModal}
-                className="px-2 py-1.5 text-amber-300 text-xs font-bold flex items-center gap-1 transition shrink-0 whitespace-nowrap"
-                title={
-                  gameCooldownSeconds > 0
-                    ? `Focus Sprint Active: Break games locked for another ${Math.floor(gameCooldownSeconds / 60)}m ${gameCooldownSeconds % 60}s. Click for details.`
-                    : 'Pomodoro Break & Game Suite'
-                }
-              >
-                {gameCooldownSeconds > 0 ? (
-                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                ) : (
-                  <Coffee className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                )}
-                <span>{Math.floor(pomodoroSeconds / 60)}:{String(pomodoroSeconds % 60).padStart(2, '0')}</span>
-              </button>
-              <button
-                onClick={() => setIsPomodoroSettingsOpen(!isPomodoroSettingsOpen)}
-                className="p-1.5 text-slate-400 hover:text-white border-l border-slate-700 transition"
-                title="Pomodoro Settings"
-              >
-                <Settings className="w-3 h-3" />
-              </button>
-
-              {isPomodoroSettingsOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 z-50 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-xl p-3 text-xs font-mono"
-                  onMouseLeave={() => setIsPomodoroSettingsOpen(false)}
-                >
-                  <div className="font-bold text-amber-300 mb-2">Pomodoro Settings</div>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        onTogglePomodoro?.();
-                        setIsPomodoroSettingsOpen(false);
-                      }}
-                      className="w-full text-left px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold"
-                    >
-                      {isPomodoroRunning ? '⏸ Pause Timer' : '▶ Resume Timer'}
-                    </button>
-                    <div>
-                      <label className="text-[10px] text-slate-400 block mb-1">Set Minutes:</label>
-                      <div className="flex gap-1">
-                        <input
-                          type="number"
-                          defaultValue={Math.floor(pomodoroSeconds / 60)}
-                          id="custom-pomodoro-mins"
-                          className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 font-bold"
-                        />
-                        <button
-                          onClick={() => {
-                            const input = document.getElementById('custom-pomodoro-mins') as HTMLInputElement;
-                            if (input && input.value) {
-                              onSetPomodoroMinutes?.(parseInt(input.value) || 25);
-                            }
-                            setIsPomodoroSettingsOpen(false);
-                          }}
-                          className="px-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded"
-                        >
-                          Set
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Desktop Actions (Hidden on mobile < 768px, or in Focus Mode) */}
-          {!isFocusMode && (
-            <div className="hidden md:flex items-center gap-1.5">
-            {/* Open Project / File */}
-            <button
-              onClick={onOpenProject}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 hover:bg-slate-750 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
-              title="Open Project or Import Story (Ctrl+O)"
-            >
-              <Upload className="w-3.5 h-3.5 text-sky-400" />
-              <span>OPEN</span>
-            </button>
-
-            {/* Quick Save / Direct Overwrite */}
-            <button
-              onClick={onSave}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-xs ${
-                isDirty
-                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse'
-                  : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-750'
-              }`}
-              title={linkedFileName ? `Save directly to "${linkedFileName}" (Ctrl+S)` : 'Save screenplay to file (Ctrl+S)'}
-            >
-              <Save className={`w-3.5 h-3.5 ${isDirty ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span>SAVE</span>
-              {linkedFileName && (
-                <span className="hidden xl:inline max-w-[80px] truncate text-[10px] opacity-80 font-mono">
-                  ({linkedFileName})
-                </span>
-              )}
-            </button>
-
-            {/* History / Revisions */}
-            <button
-              onClick={onOpenHistoryModal}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 hover:bg-slate-750 text-xs font-medium flex items-center gap-1.5 transition"
-              title="Open Revision History"
-            >
-              <History className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden xl:inline">REVISIONS</span>
-            </button>
-
-            {/* Title Page Modal */}
-            <button
-              onClick={onOpenTitlePage}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 hover:bg-slate-750 text-xs font-medium flex items-center gap-1.5 transition"
-              title="Edit Title Page details"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-slate-300" />
-              <span className="hidden lg:inline">TITLE PAGE</span>
-            </button>
-
-            {/* Settings Modal */}
-            <button
-              onClick={onOpenSettingsModal}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300 hover:bg-slate-750 text-xs font-medium flex items-center gap-1.5 transition"
-              title="Editor Font Settings"
-            >
-              <Settings className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden lg:inline">SETTINGS</span>
-            </button>
-
-            {/* Export Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsExportOpen(!isExportOpen)}
-                className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold rounded text-xs flex items-center gap-1 transition shadow-xs"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>EXPORT</span>
-                <ChevronDown className="w-3 h-3 ml-0.5" />
-              </button>
-
-              {isExportOpen && (
-                <div
-                  className="absolute right-0 mt-1 w-52 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-1 z-50 text-xs font-mono"
-                  onMouseLeave={() => setIsExportOpen(false)}
-                >
-                  <div className="px-3 py-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-700">
-                    Export Options
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (onSaveAs) onSaveAs();
-                      else onExport('screenplay');
-                      setIsExportOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 font-bold"
-                  >
-                    <Save className="w-3.5 h-3.5 text-amber-400" />
-                    Save As... (.screenplay)
-                  </button>
-                  <button
-                    onClick={() => {
-                      onExport('pdf');
-                      setIsExportOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-amber-400" />
-                    PDF Screenplay (.pdf)
-                  </button>
-                  <button
-                    onClick={() => {
-                      onExport('docx');
-                      setIsExportOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-blue-400" />
-                    Word Document (.docx)
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Import / Menu Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsScriptMenuOpen(!isScriptMenuOpen)}
-                className="p-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300 hover:bg-slate-700 text-xs font-medium"
-                title="Script Actions & Import"
-              >
-                <Upload className="w-4 h-4" />
-              </button>
-
-              {isScriptMenuOpen && (
-                <div
-                  className="absolute right-0 mt-1 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-1 z-50 text-xs"
-                  onMouseLeave={() => setIsScriptMenuOpen(false)}
-                >
-                  <button
-                    onClick={() => {
-                      if (onOpenProject) onOpenProject();
-                      setIsScriptMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 font-bold border-b border-slate-700"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Open Project / File (Ctrl+O)</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (onSave) onSave();
-                      setIsScriptMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
-                  >
-                    <Save className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Save Project (Ctrl+S)</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (onSaveAs) onSaveAs();
-                      setIsScriptMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 border-b border-slate-700"
-                  >
-                    <FileCode className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Save As... (Ctrl+Shift+S)</span>
-                  </button>
-
-                  <label className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2 cursor-pointer border-b border-slate-700">
-                    <Upload className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Import (.pdf/.docx/.txt/.screenplay)</span>
-                    <input type="file" accept=".pdf,.docx,.fdx,.fountain,.txt,.json,.screenplay" onChange={onImport} className="hidden" />
-                  </label>
-                  <button
-                    onClick={() => {
-                      onNewScript();
-                      setIsScriptMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                    New Blank Screenplay
-                  </button>
-                  <button
-                    onClick={() => {
-                      onLoadSample();
-                      setIsScriptMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-                    Load Sample Script
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          )}
-
-          {/* Mobile "More Actions" Dropdown (< 768px) */}
-          <div className="relative md:hidden">
-            <button
-              onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
-              className="p-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300 hover:bg-slate-700 text-xs font-bold flex items-center gap-1"
-              title="More Actions"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-
-            {isMobileMoreOpen && (
-              <div
-                className="absolute right-0 mt-1 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs font-mono"
-                onMouseLeave={() => setIsMobileMoreOpen(false)}
-              >
-                <div className="px-3 py-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
-                  Script Actions
-                </div>
-                <button
-                  onClick={() => {
-                    if (onSave) onSave();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 font-bold"
-                >
-                  <Save className="w-3.5 h-3.5 text-amber-400" />
-                  Save Project (Ctrl+S)
-                </button>
-                <button
-                  onClick={() => {
-                    if (onSaveAs) onSaveAs();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <FileCode className="w-3.5 h-3.5 text-emerald-400" />
-                  Save As... (Ctrl+Shift+S)
-                </button>
-                <button
-                  onClick={() => {
-                    if (onOpenProject) onOpenProject();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 border-b border-slate-800"
-                >
-                  <Upload className="w-3.5 h-3.5 text-sky-400" />
-                  Open Project (Ctrl+O)
-                </button>
-                {onOpenTableRead && (
-                  <button
-                    onClick={() => {
-                      onOpenTableRead();
-                      setIsMobileMoreOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-amber-300 hover:bg-slate-800 flex items-center gap-2 font-bold"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-                    Table Read Studio
-                  </button>
-                )}
-                {onOpenProductionSchedule && (
-                  <button
-                    onClick={() => {
-                      onOpenProductionSchedule();
-                      setIsMobileMoreOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sky-300 hover:bg-slate-800 flex items-center gap-2 font-bold"
-                  >
-                    <Calendar className="w-3.5 h-3.5 text-sky-400" />
-                    Production Schedule
-                  </button>
-                )}
-                <div className="border-t border-slate-800 my-1" />
-                <button
-                  onClick={() => {
-                    onOpenHistoryModal();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <History className="w-3.5 h-3.5 text-amber-400" />
-                  Revision History
-                </button>
-                <button
-                  onClick={() => {
-                    onOpenTitlePage();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-slate-300" />
-                  Title Page
-                </button>
-                <button
-                  onClick={() => {
-                    onOpenSettingsModal();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <Settings className="w-3.5 h-3.5 text-slate-400" />
-                  Connect to Drive
-                </button>
-                <div className="border-t border-slate-800 my-1" />
-                <button
-                  onClick={() => {
-                    onExport('pdf');
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <Printer className="w-3.5 h-3.5 text-amber-400" />
-                  Export PDF
-                </button>
-                <button
-                  onClick={() => {
-                    onExport('docx');
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <FileText className="w-3.5 h-3.5 text-blue-400" />
-                  Export Word (.docx)
-                </button>
-                <div className="border-t border-slate-800 my-1" />
-                <label className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 cursor-pointer">
-                  <Upload className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Import Script (.pdf/.docx/.txt)</span>
-                  <input type="file" accept=".pdf,.docx,.fdx,.fountain,.txt,.json" onChange={onImport} className="hidden" />
-                </label>
-                <button
-                  onClick={() => {
-                    onNewScript();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                  New Blank Screenplay
-                </button>
-                <button
-                  onClick={() => {
-                    onLoadSample();
-                    setIsMobileMoreOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-                  Load Sample Script
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Right: Adaptive Action Controls */}
+        <HeaderActionButtons {...props} isDirty={props.isDirty ?? false} />
       </div>
     </header>
   );

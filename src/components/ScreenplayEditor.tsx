@@ -794,6 +794,9 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                             handleContentChange(elem.id, suggestion.completionText);
                             setCursorPos({ elementId: elem.id, offset: suggestion.completionText.length });
                             setActiveElementId(elem.id);
+                            if (suggestion.category === 'TIME') {
+                              setIsSluglineMenuDismissed(true);
+                            }
                           }}
                         />
                       </div>

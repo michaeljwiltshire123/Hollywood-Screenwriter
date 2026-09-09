@@ -2,15 +2,42 @@
 
 ## Application Structure
 - `src/App.tsx`: Central application state, keyboard shortcuts, disk persistence, and navigation controller.
-- `src/components/Header.tsx`: Top bar containing screenplay title, focus mode, and utility actions.
+- `src/components/Header.tsx`: Top bar coordinating screenplay title, navigation drawer, focus mode, and responsive layout.
+- `src/components/header/NavigatorToggle.tsx`: Prominent two-line toggle button for Navigator & Production Tools.
+- `src/components/header/ScriptTitleEditor.tsx`: Screenplay title display and click-to-edit input with responsive constraints.
+- `src/components/header/PomodoroWidget.tsx`: Pomodoro break game trigger, countdown timer, and settings menu.
+- `src/components/header/ExportMenu.tsx`: Export dropdown providing pure PDF document generation, Word Docx, .screenplay project outputs, and direct script printing.
+- `src/lib/pdf/exportScreenplayPdf.ts`: Pure vector text PDF screenplay compiler generating letter-format industry-standard documents with title page and running headers.
+- `src/lib/pdf/pdfTitlePage.ts`: Title page formatting engine rendering centered title block, author credentials, contact, date, and draft colour.
+- `src/lib/pdf/pdfElementRenderer.ts`: Screenplay element formatting rules, margin offsets, uppercase transforms, and orphan prevention rules.
+- `src/lib/printScript.ts`: Direct script printing trigger compiling and printing isolated screenplay documents without app buttons.
+- `src/lib/print/printScriptDocument.ts`: Standalone iframe printing pipeline ensuring crisp, reliable physical printer dispatch.
+- `src/lib/print/generateScriptHtml.ts`: Standalone HTML generator compiling title page and screenplay body into pure screenplay format.
+- `src/lib/print/printStyles.ts`: Print stylesheet bundler combining page layout and element typography styles.
+- `src/lib/print/printPageStyles.ts`: Page size, 1-inch margins, Courier font, and title page centering layout.
+- `src/lib/print/printElementStyles.ts`: Screenplay element indentation, margins, dialogue widths, and orphan prevention rules.
+- `src/components/header/ImportProjectMenu.tsx`: Open file, import script, new blank script, and sample loader.
+- `src/components/header/MainBarQuickActions.tsx`: Main bar quick buttons for Table Read, Revision History, and Title Page.
+- `src/components/header/HeaderActionButtons.tsx`: Action controller organizing header actions and responsive toolgroups.
 - `src/components/TitlePageModal.tsx`: Script creation modal and metadata editor with empty defaults and discreet placeholder hints.
+- `src/components/title_page/StartupOptionsGrid.tsx`: Startup options grid with prominent action buttons and bordered metadata editor button.
+- `src/components/title_page/StartupOptionCards.tsx`: 3-card launchpad for starting a new script, loading files, and opening samples.
+- `src/components/title_page/TitlePageForm.tsx`: Dedicated form container for script title, author, date, and draft colour metadata.
+- `src/components/title_page/TitlePageFormFields.tsx`: Inputs and text areas for title page attributes.
+- `src/components/title_page/useTitlePageModalState.ts`: Custom hook managing modal phases, draft states, and form submissions.
 - `src/components/ScreenplayEditor.tsx`: Main pagination and script canvas supporting industry-standard screenplay formatting, predictive element flow, Alt+letter shortcuts (Alt+S/A/C/D/T), and bi-directional Tab format cycling (Tab right, Alt+Tab / Shift+Tab left).
-- `src/components/FormattingToolbar.tsx`: Format selector bar with clean element counter, format buttons, and format helper button.
+- `src/components/FormattingToolbar.tsx`: Format selector bar with clean element counter, format buttons, format helper button, and docked Open and Export action menus.
+- `src/components/format_bar/FormatBarOpenMenu.tsx`: Dedicated Open menu in the formatting toolbar providing quick project open, import, new script, and sample loader.
+- `src/components/format_bar/FormatBarExportMenu.tsx`: Dedicated Export menu in the formatting toolbar providing PDF, Word Docx, project save, and script printing.
 - `src/components/FormatShortcutsHelp.tsx`: Hoverable and focusable keyboard guide (`[i]`) detailing Tab cycling and browser-safe Shift+Alt shortcuts.
 - `src/lib/screenplayShortcuts.ts`: Centralised shortcut definitions and browser-safe keyboard event resolver (Shift+Alt+Letter, Alt+1..8).
 - `src/components/SluglineAutocomplete.tsx`: Minimalist light-mode floating autocomplete dropdown for Scene Headings (prefixes, locations, times of day).
 - `src/components/CharacterAutocomplete.tsx`: Minimalist light-mode floating autocomplete dropdown for character name suggestions.
-- `src/lib/sluglinePredictor.ts`: Slugline parser, predictive text engine, location history extractor, and Smart Compose ghost text calculator.
+- `src/lib/sluglinePredictor.ts`: Modular index re-exporting slugline parser, suggestion engine, and ghost text calculator.
+- `src/lib/slugline/sluglineConstants.ts`: Standard slugline prefixes, common locations, and time of day sets with completion guard.
+- `src/lib/slugline/sluglineParser.ts`: Slugline prefix, location, and hyphen separator parsing.
+- `src/lib/slugline/sluglineSuggestions.ts`: Contextual prefix, location, and time of day suggestion calculator.
+- `src/lib/slugline/sluglineGhostText.ts`: Smart compose inline ghost text suggestion generator.
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
 - `src/components/TableReadModal.tsx`: Multi-voice playback and script rehearsal audio engine offset safely with dual-header clearance (top-28).
 - `src/components/SettingsModal.tsx`: Preferences and environment configurations.

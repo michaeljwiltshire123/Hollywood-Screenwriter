@@ -24,15 +24,18 @@ export const FormatShortcutsHelp: React.FC = () => {
       onMouseLeave={() => setIsOpen(false)}
     >
       <button
+        id="format-shortcuts-help-btn"
         type="button"
         tabIndex={0}
         onClick={() => setIsOpen((prev) => !prev)}
         onFocus={() => setIsOpen(true)}
         aria-expanded={isOpen}
         aria-label="Format shortcuts guide"
-        className="w-5 h-5 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-400/70 flex items-center justify-center font-mono font-bold text-[11px] transition-colors shadow-xs cursor-pointer focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+        className="px-2 py-1 rounded text-xs font-mono font-bold transition-all shrink-0 flex items-center gap-1.5 border bg-slate-800 hover:bg-slate-750 text-amber-300 hover:text-amber-200 border-slate-700 hover:border-amber-400/80 shadow-xs cursor-pointer active:scale-95 focus:outline-hidden focus:ring-1 focus:ring-amber-400"
+        title="View Format Shortcuts & Keyboard Guide"
       >
-        i
+        <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <span className="text-[10px] tracking-wider uppercase font-bold">KEYS</span>
       </button>
 
       {/* Minimalist Floating Dropdown UI Light Mode (Matching Autocomplete Style) */}

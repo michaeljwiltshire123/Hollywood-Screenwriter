@@ -16,6 +16,8 @@ import {
   extractScenes,
   extractCharacters,
 } from './lib/screenplayUtils';
+import { exportScreenplayPdf } from './lib/pdf/exportScreenplayPdf';
+import { triggerScriptPrint } from './lib/printScript';
 import { getElementTypeFromKeyboardEvent } from './lib/screenplayShortcuts';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -685,12 +687,21 @@ export default function App() {
   };
 
   // Export handlers
-  const handleExport = async (format: 'pdf' | 'docx' | 'screenplay') => {
+  const handleExport = async (format: 'pdf' | 'docx' | 'screenplay' | 'print') => {
     saveSnapshot();
 
     if (format === 'pdf') {
-      setIsDirty(false);
-      window.print();
+      try {
+        exportScreenplayPdf(script);
+        setIsDirty(false);
+      } catch (err: any) {
+        alert(`PDF export failed: ${err.message || 'Unknown error'}`);
+      }
+      return;
+    }
+
+    if (format === 'print') {
+      triggerScriptPrint(script);
       return;
     }
 
@@ -906,6 +917,12 @@ export default function App() {
               }}
               activeElementIndex={(script?.elements || []).findIndex((e) => e.id === activeElementId)}
               totalElements={(script?.elements || []).length}
+              onOpenProject={loadNativeFile}
+              onImport={handleImport}
+              onNewScript={handleStartNewScript}
+              onLoadSample={handleOpenSampleScript}
+              onExport={handleExport}
+              onSaveAs={handleSaveAsProject}
             />
           </div>
 

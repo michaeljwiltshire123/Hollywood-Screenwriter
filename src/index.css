@@ -19,64 +19,169 @@
   display: block;
 }
 
-/* Print CSS for Hollywood Standard PDF Generation */
+/* Screenplay Print Container hidden during normal screen display */
+.screenplay-print-only {
+  display: none;
+}
+
+/* Print CSS for Clean Screenplay Printing */
 @media print {
+  /* Hide standard application root and all UI chrome */
+  #root,
   header,
   aside,
   nav,
   .sticky,
   button,
-  .select-none {
+  .select-none,
+  .fixed,
+  [role="dialog"],
+  .pointer-events-none {
     display: none !important;
   }
 
-  body {
-    background: white !important;
-    color: black !important;
-    font-family: 'Courier New', Courier, monospace !important;
+  /* Display only our injected pure screenplay print container */
+  .screenplay-print-only {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Courier Prime', 'Courier New', Courier, monospace !important;
     font-size: 12pt !important;
-  }
-
-  main {
-    padding: 0 !important;
     margin: 0 !important;
-    background: white !important;
+    padding: 0 !important;
   }
 
-  .shadow-2xl,
-  .shadow-xl,
-  .shadow-md {
-    box-shadow: none !important;
-    border: none !important;
+  @page {
+    size: letter portrait;
+    margin: 1in;
   }
 
-  /* Dedicated Title Page centering & page break */
   .title-page-container {
-    page-break-after: always;
-    break-after: page;
-    min-height: 100vh;
+    min-height: 9in;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    page-break-after: always;
+    break-after: page;
+    padding-top: 2in;
     text-align: center;
   }
 
-  /* Page numbering in top right starting on page 2 */
-  @page {
-    size: letter;
-    margin: 1in;
-    @top-right {
-      content: counter(page);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 10pt;
-    }
+  .title-page-center {
+    margin: auto 0;
   }
 
-  @page:first {
-    @top-right {
-      content: '';
-    }
+  .title-main {
+    font-size: 16pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 24pt;
+  }
+
+  .title-credit {
+    font-size: 12pt;
+    margin-bottom: 12pt;
+  }
+
+  .title-author {
+    font-size: 13pt;
+    font-weight: bold;
+    margin-bottom: 18pt;
+  }
+
+  .title-source {
+    font-size: 11pt;
+    font-style: italic;
+  }
+
+  .title-page-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    text-align: left;
+    font-size: 10pt;
+    padding-bottom: 0.5in;
+  }
+
+  .title-contact {
+    max-width: 50%;
+    white-space: pre-line;
+  }
+
+  .title-meta-right {
+    text-align: right;
+  }
+
+  .script-body {
+    padding-top: 0.25in;
+  }
+
+  .scene-heading {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 18pt;
+    margin-bottom: 12pt;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .action {
+    margin-top: 0;
+    margin-bottom: 12pt;
+  }
+
+  .character {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 2.2in;
+    margin-top: 12pt;
+    margin-bottom: 0;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .parentical {
+    font-style: italic;
+    margin-left: 1.6in;
+    margin-top: 0;
+    margin-bottom: 0;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .dialogue {
+    margin-left: 1.0in;
+    margin-right: 1.5in;
+    margin-top: 0;
+    margin-bottom: 12pt;
+  }
+
+  .transition {
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: right;
+    margin-top: 12pt;
+    margin-bottom: 12pt;
+  }
+
+  .shot {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 14pt;
+    margin-bottom: 12pt;
+  }
+
+  .note {
+    font-style: italic;
+    color: #555555;
+    margin-bottom: 12pt;
   }
 }
-

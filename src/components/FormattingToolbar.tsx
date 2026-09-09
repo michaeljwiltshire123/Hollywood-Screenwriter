@@ -1,6 +1,8 @@
 import React from 'react';
 import { ElementType } from '../types';
 import { FormatShortcutsHelp } from './FormatShortcutsHelp';
+import { FormatBarOpenMenu } from './format_bar/FormatBarOpenMenu';
+import { FormatBarExportMenu } from './format_bar/FormatBarExportMenu';
 
 interface FormattingToolbarProps {
   activeType: ElementType;
@@ -8,6 +10,12 @@ interface FormattingToolbarProps {
   onAddElement: (type: ElementType) => void;
   activeElementIndex: number;
   totalElements: number;
+  onOpenProject?: () => void;
+  onImport?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onNewScript?: () => void;
+  onLoadSample?: () => void;
+  onExport?: (format: 'pdf' | 'docx' | 'screenplay' | 'print') => void;
+  onSaveAs?: () => void;
 }
 
 const ELEMENT_BUTTONS: { type: ElementType; label: string; shortcut: string; hint: string }[] = [
@@ -24,14 +32,19 @@ const ELEMENT_BUTTONS: { type: ElementType; label: string; shortcut: string; hin
 export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
   activeType,
   onChangeType,
-  onAddElement,
   activeElementIndex,
   totalElements,
+  onOpenProject,
+  onImport,
+  onNewScript,
+  onLoadSample,
+  onExport,
+  onSaveAs,
 }) => {
   return (
     <div className="bg-slate-900 border-b border-slate-800 text-slate-200 py-2 px-4 shadow-sm select-none shrink-0 w-full relative z-30 overflow-visible">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs relative overflow-visible">
-        {/* Literal Plain English Buttons */}
+        {/* Literal Plain English Format Buttons */}
         <div className="flex items-center gap-1.5 overflow-x-auto md:overflow-visible no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full md:w-auto py-0.5 relative overflow-visible">
           <span className="text-[10px] uppercase font-mono font-bold text-slate-400 mr-1 shrink-0">
             FORMAT:
@@ -53,13 +66,25 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
               </button>
             );
           })}
-          {/* Format Shortcuts & Navigation Info Tooltip Button */}
           <FormatShortcutsHelp />
         </div>
 
-        {/* Script Element Counter */}
-        <div className="hidden md:flex items-center text-[11px] font-mono text-slate-500 shrink-0 pr-1">
-          Element {activeElementIndex + 1} of {totalElements}
+        {/* Right Section: OPEN and EXPORT buttons directly next to element counter */}
+        <div className="flex items-center gap-3 shrink-0">
+          {onOpenProject && onImport && onNewScript && onLoadSample && (
+            <FormatBarOpenMenu
+              onOpenProject={onOpenProject}
+              onImport={onImport}
+              onNewScript={onNewScript}
+              onLoadSample={onLoadSample}
+            />
+          )}
+          {onExport && (
+            <FormatBarExportMenu onExport={onExport} onSaveAs={onSaveAs} />
+          )}
+          <div className="hidden md:flex items-center text-[11px] font-mono text-slate-500 shrink-0 pr-1">
+            Element {activeElementIndex + 1} of {totalElements}
+          </div>
         </div>
       </div>
     </div>

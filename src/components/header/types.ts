@@ -1,0 +1,41 @@
+import React from 'react';
+import { ScreenplayDocument } from '../../types';
+
+export interface HeaderProps {
+  script: ScreenplayDocument;
+  onUpdateTitle: (newTitle: string) => void;
+  onUpdateDraftStatus?: (status: ScreenplayDocument['draftStatus']) => void;
+  isSidePanelOpen: boolean;
+  onToggleSidePanel: () => void;
+  onOpenTitlePage: () => void;
+  onOpenHistoryModal: () => void;
+  onOpenSettingsModal: () => void;
+  onOpenDebugModal?: () => void;
+  onNewScript: () => void;
+  onLoadSample: () => void;
+  onExport: (format: 'pdf' | 'docx' | 'screenplay' | 'print') => void;
+  onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  latencyMs?: number;
+  draftModeActive?: boolean;
+  onToggleDraftMode?: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  isFocusMode: boolean;
+  onToggleFocusMode: () => void;
+  pomodoroSeconds: number;
+  onOpenBreakModal: () => void;
+  gameCooldownSeconds?: number;
+  isPomodoroRunning?: boolean;
+  onTogglePomodoro?: () => void;
+  onSetPomodoroMinutes?: (minutes: number) => void;
+  onOpenTableRead?: () => void;
+  onOpenProductionSchedule?: () => void;
+  linkedFileName?: string | null;
+  hasFileHandle?: boolean;
+  isDirty?: boolean;
+  onSave?: () => void;
+  onSaveAs?: () => void;
+  onOpenProject?: () => void;
+}
