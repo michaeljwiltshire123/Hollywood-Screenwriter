@@ -14,6 +14,7 @@ interface TitlePageModalProps {
   onLoadFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onOpenSampleScript: () => void;
   onLoadNativeFile?: () => void;
+  mode?: 'startup' | 'form';
 }
 
 export const TitlePageModal: React.FC<TitlePageModalProps> = ({
@@ -25,6 +26,7 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
   onLoadFile,
   onOpenSampleScript,
   onLoadNativeFile,
+  mode = 'form',
 }) => {
   const {
     showTitleForm,
@@ -41,9 +43,12 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
     onSave,
     onStartNewScript,
     onClose,
+    mode: mode as 'startup' | 'form',
   });
 
   if (!isOpen) return null;
+
+  const isDirectEdit = mode === 'form';
 
   return (
     <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
@@ -79,6 +84,8 @@ export const TitlePageModal: React.FC<TitlePageModalProps> = ({
               isCreatingNew={isCreatingNew}
               onSubmit={handleSubmit}
               onBack={() => setShowTitleForm(false)}
+              onClose={onClose}
+              isDirectEdit={isDirectEdit}
             />
           )}
         </div>

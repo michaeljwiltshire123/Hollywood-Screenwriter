@@ -7,6 +7,7 @@ interface UseTitlePageModalStateProps {
   onSave: (updated: TitlePage) => void;
   onStartNewScript: (customTitlePage?: TitlePage) => void;
   onClose: () => void;
+  mode?: 'startup' | 'form';
 }
 
 export const useTitlePageModalState = ({
@@ -15,8 +16,9 @@ export const useTitlePageModalState = ({
   onSave,
   onStartNewScript,
   onClose,
+  mode = 'form',
 }: UseTitlePageModalStateProps) => {
-  const [showTitleForm, setShowTitleForm] = useState(false);
+  const [showTitleForm, setShowTitleForm] = useState(mode === 'form');
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [form, setForm] = useState<TitlePage>({
     title: 'UNTITLED SCREENPLAY',
@@ -30,7 +32,7 @@ export const useTitlePageModalState = ({
 
   useEffect(() => {
     if (isOpen) {
-      setShowTitleForm(false);
+      setShowTitleForm(mode === 'form');
       setIsCreatingNew(false);
       setForm({
         title: titlePage.title || 'UNTITLED SCREENPLAY',
@@ -42,7 +44,7 @@ export const useTitlePageModalState = ({
         draftColor: titlePage.draftColor || 'White Draft',
       });
     }
-  }, [titlePage, isOpen]);
+  }, [titlePage, isOpen, mode]);
 
   const handleStartNewClick = () => {
     setIsCreatingNew(true);

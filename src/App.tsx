@@ -109,6 +109,7 @@ export default function App() {
   // Side Panel & Modals State (Hidden by default)
   const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
   const [isTitlePageOpen, setIsTitlePageOpen] = useState<boolean>(true); // Fresh load opens Title Page modal automatically
+  const [titlePageModalMode, setTitlePageModalMode] = useState<'startup' | 'form'>('startup');
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isDebugOpen, setIsDebugOpen] = useState<boolean>(false);
@@ -805,7 +806,10 @@ export default function App() {
         onUpdateDraftStatus={handleUpdateDraftStatus}
         isSidePanelOpen={isSidePanelOpen}
         onToggleSidePanel={() => setIsSidePanelOpen(!isSidePanelOpen)}
-        onOpenTitlePage={() => setIsTitlePageOpen(true)}
+        onOpenTitlePage={() => {
+          setTitlePageModalMode('form');
+          setIsTitlePageOpen(true);
+        }}
         onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
         onOpenSettingsModal={() => setIsSettingsOpen(true)}
         onOpenDebugModal={() => setIsDebugOpen(true)}
@@ -964,6 +968,7 @@ export default function App() {
       <TitlePageModal
         isOpen={isTitlePageOpen}
         onClose={() => setIsTitlePageOpen(false)}
+        mode={titlePageModalMode}
         titlePage={script.titlePage}
         onSave={handleSaveTitlePage}
         onStartNewScript={handleStartNewScript}

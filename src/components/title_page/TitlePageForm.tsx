@@ -9,6 +9,8 @@ interface TitlePageFormProps {
   isCreatingNew: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
+  onClose?: () => void;
+  isDirectEdit?: boolean;
 }
 
 export const TitlePageForm: React.FC<TitlePageFormProps> = ({
@@ -17,7 +19,11 @@ export const TitlePageForm: React.FC<TitlePageFormProps> = ({
   isCreatingNew,
   onSubmit,
   onBack,
+  onClose,
+  isDirectEdit = false,
 }) => {
+  const handleCancel = isDirectEdit && onClose ? onClose : onBack;
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-amber-200 text-xs">
@@ -26,13 +32,15 @@ export const TitlePageForm: React.FC<TitlePageFormProps> = ({
             ? 'Fill out your title page details below to launch your new script:'
             : 'Edit active script title page details below:'}
         </span>
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-xs text-amber-400 hover:text-amber-200 flex items-center gap-1 shrink-0 font-bold ml-2 cursor-pointer"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back
-        </button>
+        {!isDirectEdit && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-xs text-amber-400 hover:text-amber-200 flex items-center gap-1 shrink-0 font-bold ml-2 cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back
+          </button>
+        )}
       </div>
 
       <TitlePageFormFields form={form} setForm={setForm} />
@@ -40,10 +48,16 @@ export const TitlePageForm: React.FC<TitlePageFormProps> = ({
       <div className="pt-3 flex justify-between items-center border-t border-slate-800">
         <button
           type="button"
-          onClick={onBack}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+          onClick={handleCancel}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 rounded-lg transition flex items-center gap-1.5 cursor-pointer font-bold text-xs"
         >
-          <ArrowLeft className="w-4 h-4" /> Back
+          {isDirectEdit ? (
+            'Cancel'
+          ) : (
+            <>
+              <ArrowLeft className="w-4 h-4" /> Back
+            </>
+          )}
         </button>
         <button
           type="submit"

@@ -33,8 +33,37 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
   editorFont = 'Courier Prime',
 }) => {
   const elementRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
+  const mainRef = useRef<HTMLElement | null>(null);
   const isComposingRef = useRef(false);
   const elements = script?.elements || [];
+
+  /**
+   * Scroll Offset / Scroll Margin Engine (Typewriter Scroll Buffer)
+   * Prevents cursor from hitting bottom/top window edge and reserves 220px clearance
+   * for dropdown helpers and context.
+   */
+  const ensureScrollOffset = useCallback((elementId: string) => {
+    if (!elementId || !mainRef.current) return;
+    const targetDom = elementRefs.current[elementId];
+    const container = mainRef.current;
+    if (!targetDom || !container) return;
+
+    requestAnimationFrame(() => {
+      const targetRect = targetDom.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      const bottomBuffer = 220; // 220px bottom scroll offset margin
+      const topBuffer = 100;    // 100px top scroll offset margin
+
+      if (targetRect.bottom > containerRect.bottom - bottomBuffer) {
+        const scrollDelta = targetRect.bottom - (containerRect.bottom - bottomBuffer);
+        container.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+      } else if (targetRect.top < containerRect.top + topBuffer) {
+        const scrollDelta = targetRect.top - (containerRect.top + topBuffer);
+        container.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+      }
+    });
+  }, []);
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -50,13 +79,21 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
+const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
+
   const allCharacterNames = useMemo(() => {
-    return extractCharacters(elements).map((c) => c.name);
+    const extracted = extractCharacters(elements).map((c) => c.name);
+    if (extracted.length > 0) return extracted;
+    return DEFAULT_CHARACTERS;
   }, [elements]);
 
   // Slugline Autocomplete & Smart Compose Ghost Text States
   const [sluglineSelectedIndex, setSluglineSelectedIndex] = useState<number>(0);
   const [isSluglineMenuDismissed, setIsSluglineMenuDismissed] = useState<boolean>(false);
+
+  // Character Autocomplete States
+  const [characterSelectedIndex, setCharacterSelectedIndex] = useState<number>(0);
+  const [isCharacterMenuDismissed, setIsCharacterMenuDismissed] = useState<boolean>(false);
 
   const scriptLocations = useMemo(() => {
     return extractScriptLocations(elements);
@@ -70,11 +107,18 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
       setActiveType(elem.type);
       const targetDom = elementRefs.current[elem.id];
       if (targetDom) {
-        targetDom.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        ensureScrollOffset(elem.id);
         targetDom.focus();
       }
     }
-  }, [elements, setActiveElementId, setActiveType]);
+  }, [elements, setActiveElementId, setActiveType, ensureScrollOffset]);
+
+  // Keep active element comfortably centered within scroll offset margin
+  useEffect(() => {
+    if (activeElementId) {
+      ensureScrollOffset(activeElementId);
+    }
+  }, [activeElementId, cursorPos?.elementId, ensureScrollOffset]);
 
   useEffect(() => {
     if (onJumpRef) {
@@ -129,9 +173,9 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
   /**
    * Content change handler per element
    */
-  const handleContentChange = (id: string, newText: string) => {
+  const handleContentChange = (id: string, newText: string, customOffset?: number) => {
     const dom = elementRefs.current[id];
-    const offset = dom ? getCaretOffset(dom) : newText.length;
+    const offset = customOffset !== undefined ? customOffset : (dom ? getCaretOffset(dom) : newText.length);
 
     const updatedElements = script.elements.map((e) => {
       if (e.id === id) {
@@ -244,67 +288,126 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
       }
     }
 
-    // SCENE HEADING INTERCEPTIONS (Ghost Text & Dropdown Autocomplete)
+    // CHARACTER INTERCEPTIONS (Dropdown Autocomplete Highlight & Selection)
+    if (elem.type === 'CHARACTER') {
+      const charQuery = (elem.content || '').trim().toUpperCase();
+      const availableChars = allCharacterNames.length > 0 ? allCharacterNames : DEFAULT_CHARACTERS;
+      const matchingChars = availableChars
+        .filter((name) => !charQuery || name.toUpperCase().includes(charQuery))
+        .slice(0, 6);
+
+      if (matchingChars.length > 0 && !isCharacterMenuDismissed) {
+        // ARROW DOWN: Highlight next item in popup dropdown (do NOT touch script text)
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setCharacterSelectedIndex((prev) => (prev + 1) % matchingChars.length);
+          return;
+        }
+
+        // ARROW UP: Highlight previous item in popup dropdown (do NOT touch script text)
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setCharacterSelectedIndex((prev) => (prev - 1 + matchingChars.length) % matchingChars.length);
+          return;
+        }
+
+        // ENTER / ARROW RIGHT / TAB: Insert highlighted name into script
+        if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowRight' || e.key === 'Tab') {
+          e.preventDefault();
+          const safeIdx = Math.min(characterSelectedIndex, Math.max(0, matchingChars.length - 1));
+          const selected = matchingChars[safeIdx] || matchingChars[0];
+          if (selected) {
+            const dom = elementRefs.current[elem.id];
+            if (dom) dom.textContent = selected;
+            handleContentChange(elem.id, selected, selected.length);
+          }
+          setIsCharacterMenuDismissed(true);
+
+          if (e.key === 'Enter') {
+            handleAddElementAfter(elem.id, 'DIALOGUE');
+          }
+          return;
+        }
+
+        // ESCAPE: Dismiss dropdown
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsCharacterMenuDismissed(true);
+          return;
+        }
+      }
+    }
+
+    // SCENE HEADING INTERCEPTIONS (Ghost Text & Dropdown Autocomplete Navigation)
     if (elem.type === 'SCENE HEADING') {
       const currentGhost = getGhostText(elem.content || '');
       const currentSuggestions = getSluglineSuggestions(elem.content || '', scriptLocations);
 
-      const resolveAcceptanceText = (ghost: string, current: string): string => {
-        if (!current || current.trim() === '') {
-          return 'INT. ';
+      if (currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
+        // ARROW DOWN: Highlight next suggestion in popup dropdown (do NOT touch script text)
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSluglineSelectedIndex((prev) => (prev + 1) % currentSuggestions.length);
+          return;
         }
-        if (ghost === 'NT. LOCATION - DAY') return 'NT. ';
-        if (ghost === 'T. LOCATION - DAY') return 'T. ';
-        if (ghost === '. LOCATION - DAY') return '. ';
-        if (ghost === ' LOCATION - DAY') return ' ';
-        if (ghost === 'XT. LOCATION - DAY') return 'XT. ';
-        if (ghost === 'LOCATION - DAY') return '';
-        return ghost;
-      };
 
-      // ARROW RIGHT: If at end of line and ghost text is visible, accept it!
-      if (e.key === 'ArrowRight' && offset >= textLen && currentGhost) {
+        // ARROW UP: Highlight previous suggestion in popup dropdown (do NOT touch script text)
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSluglineSelectedIndex((prev) => (prev - 1 + currentSuggestions.length) % currentSuggestions.length);
+          return;
+        }
+
+        // ENTER / ARROW RIGHT / TAB: Insert highlighted suggestion into script
+        if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowRight' || e.key === 'Tab') {
+          e.preventDefault();
+          const safeIdx = Math.min(sluglineSelectedIndex, Math.max(0, currentSuggestions.length - 1));
+          const selected = currentSuggestions[safeIdx] || currentSuggestions[0];
+          if (selected) {
+            const dom = elementRefs.current[elem.id];
+            if (dom) dom.textContent = selected.completionText;
+            handleContentChange(elem.id, selected.completionText, selected.completionText.length);
+            if (selected.category === 'TIME') {
+              setIsSluglineMenuDismissed(true);
+              if (e.key === 'Enter') {
+                handleAddElementAfter(elem.id, 'ACTION');
+              }
+            } else {
+              setSluglineSelectedIndex(0);
+            }
+          }
+          return;
+        }
+
+        // ESCAPE: Dismiss dropdown
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsSluglineMenuDismissed(true);
+          return;
+        }
+      } else if (e.key === 'ArrowRight' && offset >= textLen && currentGhost) {
+        const resolveAcceptanceText = (ghost: string, current: string): string => {
+          if (!current || current.trim() === '') {
+            return 'INT. ';
+          }
+          if (ghost === 'NT. LOCATION - DAY') return 'NT. ';
+          if (ghost === 'T. LOCATION - DAY') return 'T. ';
+          if (ghost === '. LOCATION - DAY') return '. ';
+          if (ghost === ' LOCATION - DAY') return ' ';
+          if (ghost === 'XT. LOCATION - DAY') return 'XT. ';
+          if (ghost === 'LOCATION - DAY') return '';
+          return ghost;
+        };
+
         const toInsert = resolveAcceptanceText(currentGhost, elem.content || '');
         if (toInsert) {
           e.preventDefault();
           const newContent = elem.content + toInsert;
           const dom = elementRefs.current[elem.id];
           if (dom) dom.textContent = newContent;
-          handleContentChange(elem.id, newContent);
-          setCursorPos({ elementId: elem.id, offset: newContent.length });
+          handleContentChange(elem.id, newContent, newContent.length);
           return;
         }
-      }
-
-      // ENTER: If empty and dropdown visible, Enter accepts highlighted prefix (e.g. INT. )
-      if (e.key === 'Enter' && !e.shiftKey && elem.content.trim() === '') {
-        if (currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
-          e.preventDefault();
-          const selected = currentSuggestions[sluglineSelectedIndex] || currentSuggestions[0];
-          const dom = elementRefs.current[elem.id];
-          if (dom) dom.textContent = selected.completionText;
-          handleContentChange(elem.id, selected.completionText);
-          setCursorPos({ elementId: elem.id, offset: selected.completionText.length });
-          return;
-        }
-      }
-
-      // ARROW UP / DOWN: Navigate dropdown suggestions if open
-      if (e.key === 'ArrowDown' && currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
-        e.preventDefault();
-        setSluglineSelectedIndex((prev) => (prev + 1) % currentSuggestions.length);
-        return;
-      }
-      if (e.key === 'ArrowUp' && currentSuggestions.length > 0 && !isSluglineMenuDismissed) {
-        e.preventDefault();
-        setSluglineSelectedIndex((prev) => (prev - 1 + currentSuggestions.length) % currentSuggestions.length);
-        return;
-      }
-
-      // ESCAPE: Dismiss dropdown
-      if (e.key === 'Escape') {
-        setIsSluglineMenuDismissed(true);
-        return;
       }
     }
 
@@ -633,7 +736,10 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
     : "'Courier Prime', 'Courier New', monospace";
 
   return (
-    <main className="flex-1 bg-slate-950 overflow-y-auto py-8 px-2 sm:px-6 min-h-[calc(100vh-7rem)] select-text">
+    <main
+      ref={mainRef}
+      className="flex-1 bg-slate-950 overflow-y-auto py-8 pb-[60vh] px-2 sm:px-6 min-h-[calc(100vh-7rem)] select-text scroll-pb-64 scroll-pt-28"
+    >
       <div className="max-w-[850px] mx-auto space-y-8">
         {/* Title Page Paper Card */}
         <div
@@ -689,7 +795,11 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
             const isCharActive = isSelected && elem.type === 'CHARACTER';
             const charQuery = (elem.content || '').trim().toUpperCase();
             const matchingChars = isCharActive
-              ? allCharacterNames.filter((name) => charQuery === '' || (name.includes(charQuery) && name !== charQuery))
+              ? allCharacterNames.filter((name) => {
+                  if (!charQuery) return true;
+                  const uName = name.toUpperCase();
+                  return uName.includes(charQuery) || charQuery.includes(uName);
+                }).slice(0, 6)
               : [];
 
             // Slugline autocomplete suggestions & Smart Compose Ghost Text
@@ -750,9 +860,15 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                         setActiveElementId(elem.id);
                         setActiveType(elem.type);
                         setIsSluglineMenuDismissed(false);
+                        setIsCharacterMenuDismissed(false);
+                        setSluglineSelectedIndex(0);
+                        setCharacterSelectedIndex(0);
                       }}
                       onInput={(e) => {
                         setIsSluglineMenuDismissed(false);
+                        setIsCharacterMenuDismissed(false);
+                        setSluglineSelectedIndex(0);
+                        setCharacterSelectedIndex(0);
                         handleContentChange(elem.id, e.currentTarget.textContent || '');
                       }}
                       onKeyDown={(e) => handleKeyDown(e, elem, idx)}
@@ -791,8 +907,12 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                           suggestions={sluglineSuggestions}
                           selectedIndex={sluglineSelectedIndex}
                           onSelect={(suggestion) => {
-                            handleContentChange(elem.id, suggestion.completionText);
-                            setCursorPos({ elementId: elem.id, offset: suggestion.completionText.length });
+                            const dom = elementRefs.current[elem.id];
+                            if (dom) {
+                              dom.textContent = suggestion.completionText;
+                              dom.focus();
+                            }
+                            handleContentChange(elem.id, suggestion.completionText, suggestion.completionText.length);
                             setActiveElementId(elem.id);
                             if (suggestion.category === 'TIME') {
                               setIsSluglineMenuDismissed(true);
@@ -812,11 +932,18 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
                   )}
 
                   {/* Minimalist Character Autocomplete Dropdown (Light Mode) */}
-                  {isCharActive && matchingChars.length > 0 && (
+                  {isCharActive && !isCharacterMenuDismissed && matchingChars.length > 0 && (
                     <CharacterAutocomplete
                       characters={matchingChars}
+                      selectedIndex={Math.min(characterSelectedIndex, Math.max(0, matchingChars.length - 1))}
                       onSelect={(cName) => {
-                        handleContentChange(elem.id, cName);
+                        const dom = elementRefs.current[elem.id];
+                        if (dom) {
+                          dom.textContent = cName;
+                          dom.focus();
+                        }
+                        handleContentChange(elem.id, cName, cName.length);
+                        setIsCharacterMenuDismissed(true);
                         setActiveElementId(elem.id);
                       }}
                     />
