@@ -38,6 +38,9 @@ import {
   ShotInfo,
 } from '../types';
 import { extractScenes, extractCharacters, calculatePageEstimate } from '../lib/screenplayUtils';
+import { ActorHighlightToggle } from './character_bible/ActorHighlightToggle';
+import { PastelSwatchPicker } from './character_bible/PastelSwatchPicker';
+import { getCharacterHighlightColor } from '../lib/actorHighlighting';
 
 interface NavigatorSidePanelProps {
   script: ScreenplayDocument;
@@ -329,12 +332,30 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
     });
   };
 
+  const handleUpdateCharacterColor = (charName: string, hexColor: string) => {
+    const currentBibles = script.characterBibles || {};
+    const existing = currentBibles[charName] || {};
+    const updatedBibles = {
+      ...currentBibles,
+      [charName]: {
+        ...existing,
+        highlightColor: hexColor,
+      },
+    };
+    onChangeScript({
+      ...script,
+      characterBibles: updatedBibles,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
   const handleSaveCharacterBible = () => {
     if (editingCharacterName) {
       const currentBibles = script.characterBibles || {};
       const updatedBibles = {
         ...currentBibles,
         [editingCharacterName]: {
+          ...currentBibles[editingCharacterName],
           age: tempAge,
           appearance: tempAppearance,
           attitude: tempAttitude,
@@ -1015,19 +1036,32 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           {/* TAB 5: CHARACTERS */}
           {activeTab === 'characters' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800 px-1">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800 px-1 gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Users className="w-4 h-4 text-amber-400" />
                   <span className="font-bold text-xs uppercase text-slate-100">{characters.length} Screenplay Characters</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCharacterBibleMaximized(true)}
-                  className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-[10px] flex items-center gap-1 transition shadow cursor-pointer"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                  <span>Maximize Bible</span>
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <ActorHighlightToggle
+                    isActive={Boolean(script.isActorHighlightingActive)}
+                    onToggle={() => {
+                      onChangeScript({
+                        ...script,
+                        isActorHighlightingActive: !script.isActorHighlightingActive,
+                        updatedAt: new Date().toISOString(),
+                      });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCharacterBibleMaximized(true)}
+                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-[10px] flex items-center gap-1 transition shadow cursor-pointer shrink-0"
+                    title="Maximize Character Bible"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Maximize Bible</span>
+                  </button>
+                </div>
               </div>
 
               {editingCharacterName ? (
@@ -1165,6 +1199,12 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                   ) : (
                     characters.map((char) => {
                       const bible = script.characterBibles?.[char.name];
+                      const allSpeakingCharNames = characters.map((c) => c.name);
+                      const assignedColor = getCharacterHighlightColor(
+                        char.name,
+                        script.characterBibles,
+                        allSpeakingCharNames
+                      );
                       const hasNotes = Boolean(
                         bible?.age || bible?.appearance || bible?.attitude || bible?.actionInFirstScene || bible?.internalFlaw || bible?.coreMotivation
                       );
@@ -1183,6 +1223,11 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                              <span
+                                className="w-3.5 h-3.5 rounded-full shrink-0 border border-slate-600/80 shadow-xs"
+                                style={{ backgroundColor: assignedColor }}
+                                title={`Assigned colour: ${assignedColor}`}
+                              />
                               <span className="font-bold text-slate-100 text-sm">{char.name}</span>
                               {!hasNotes && (
                                 <span className="px-1.5 py-0.5 rounded bg-amber-400/20 border border-amber-400 text-amber-300 text-[9px] font-bold uppercase tracking-wider animate-pulse">
@@ -1195,6 +1240,12 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                               Edit Bible
                             </span>
                           </div>
+
+                          {/* Row of 6 Soft Pastel Colour Circles */}
+                          <PastelSwatchPicker
+                            selectedColor={assignedColor}
+                            onSelectColor={(hex) => handleUpdateCharacterColor(char.name, hex)}
+                          />
 
                           {hasNotes ? (
                             <div className="text-[11px] text-slate-300 space-y-1 bg-slate-950/40 p-2 rounded border border-slate-800">

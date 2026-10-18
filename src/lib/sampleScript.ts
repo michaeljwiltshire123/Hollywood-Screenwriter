@@ -18,6 +18,7 @@ export const INITIAL_SAMPLE_SCRIPT: ScreenplayDocument = {
     date: 'August 2026',
     draftColor: 'Goldenrod Master Revision',
   },
+  isActorHighlightingActive: false,
   characterBibles: {
     'ARTHUR': {
       age: 'Late 50s',
@@ -27,7 +28,8 @@ export const INITIAL_SAMPLE_SCRIPT: ScreenplayDocument = {
       internalFlaw: 'Secretly fears the new digital generation will leave classic storytelling behind.',
       coreMotivation: 'Pass down the timeless geometry of drama to anyone willing to respect the craft.',
       visualDescription: 'Framed in warm amber lamplight; framed movie posters from the 1980s behind him.',
-      actorNotes: 'Play with dry humor, rapid-fire pacing, and casual fourth-wall breaks straight into the camera.'
+      actorNotes: 'Play with dry humor, rapid-fire pacing, and casual fourth-wall breaks straight into the camera.',
+      highlightColor: '#F3E8FF',
     },
     'LILY': {
       age: '22',
@@ -37,7 +39,8 @@ export const INITIAL_SAMPLE_SCRIPT: ScreenplayDocument = {
       internalFlaw: 'Perfectionism—fears typing a bad line so much that she freezes before starting.',
       coreMotivation: 'Write something authentic enough to turn heads in Hollywood.',
       visualDescription: 'Lit by the soft 12pt Courier glow of the screen; posture shifts from timid to commanding.',
-      actorNotes: 'Start hesitant and reactive, then hit a confident flow state on Page 5 as keyboard rhythms take over.'
+      actorNotes: 'Start hesitant and reactive, then hit a confident flow state on Page 5 as keyboard rhythms take over.',
+      highlightColor: '#FEF9C3',
     }
   },
   shots: [

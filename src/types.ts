@@ -40,6 +40,7 @@ export interface CharacterMetadata {
   coreMotivation?: string;
   visualDescription?: string;
   actorNotes?: string;
+  highlightColor?: string; // Soft pastel hex code for actor dialogue highlighting
 }
 
 export interface StoryArcCard {
@@ -185,6 +186,7 @@ export interface ScreenplayDocument {
   riskAssessments?: RiskAssessmentItem[];
   releaseForms?: ReleaseFormItem[];
   productionScheduleDays?: ProductionScheduleDay[];
+  isActorHighlightingActive?: boolean; // Strictly defaults to false (OFF)
 }
 
 export interface RevisionHistoryItem {

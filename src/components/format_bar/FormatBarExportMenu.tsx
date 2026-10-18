@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Download, ChevronDown, Save, Printer, FileText, FileDown } from 'lucide-react';
 
 interface FormatBarExportMenuProps {
-  onExport: (format: 'pdf' | 'docx' | 'screenplay' | 'print') => void;
+  onExport: (format: 'pdf' | 'docx' | 'screenplay' | 'print' | 'actor-pdf') => void;
   onSaveAs?: () => void;
 }
 
@@ -50,6 +50,13 @@ export const FormatBarExportMenu: React.FC<FormatBarExportMenuProps> = ({ onExpo
           >
             <FileDown className="w-3.5 h-3.5 text-emerald-400" />
             <span>PDF Screenplay (.pdf)</span>
+          </button>
+          <button
+            onClick={() => handleAction(() => onExport('actor-pdf'))}
+            className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 hover:text-amber-300 flex items-center gap-2 font-medium cursor-pointer"
+          >
+            <span className="w-3.5 h-3.5 flex items-center justify-center text-xs">🎨</span>
+            <span>PDF for Actors (.pdf)</span>
           </button>
           <button
             onClick={() => handleAction(() => onExport('docx'))}

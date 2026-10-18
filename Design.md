@@ -43,4 +43,10 @@
 - `src/components/SettingsModal.tsx`: Preferences and environment configurations.
 - `src/lib/gameCooldownManager.ts`: 10-minute focus sprint timer and session storage persistence to regulate break games.
 - `src/components/GameLockoutModal.tsx`: Focus sprint notification modal displaying live cooldown countdown when games are temporarily blocked.
+- `src/lib/actorHighlighting.ts`: Soft pastel palette constants, character colour resolver, dialogue speaker tracker, and hex-to-rgb vector transformer.
+- `src/lib/handDrawnHighlighter.ts`: Authentic hand-drawn highlighter styling with line-by-line wrapping, rough textured edges, paper fibre ink bleed, and subtle chisel tilt.
+- `src/components/character_bible/ActorHighlightToggle.tsx`: Compact Actor Highlight toggle button featuring green (active) and purple (inactive) border highlights.
+- `src/components/character_bible/PastelSwatchPicker.tsx`: Single interactive circle swatch button triggering the colour palette popover.
+- `src/components/character_bible/ColorPalettePopover.tsx`: 12-pastel colour palette popover with custom colour picker input and outside-click dismissal.
+- `src/lib/pdf/pdfDialogueHighlighter.ts`: Vector PDF hand-drawn chisel highlighter polygon engine with uneven waviness, angled chisel cuts, human tilt, and paper fibre bleed.
 - `src/components/production/`: Production schedule, call sheets, and logistics modules with bounded dual-header clearance (top-28).

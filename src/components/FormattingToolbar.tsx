@@ -14,7 +14,7 @@ interface FormattingToolbarProps {
   onImport?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNewScript?: () => void;
   onLoadSample?: () => void;
-  onExport?: (format: 'pdf' | 'docx' | 'screenplay' | 'print') => void;
+  onExport?: (format: 'pdf' | 'docx' | 'screenplay' | 'print' | 'actor-pdf') => void;
   onSaveAs?: () => void;
 }
 

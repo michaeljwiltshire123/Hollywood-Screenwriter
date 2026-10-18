@@ -688,12 +688,12 @@ export default function App() {
   };
 
   // Export handlers
-  const handleExport = async (format: 'pdf' | 'docx' | 'screenplay' | 'print') => {
+  const handleExport = async (format: 'pdf' | 'docx' | 'screenplay' | 'print' | 'actor-pdf') => {
     saveSnapshot();
 
-    if (format === 'pdf') {
+    if (format === 'pdf' || format === 'actor-pdf') {
       try {
-        exportScreenplayPdf(script);
+        exportScreenplayPdf(script, format === 'actor-pdf');
         setIsDirty(false);
       } catch (err: any) {
         alert(`PDF export failed: ${err.message || 'Unknown error'}`);

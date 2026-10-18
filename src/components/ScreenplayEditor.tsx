@@ -5,7 +5,9 @@ import { getElementTypeFromKeyboardEvent } from '../lib/screenplayShortcuts';
 import { extractScriptLocations, getSluglineSuggestions, getGhostText } from '../lib/sluglinePredictor';
 import { SluglineAutocomplete } from './SluglineAutocomplete';
 import { CharacterAutocomplete } from './CharacterAutocomplete';
-import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText } from 'lucide-react';
+import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText, Palette } from 'lucide-react';
+import { findSpeakingCharacterForDialogue, getCharacterHighlightColor } from '../lib/actorHighlighting';
+import { getHandDrawnHighlighterStyle } from '../lib/handDrawnHighlighter';
 
 interface ScreenplayEditorProps {
   script: ScreenplayDocument;
@@ -518,17 +520,25 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
   };
 
   const handleContextMenu = (e: React.MouseEvent, elem: ScreenplayElement) => {
+    e.preventDefault();
     const selection = window.getSelection();
     const selectedText = selection ? selection.toString().trim() : '';
-    if (selectedText) {
-      e.preventDefault();
-      setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        selectedText,
-        elementId: elem.id,
-      });
-    }
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      selectedText,
+      elementId: elem.id,
+    });
+  };
+
+  const handleToggleActorHighlight = () => {
+    const nextState = !script.isActorHighlightingActive;
+    onChangeScript({
+      ...script,
+      isActorHighlightingActive: nextState,
+      updatedAt: new Date().toISOString(),
+    });
+    setContextMenu(null);
   };
 
   const handleAddWriterNote = () => {
@@ -812,6 +822,20 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
             const isBlank = !elem.content || elem.content.trim() === '';
             const shouldShowGhost = isSlugline && (isBlank ? !isSelected : isSelected) && !!ghostText;
 
+            // Actor dialogue highlight calculation
+            const isDialogue = elem.type === 'DIALOGUE';
+            let dialogueHighlightColor: string | null = null;
+            if (isDialogue && script.isActorHighlightingActive) {
+              const speaker = findSpeakingCharacterForDialogue(elements, idx);
+              if (speaker) {
+                dialogueHighlightColor = getCharacterHighlightColor(
+                  speaker,
+                  script.characterBibles,
+                  allCharacterNames
+                );
+              }
+            }
+
             return (
               <React.Fragment key={elem.id}>
                 {pageNum && (
@@ -852,6 +876,26 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
 
                   {/* ContentEditable & Predictive Overlay Container */}
                   <div className={`relative ${isSlugline ? 'my-5' : ''}`}>
+                    {/* Hand-drawn line-by-line dialogue highlighter underlay */}
+                    {dialogueHighlightColor && elem.content && (
+                      <div
+                        className={`absolute top-0 left-0 w-full pointer-events-none select-none whitespace-pre-wrap break-words z-0 ${
+                          isSlugline ? styles.containerClass.replace(/\bmy-5\b/, 'my-0') : styles.containerClass
+                        }`}
+                        style={{
+                          textTransform: styles.textTransform,
+                          fontFamily: fontStyleValue,
+                        }}
+                        aria-hidden="true"
+                      >
+                        <span style={getHandDrawnHighlighterStyle(dialogueHighlightColor)}>
+                          <span className="opacity-0 select-none text-transparent">
+                            {elem.content}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+
                     <div
                       ref={(el) => (elementRefs.current[elem.id] = el)}
                       contentEditable
@@ -872,10 +916,15 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
                         handleContentChange(elem.id, e.currentTarget.textContent || '');
                       }}
                       onKeyDown={(e) => handleKeyDown(e, elem, idx)}
-                      className={`outline-none whitespace-pre-wrap break-words ${
+                      className={`relative z-10 outline-none whitespace-pre-wrap break-words ${
                         isSlugline ? styles.containerClass.replace(/\bmy-5\b/, 'my-0') : styles.containerClass
                       }`}
-                      style={{ textTransform: styles.textTransform, fontFamily: fontStyleValue }}
+                      style={{
+                        textTransform: styles.textTransform,
+                        fontFamily: fontStyleValue,
+                        backgroundColor: 'transparent',
+                        color: dialogueHighlightColor ? '#000000' : undefined,
+                      }}
                       data-placeholder={isSlugline ? undefined : styles.placeholder}
                     >
                       {elem.content}
@@ -982,32 +1031,50 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
 
           <div className="p-1 space-y-0.5">
             <button
-              onClick={handleAddWriterNote}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-amber-500/20 text-amber-300 font-medium flex items-center gap-2 transition"
+              onClick={handleToggleActorHighlight}
+              className={`w-full text-left px-2.5 py-1.5 rounded font-medium flex items-center gap-2 transition cursor-pointer ${
+                script.isActorHighlightingActive
+                  ? 'bg-amber-500/25 text-amber-300 hover:bg-amber-500/35 border border-amber-500/40'
+                  : 'hover:bg-slate-800 text-slate-200'
+              }`}
             >
-              <StickyNote className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>Add Writer Note</span>
+              <Palette className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>
+                Actor Highlight: {script.isActorHighlightingActive ? 'Active' : 'Off'}
+              </span>
             </button>
 
-            <button
-              onClick={handleTagProp}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition"
-            >
-              <Tag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>Tag as Prop</span>
-            </button>
+            {contextMenu.selectedText && (
+              <>
+                <button
+                  onClick={handleAddWriterNote}
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-amber-500/20 text-amber-300 font-medium flex items-center gap-2 transition cursor-pointer"
+                >
+                  <StickyNote className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Add Writer Note</span>
+                </button>
 
-            <button
-              onClick={handleTagWardrobe}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition"
-            >
-              <Shirt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <span>Tag as Wardrobe</span>
-            </button>
+                <button
+                  onClick={handleTagProp}
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+                >
+                  <Tag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Tag as Prop</span>
+                </button>
+
+                <button
+                  onClick={handleTagWardrobe}
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+                >
+                  <Shirt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span>Tag as Wardrobe</span>
+                </button>
+              </>
+            )}
 
             <button
               onClick={handleReadScene}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition"
+              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span>Read This Scene Aloud</span>
@@ -1015,7 +1082,7 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
 
             <button
               onClick={handleAlternateDialogue}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition"
+              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
               <span>Set Alternate Dialogue</span>
