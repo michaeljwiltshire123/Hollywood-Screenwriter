@@ -1,0 +1,58 @@
+import { TourStep } from './tourTypes';
+
+export const CALLSHEET_STEPS_PART2: TourStep[] = [
+  {
+    id: 'crew-notes',
+    targetSelector: '#tour-row-notes-cell',
+    title: '7. Crew Notes & Props',
+    whatItIs: 'This holds important reminders for the crew like required props, costumes, and equipment.',
+    howToUseIt: 'Click the notes box to type reminders or view prop tags pulled straight from your script.',
+    description: 'This holds important reminders for the crew like required props, costumes, and equipment. Click the notes box to type reminders or view prop tags pulled straight from your script.',
+    placement: 'bottom',
+  },
+  {
+    id: 'gantt-chart-overview',
+    targetSelector: '#tour-gantt-chart',
+    title: '8. Visual Timeline & Gantt Chart',
+    whatItIs: 'This visual bar chart maps out your entire filming day across a 24-hour timeline.',
+    howToUseIt: 'Scroll down to see every scene, lunch break, and camera setup laid out across the hours.',
+    description: 'This visual bar chart maps out your entire filming day across a 24-hour timeline. Scroll down to see every scene, lunch break, and camera setup laid out across the hours.',
+    placement: 'top',
+  },
+  {
+    id: 'gantt-draggable-bars',
+    targetSelector: '#tour-gantt-event-bar',
+    title: '9. Draggable Timeline Bars',
+    whatItIs: 'These coloured blocks represent each scene start time and filming duration on the timeline.',
+    howToUseIt: 'Drag and drop any bar or pull its left and right edges to adjust filming times visually.',
+    description: 'These coloured blocks represent each scene start time and filming duration on the timeline. Drag and drop any bar or pull its left and right edges to adjust filming times visually.',
+    placement: 'top',
+  },
+  {
+    id: 'view-mode-toggle',
+    targetSelector: '#tour-view-toggle',
+    title: '10. Daily vs Full Schedule View',
+    whatItIs: 'This switches between focusing on one single day or viewing the entire project schedule.',
+    howToUseIt: 'Click "Daily" to inspect today\'s call sheet, or "Full List" to see all scenes across all days.',
+    description: 'This switches between focusing on one single day or viewing the entire project schedule. Click "Daily" to inspect today\'s call sheet, or "Full List" to see all scenes across all days.',
+    placement: 'bottom',
+  },
+  {
+    id: 'prioritise-sort',
+    targetSelector: '#tour-sort-controls',
+    title: '11. Prioritise Actors or Scenes',
+    whatItIs: 'This automatically reorganises your filming order to group specific actors or scene settings together.',
+    howToUseIt: 'Click "Cast Members" to prioritise an actor\'s scenes first, or "Scene Settings" to group locations.',
+    description: 'This automatically reorganises your filming order to group specific actors or scene settings together. Click "Cast Members" to prioritise an actor\'s scenes first, or "Scene Settings" to group locations.',
+    placement: 'bottom',
+  },
+  {
+    id: 'print-export-sheets',
+    targetSelector: '#tour-print-export',
+    title: '12. Print & Export Call Sheets',
+    whatItIs: 'This exports clean, professional call sheets and filming schedules ready for printing or PDFs.',
+    howToUseIt: 'Click this button to print the complete schedule or separate it into unit-specific call sheets.',
+    description: 'This exports clean, professional call sheets and filming schedules ready for printing or PDFs. Click this button to print the complete schedule or separate it into unit-specific call sheets.',
+    placement: 'bottom',
+  },
+];

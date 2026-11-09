@@ -60,10 +60,11 @@ export interface ShotInfo {
   id: string;
   sceneHeadingId: string; // references scene ID
   shotNumber: string;
-  shotType: 'WIDE' | 'MEDIUM' | 'CLOSE-UP' | 'EXTREME CLOSE-UP' | 'ESTABLISHING' | 'POV' | 'OVER-THE-SHOULDER' | 'INSERT' | 'AERIAL' | 'OTHER';
+  shotType: string;
   angle: string;
   lens: string;
   equipment: string; // e.g. "Tripod, Gimbal | Handheld with anamorphic lens"
+  description?: string; // Framing action, camera description & notes
   estimatedTimeMin: number;
   sketchDataUrl?: string; // Base64 image
   targetCharacter?: string; // Character featured/framed in shot
@@ -112,8 +113,57 @@ export interface CallSheetLocation {
   notes?: string;
 }
 
+export interface ShotSetupItem {
+  id: string;
+  shotNumber: string; // e.g. "1A", "1B"
+  setup: string; // e.g. "Wide", "Close Up", "Tracking"
+  lens: string; // e.g. "35mm anamorphic"
+  description: string;
+  estimatedTimeMinutes?: number;
+  status: 'PLANNED' | 'COMPLETED';
+}
+
+export interface ScheduleRowItem {
+  id: string;
+  time: string;
+  sceneNumber: string;
+  intExt: string; // 'Int' | 'Ext' or custom
+  unitNumber?: number; // 1 to 15, undefined/0 for unassigned
+  location?: string; // Parsed scene location (e.g. "COMMAND TENT")
+  description: string;
+  dayNight: string; // 'Day' | 'Night' or custom
+  notes: string;
+  characterTags: string[];
+  propTags?: string[];
+  isExterior: boolean;
+  type?: 'SCENE' | 'BREAK';
+  durationHours?: number;
+  shotIds?: string[];
+  shots?: ShotSetupItem[];
+  isExpanded?: boolean;
+}
+
+export interface ShootScheduleDaySheet {
+  dayNumber: number;
+  dateStr: string; // e.g. "2026-11-05"
+  title: string;
+  isRestDay: boolean; // True if day off / non-shooting day
+  notes?: string;
+  rows: ScheduleRowItem[];
+}
+
 export interface CallSheetData {
   shootDate: string;
+  dateFrom?: string; // Multi-day start date
+  dateTo?: string; // Multi-day end date
+  activeDayNumber?: number; // Currently viewed day in accordion (1-indexed)
+  days?: ShootScheduleDaySheet[]; // Multi-day sheets
+  isHighlightModeActive?: boolean; // Defaults strictly to false
+  activeFilter?: 'ALL' | 'CAST' | 'LOCATION' | 'PROPS' | 'CAMERA';
+  activeUnitFilter?: number | 'ALL'; // 'ALL' or unit number 1..15
+  unitsCount?: number; // Max 15
+  selectedRowIds?: string[]; // Serialised array for persistence
+  rows?: ScheduleRowItem[];
   generalCallTime: string;
   breakfastTime: string;
   estimatedWrapTime: string;
@@ -127,7 +177,11 @@ export interface CallSheetData {
   directorName: string;
   producerName: string;
   dopName: string;
-  generalNotes: string;
+  wardrobeLocation?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  additionalContacts?: { id: string; name: string; role: string; phone: string }[];
+  generalNotes?: string;
   departmentCalls?: DepartmentCall[];
   locations?: CallSheetLocation[];
   selectedDayNumber?: number;

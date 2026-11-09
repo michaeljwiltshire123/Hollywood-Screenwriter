@@ -39,6 +39,7 @@
 - `src/lib/slugline/sluglineSuggestions.ts`: Contextual prefix, location, and time of day suggestion calculator.
 - `src/lib/slugline/sluglineGhostText.ts`: Smart compose inline ghost text suggestion generator.
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
+- `src/components/navigator/PreProductionDocButton.tsx`: Premium amber-tinted trigger button positioned directly above the scenes panel search bar to launch the Pre-Production suite.
 - `src/components/TableReadModal.tsx`: Multi-voice playback and script rehearsal audio engine offset safely with dual-header clearance (top-28).
 - `src/components/SettingsModal.tsx`: Preferences and environment configurations.
 - `src/lib/gameCooldownManager.ts`: 10-minute focus sprint timer and session storage persistence to regulate break games.
@@ -49,4 +50,59 @@
 - `src/components/character_bible/PastelSwatchPicker.tsx`: Single interactive circle swatch button triggering the colour palette popover.
 - `src/components/character_bible/ColorPalettePopover.tsx`: 12-pastel colour palette popover with custom colour picker input and outside-click dismissal.
 - `src/lib/pdf/pdfDialogueHighlighter.ts`: Vector PDF hand-drawn chisel highlighter polygon engine with uneven waviness, angled chisel cuts, human tilt, and paper fibre bleed.
-- `src/components/production/`: Production schedule, call sheets, and logistics modules with bounded dual-header clearance (top-28).
+- `src/components/production/CallSheetTab.tsx`: Unified Shoot Schedule combining V3 administrative header, V4 interactive spreadsheet grid, multi-select batch controls, and re-themed Gantt chart.
+- `src/components/production/shoot_schedule/`: Modular Shoot Schedule architecture (<100 lines per file):
+  * `ShootScheduleTitleBanner.tsx`: Black title banner with department highlight filter pills including Locations and Print trigger.
+  * `ShootScheduleAdminBox.tsx`: Compact administrative bar organising screenplay title, filming dates, director/producer details, single-line emergency contacts, and action buttons.
+  * `AdminTitleDateCol.tsx` & `AdminPersonnelCol.tsx`: Extracted modular columns for Title/Filming Dates and Director/Producer controls.
+  * `EmergencyContactsCol.tsx`: Compact single-line emergency contact inputs with phantom inline addition.
+  * `ShootScheduleDayTabs.tsx`: Accordion/tab list on the white call sheet with rest-day moon toggles.
+  * `LocationBadgePills.tsx`: Soft pastel location pill badges with active highlighting.
+  * `InteractiveScheduleGrid.tsx`, `ScheduleGridRow.tsx`, `RowMainCells.tsx`: Crisp paper spreadsheet grid with dedicated Location column, smart chips, and direct 24-hour dropdown time selectors.
+  * `Simple24HourTimePickerDropdown.tsx`: Clean light-mode 24-hour filming time slot dropdown popover (06:00 to 23:45) with custom time input.
+  * `schedule24HourTimingOps.ts`: Strict 24-hour military minute parser, formatter, and normaliser.
+  * `timeSlotGenerator.ts`: 15-minute 24-hour filming time slot array generator and index matching helper.
+  * `chronologicalRowSortHelper.ts`: Direct row auto-repositioning and overlap clash resolver for 24-hour time shifts without pop-up prompts.
+  * `use24HourTimeHandlers.ts`: Direct time update hook handler.
+  * `PrintExportModal.tsx`: Print dialog supporting separate unit printing, combined unit printing, and single unit selection.
+  * `ScheduleModals.tsx`: Modal aggregator maintaining strict file length limits.
+  * `RowDragHandleWithGhostPlus.tsx`: Hover ghost inline plus adder and drag reorder handle.
+  * `BatchActionsBar.tsx`: Multi-selection batch bar for bulk row deletion and clearing.
+  * `ShootScheduleContextMenu.tsx`: Right-click context menu (Add Line Below, Delete Row).
+  * `RethemedGanttChart.tsx` & `GanttEventRow.tsx`: Light-mode paper Gantt chart formatted with 24-hour military timeline bars.
+  * `ShotSubRowsList.tsx` & `ShotSubRowItem.tsx`: Expandable camera setup shot list sub-rows with multi-line textarea supporting Return/line breaks and estimated shooting time.
+  * `shotDurationShiftHelper.ts`: Recalculates block duration and auto-shifts subsequent rows to prevent time overlaps.
+  * `printGanttHtmlHelper.ts` & `printShotBadgesHelper.ts`: Visual Gantt chart timeline compiler and shot badge formatting for PDF/print exports in 24-hour format.
+  * `useShootShotsState.ts`: State handlers for toggling shot lists and managing camera setup items.
+  * `sceneNotesAndShotsSyncHelper.ts`: Dynamic extractor parsing prop tags, wardrobe appearance notes from character bibles, and mapping script shots to setup items.
+  * `scheduleScriptSyncOps.ts`: Automatic synchronisation keeping schedule rows, shot list camera setups, and prop/wardrobe notes reactive to script additions.
+  * `WorkingHoursPickerModal.tsx` & `WorkingHoursChoiceModal.tsx`: Working hours setup modal and multi-day shift scope selector supporting 24-hour military time.
+  * `workingHoursSpilloverOps.ts` & `useWorkingHoursState.ts`: Automated overflow calculation pushing scenes to newly created days when wrap time is exceeded.
+  * `useScheduleContacts.ts`: Modular state helper managing emergency contacts and phone numbers.
+  * `CallSheetAdminSection.tsx`: Administrative section wrapper for CallSheetTab enforcing modular line limits.
+  * `scheduleTimingOps.ts`: Chronological sorting enforcement preventing backward time travel.
+  * `multiUnitOps.ts`: Multi-unit label formatters, unit color palettes, filtering helpers, and existing unit enumeration (up to 15 units).
+  * `UnitFilterDropdown.tsx`: Title banner unit filter dropdown (All Units, 1st Unit, 2nd Unit... + Create Unit).
+  * `BatchAssignUnitButton.tsx`: Multi-selection batch action button to assign selected scenes to filming units.
+  * `unitTimingOps.ts`: Independent per-unit timeline calculations allowing unit overlaps while cascading same-unit shifts.
+  * `unitGanttColorOps.ts`: Distinct pastel color theme maps for Gantt timeline event bars across filming units.
+- `src/components/navigator/shot_planner/`: Modular Scene Shot Planner architecture (<100 lines per file):
+  * `SceneShotPlannerModal.tsx`: Clean light-mode container modal matching call sheet aesthetic.
+  * `ShotPlannerRowItem.tsx`: Individual shot setup card featuring pastel shot type chips, description textarea, tagged props badges, duration chips, drag handle, and 1-click deletion.
+  * `ShotTypeChipDropdown.tsx`: Soft pastel shot type dropdown (Wide, Medium, Close-Up, ECU, Action, Insert, Drone, Cutaway, Tracking).
+  * `ShotDurationChips.tsx`: Quick duration preset chips (15m, 30m, 45m, 1h) plus custom minute input.
+  * `ShotPlannerEmptyState.tsx`: Friendly teacher-toned empty state card with quick Add First Shot action button.
+- `src/components/production/tour/`: Step-by-step Interactive Page Tour architecture (<100 lines per file):
+  * `tourTypes.ts`: Interface definitions for TourStep and active ProductionTab.
+  * `callsheetTourBlueprintPart1.ts`: Step-by-step tour definitions for Shoot Schedule & Call Sheet (Steps 1-6).
+  * `callsheetTourBlueprintPart2.ts`: Step-by-step tour definitions for Shoot Schedule & Call Sheet (Steps 7-12).
+  * `callsheetTourBlueprint.ts`: Master aggregator combining Call Sheet tour steps.
+  * `otherTourBlueprints.ts`: Tour blueprint steps for Risk Assessment and Release Forms tabs, plus selector.
+  * `useElementTracker.ts`: Live ResizeObserver, scroll tracker, and smooth glide loop tracking target element bounding coordinates with eye-level positioning.
+  * `SpotlightOverlay.tsx`: 4-panel click-blocking mask with transparent click-through cutout, mouse wheel passthrough, and glowing halo.
+  * `TourTooltipCard.tsx`: Two-sentence teenager-friendly floating card with non-overlapping side placement, progress bar, step progression, and navigation buttons.
+  * `PageTourModal.tsx`: Main tour orchestrator rendering via React createPortal to document.body for true viewport coordinates.
+  * `HowDoIUseButton.tsx`: Warm amber circular '?' trigger button with two-line teacher-friendly label.
+- `src/components/production/ProductionSuiteHeader.tsx`: Extracted top bar with title, metadata, tour trigger, and modal close.
+- `src/components/production/ProductionSuiteTabs.tsx`: Extracted suite tab navigation and production company logo uploader.
+- `src/components/production/ProductionScheduleModal.tsx`: Modular root modal container integrating active tab views and live page tour.

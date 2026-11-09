@@ -207,7 +207,7 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
       </div>
 
       {/* Safety Notice Disclaimer */}
-      <div className="p-3.5 bg-amber-950/40 border border-amber-600/50 rounded-xl text-xs text-amber-200/90 leading-relaxed space-y-1">
+      <div id="tour-risk-summary" className="p-3.5 bg-amber-950/40 border border-amber-600/50 rounded-xl text-xs text-amber-200/90 leading-relaxed space-y-1">
         <div className="font-bold text-amber-400 flex items-center gap-1.5">
           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
           <span>Important Producer Safety & Responsibility Disclaimer:</span>
@@ -218,7 +218,7 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
       </div>
 
       {/* Risk Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div id="tour-risk-table" className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
         <h3 className="text-xs font-bold uppercase text-slate-100">
           Identified Set Hazards & Mitigation Measures ({risks.length} Hazards)
         </h3>

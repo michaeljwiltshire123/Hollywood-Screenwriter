@@ -27,6 +27,7 @@ import {
   Minimize2,
   Calendar,
 } from 'lucide-react';
+import { SceneShotPlannerModal } from './navigator/shot_planner/SceneShotPlannerModal';
 import {
   ScreenplayDocument,
   SceneInfo,
@@ -41,6 +42,7 @@ import { extractScenes, extractCharacters, calculatePageEstimate } from '../lib/
 import { ActorHighlightToggle } from './character_bible/ActorHighlightToggle';
 import { PastelSwatchPicker } from './character_bible/PastelSwatchPicker';
 import { getCharacterHighlightColor } from '../lib/actorHighlighting';
+import { PreProductionDocButton } from './navigator/PreProductionDocButton';
 
 interface NavigatorSidePanelProps {
   script: ScreenplayDocument;
@@ -384,10 +386,11 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
       id: `shot-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       sceneHeadingId,
       shotNumber: newShotNum,
-      shotType: 'MEDIUM',
-      angle: 'Eye Level',
-      lens: '50mm',
-      equipment: 'Tripod',
+      shotType: 'Wide Shot',
+      angle: '',
+      lens: '',
+      equipment: '',
+      description: '',
       estimatedTimeMin: 15,
     };
     onChangeScript({
@@ -544,19 +547,6 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('shotlist')}
-            className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
-              activeTab === 'shotlist'
-                ? 'border-amber-400 text-amber-300 bg-slate-900/60'
-                : 'border-transparent text-slate-500 hover:text-slate-200 hover:bg-slate-900/20'
-            }`}
-            title="Production Stripboard & Shot List"
-          >
-            <Camera className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-            <span className="text-[8px] uppercase tracking-wider font-bold truncate max-w-full">SHOTS</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('arc')}
             className={`flex-1 min-w-0 py-1.5 text-center border-b-2 transition flex flex-col items-center justify-center gap-1 group cursor-pointer ${
               activeTab === 'arc'
@@ -614,6 +604,8 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
           {/* TAB 1: SCENE NAVIGATOR & SHOT MANAGER MODAL */}
           {activeTab === 'scenes' && (
             <div className="space-y-3">
+              <PreProductionDocButton onOpenProductionSchedule={onOpenProductionSchedule} />
+
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" />
                 <input
@@ -1348,303 +1340,16 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
       </aside>
 
       {/* SCENE SHOT PLANNER MODAL */}
-      {activeShotSceneId && (() => {
-        const targetScene = scenes.find((s) => s.id === activeShotSceneId);
-        const sceneShots = shots.filter((s) => s.sceneHeadingId === activeShotSceneId);
-        if (!targetScene) return null;
-
-        return (
-          <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
-            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[85vh]">
-              <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-sky-400" />
-                  <div>
-                    <h2 className="font-bold text-sm uppercase text-sky-300">
-                      Scene #{targetScene.sceneNumber}: Shots Planning
-                    </h2>
-                    <p className="text-[10px] text-slate-400 truncate max-w-md">{targetScene.heading}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setActiveShotSceneId(null)}
-                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-5 overflow-y-auto space-y-4 font-mono text-xs flex-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[11px]">
-                    Configure camera setups, angles, lenses, equipment, and sketch references for this scene.
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleAddShot(targetScene.id)}
-                    className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded flex items-center gap-1.5 text-xs shadow transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Shot</span>
-                  </button>
-                </div>
-
-                {sceneShots.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 italic bg-slate-950 border border-slate-800 rounded-lg">
-                    No shots added for this scene yet. Click "Add Shot" above.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {sceneShots.map((sh, idx) => (
-                      <div
-                        key={sh.id}
-                        className="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-3 relative group shadow-sm"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <label className="text-[10px] text-slate-400 uppercase font-bold">Shot #:</label>
-                            <input
-                              type="text"
-                              value={sh.shotNumber}
-                              onChange={(e) => handleUpdateShot(sh.id, { shotNumber: e.target.value })}
-                              className="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold text-xs text-center focus:outline-none focus:border-sky-400"
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <label className="text-[10px] text-slate-400 uppercase font-bold">Type:</label>
-                            <select
-                              value={sh.shotType}
-                              onChange={(e) => handleUpdateShot(sh.id, { shotType: e.target.value as any })}
-                              className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sky-300 font-bold text-xs focus:outline-none focus:border-sky-400"
-                            >
-                              {SHOT_TYPES.map((st) => (
-                                <option key={st} value={st}>{st}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteShot(sh.id)}
-                            className="p-1.5 text-slate-500 hover:text-rose-400 rounded transition"
-                            title="Delete shot"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
-                          <div>
-                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Target Character</label>
-                            <input
-                              type="text"
-                              list={`target-char-list-${sh.id}`}
-                              value={sh.targetCharacter || ''}
-                              onChange={(e) => handleUpdateShot(sh.id, { targetCharacter: e.target.value })}
-                              placeholder="Select or type character..."
-                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-amber-300 font-bold focus:outline-none focus:border-sky-400"
-                            />
-                            <datalist id={`target-char-list-${sh.id}`}>
-                              {characters.map((c) => (
-                                <option key={c.name} value={c.name} />
-                              ))}
-                            </datalist>
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Movement / Dynamics</label>
-                            <input
-                              type="text"
-                              value={sh.movementDetail || ''}
-                              onChange={(e) => handleUpdateShot(sh.id, { movementDetail: e.target.value })}
-                              placeholder="e.g. Slow push-in, Whip pan, Handheld"
-                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Angle</label>
-                            <input
-                              type="text"
-                              value={sh.angle}
-                              onChange={(e) => handleUpdateShot(sh.id, { angle: e.target.value })}
-                              placeholder="e.g. Low, High, Eye"
-                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Lens</label>
-                            <input
-                              type="text"
-                              value={sh.lens}
-                              onChange={(e) => handleUpdateShot(sh.id, { lens: e.target.value })}
-                              placeholder="e.g. 35mm, 50mm"
-                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Est. Time (min)</label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={sh.estimatedTimeMin}
-                              onChange={(e) => handleUpdateShot(sh.id, { estimatedTimeMin: parseInt(e.target.value) || 15 })}
-                              className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="pt-1">
-                          <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Equipment Suite Checklist</label>
-                          <div className="flex flex-wrap gap-1.5 mb-1.5">
-                            {STANDARD_KITS.map((kit) => {
-                              const currentEquip = sh.equipment || '';
-                              const isSelected = currentEquip.includes(kit);
-                              return (
-                                <button
-                                  key={kit}
-                                  type="button"
-                                  onClick={() => {
-                                    let items = currentEquip.split(',').map(s => s.trim()).filter(Boolean);
-                                    if (isSelected) {
-                                      items = items.filter(i => i !== kit);
-                                    } else {
-                                      items.push(kit);
-                                    }
-                                    handleUpdateShot(sh.id, { equipment: items.join(', ') });
-                                  }}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-bold border transition ${
-                                    isSelected
-                                      ? 'bg-sky-950 text-sky-300 border-sky-600'
-                                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                                  }`}
-                                >
-                                  {kit}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <input
-                            type="text"
-                            value={sh.equipment}
-                            onChange={(e) => handleUpdateShot(sh.id, { equipment: e.target.value })}
-                            placeholder="Additional gear (e.g. 100mm macro, anamorphic lenses)"
-                            className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-400"
-                          />
-                        </div>
-
-                        {/* Reference Image & Director Notes Layout */}
-                        <div className="pt-3 border-t border-slate-900 grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                          {/* Left: Reference Image Slot (4 cols) */}
-                          <div className="md:col-span-4 space-y-2 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                            <label className="block text-[10px] text-sky-400 uppercase font-bold">
-                              Reference Sketch / Storyboard
-                            </label>
-                            <div className="flex items-center gap-3">
-                              {sh.sketchDataUrl ? (
-                                <img
-                                  src={sh.sketchDataUrl}
-                                  alt="Sketch reference"
-                                  className="w-24 h-18 object-cover rounded border border-slate-700 shrink-0 shadow"
-                                />
-                              ) : (
-                                <div className="w-24 h-18 bg-slate-950 border border-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 italic shrink-0">
-                                  No Image
-                                </div>
-                              )}
-                              <div className="space-y-1.5 flex-1 min-w-0">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleSketchUpload(e, sh.id)}
-                                  className="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-sky-300 hover:file:bg-slate-700 cursor-pointer w-full"
-                                />
-                                {sh.sketchDataUrl && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateShot(sh.id, { sketchDataUrl: undefined })}
-                                    className="text-[10px] text-rose-400 hover:text-rose-300 font-bold block"
-                                  >
-                                    Remove Image
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Right of Reference Image: Director Notes & Transitions Section (8 cols) */}
-                          <div className="md:col-span-8 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 space-y-2">
-                            <label className="block text-[10px] text-amber-400 uppercase font-bold">
-                              Director & DOP Transition Notes
-                            </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              <div>
-                                <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
-                                  Transition FROM Previous Shot
-                                </label>
-                                <input
-                                  type="text"
-                                  value={sh.transitionFromPrev || ''}
-                                  onChange={(e) => handleUpdateShot(sh.id, { transitionFromPrev: e.target.value })}
-                                  placeholder="e.g. Match cut on door opening, Whip pan left"
-                                  className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
-                                  Transition TO Next Shot
-                                </label>
-                                <input
-                                  type="text"
-                                  value={sh.transitionToNext || ''}
-                                  onChange={(e) => handleUpdateShot(sh.id, { transitionToNext: e.target.value })}
-                                  placeholder="e.g. Hard cut on gunshot, J-cut audio lead"
-                                  className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] text-slate-400 uppercase font-bold mb-0.5">
-                                Additional Director / Acting / Framing Notes
-                              </label>
-                              <textarea
-                                rows={2}
-                                value={sh.otherNotes || ''}
-                                onChange={(e) => handleUpdateShot(sh.id, { otherNotes: e.target.value })}
-                                placeholder="e.g. Hold frame for 3s after dialogue; actor moves into shadow as camera pushes in..."
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400 resize-none"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleAddShot(targetScene.id)}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg flex items-center gap-1.5 text-xs shadow-md transition cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Add Shot</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveShotSceneId(null)}
-                  className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold text-xs transition cursor-pointer"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      <SceneShotPlannerModal
+        activeShotSceneId={activeShotSceneId}
+        scenes={scenes}
+        shots={shots}
+        elements={script.elements}
+        onClose={() => setActiveShotSceneId(null)}
+        onAddShot={handleAddShot}
+        onUpdateShot={(shotId, fields) => handleUpdateShot(shotId, fields)}
+        onDeleteShot={handleDeleteShot}
+      />
       {/* SPARK PROVOCATION MODAL */}
       {isSparkModalOpen && (
         <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">

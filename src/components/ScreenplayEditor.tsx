@@ -585,26 +585,18 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
     const sceneHeadingId = sceneHeadingElem.id;
 
     const existingShots = [...(script.shots || [])];
-    const shotIdx = existingShots.findIndex((s) => s.sceneHeadingId === sceneHeadingId);
-
-    if (shotIdx !== -1) {
-      const currentGear = existingShots[shotIdx].equipment || '';
-      existingShots[shotIdx] = {
-        ...existingShots[shotIdx],
-        equipment: currentGear ? `${currentGear}, ${selectedText}` : selectedText,
-      };
-    } else {
-      existingShots.push({
-        id: `shot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        sceneHeadingId,
-        shotNumber: `${existingShots.length + 1}A`,
-        shotType: 'MEDIUM',
-        angle: 'Eye Level',
-        lens: '50mm',
-        equipment: selectedText,
-        estimatedTimeMin: 15,
-      });
-    }
+    const matchingCount = existingShots.filter((s) => s.sceneHeadingId === sceneHeadingId).length;
+    const suffix = String.fromCharCode(65 + Math.min(25, matchingCount));
+    existingShots.push({
+      id: `shot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      sceneHeadingId,
+      shotNumber: `${sceneHeadingElem.sceneNumber || '1'}${suffix}`,
+      shotType: 'MEDIUM',
+      angle: 'Eye Level',
+      lens: '50mm',
+      equipment: selectedText,
+      estimatedTimeMin: 30,
+    });
 
     const existingNotes = script.productionNotes || '';
     const updatedProdNotes = existingNotes

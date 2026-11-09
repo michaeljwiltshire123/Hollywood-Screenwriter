@@ -210,7 +210,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div id="tour-releases-selector" className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => handleAddForm('TALENT')}
             className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded text-xs font-bold transition"

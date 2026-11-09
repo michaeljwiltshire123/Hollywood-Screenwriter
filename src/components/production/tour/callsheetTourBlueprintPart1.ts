@@ -1,0 +1,58 @@
+import { TourStep } from './tourTypes';
+
+export const CALLSHEET_STEPS_PART1: TourStep[] = [
+  {
+    id: 'shooting-dates',
+    targetSelector: '#tour-dates-picker',
+    title: '1. Shooting Dates',
+    whatItIs: 'This sets the calendar dates for your entire film shoot.',
+    howToUseIt: 'Click either date box to pick the first and last days of filming.',
+    description: 'This sets the calendar dates for your entire film shoot. Click either date box to pick the first and last days of filming.',
+    placement: 'bottom',
+  },
+  {
+    id: 'scene-shots',
+    targetSelector: '#tour-scene-shots-btn',
+    title: '2. Scene Shot Planner',
+    whatItIs: 'This opens the camera shot list so you can see every angle planned for this scene.',
+    howToUseIt: 'Click the blue arrow or shot badge to view, add, or organise your camera setups.',
+    description: 'This opens the camera shot list so you can see every angle planned for this scene. Click the blue arrow or shot badge to view, add, or organise your camera setups.',
+    placement: 'bottom',
+  },
+  {
+    id: 'times-and-reorder',
+    targetSelector: '#tour-row-time-btn',
+    title: '3. Filming Times & Reordering',
+    whatItIs: 'This sets the exact filming time and running order for each scene in your day.',
+    howToUseIt: 'Click the blue time to pick a 24-hour filming slot, or drag the dots on the left to reorder scenes.',
+    description: 'This sets the exact filming time and running order for each scene in your day. Click the blue time to pick a 24-hour filming slot, or drag the dots on the left to reorder scenes.',
+    placement: 'bottom',
+  },
+  {
+    id: 'filming-locations',
+    targetSelector: '#tour-row-location-input',
+    title: '4. Filming Locations',
+    whatItIs: 'This tells your cast and crew exactly where the filming is taking place.',
+    howToUseIt: 'Click into this box and type the real-world address or room description.',
+    description: 'This tells your cast and crew exactly where the filming is taking place. Click into this box and type the real-world address or room description.',
+    placement: 'bottom',
+  },
+  {
+    id: 'add-row',
+    targetSelector: '#tour-row-drag-handle',
+    title: '5. Add Filming Rows',
+    whatItIs: 'This lets you insert extra filming scenes, lunch breaks, or basecamp moves into your schedule.',
+    howToUseIt: 'Hover over the drag handle and click the "+" button to insert a blank line directly below.',
+    description: 'This lets you insert extra filming scenes, lunch breaks, or basecamp moves into your schedule. Hover over the drag handle and click the "+" button to insert a blank line directly below.',
+    placement: 'bottom',
+  },
+  {
+    id: 'unit-assignment',
+    targetSelector: '#tour-row-unit-chip',
+    title: '6. Assign Filming Units',
+    whatItIs: 'This assigns scenes to separate camera crews if you have multiple units filming at the same time.',
+    howToUseIt: 'Click the unit chip to switch a scene between Unit 1, Unit 2, or add a brand new unit.',
+    description: 'This assigns scenes to separate camera crews if you have multiple units filming at the same time. Click the unit chip to switch a scene between Unit 1, Unit 2, or add a brand new unit.',
+    placement: 'bottom',
+  },
+];
