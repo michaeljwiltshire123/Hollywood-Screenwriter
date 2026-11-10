@@ -43,6 +43,7 @@ import { ActorHighlightToggle } from './character_bible/ActorHighlightToggle';
 import { PastelSwatchPicker } from './character_bible/PastelSwatchPicker';
 import { getCharacterHighlightColor } from '../lib/actorHighlighting';
 import { PreProductionDocButton } from './navigator/PreProductionDocButton';
+import { StoryArcTabContent } from './navigator/StoryArcTabContent';
 
 interface NavigatorSidePanelProps {
   script: ScreenplayDocument;
@@ -862,142 +863,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
           {/* TAB 3: STORY ARC SANDBOX */}
           {activeTab === 'arc' && (
-            <div className="space-y-4">
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>STORY ARC SANDBOX</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsWhiteboardMaximized(true)}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold rounded text-[10px] flex items-center gap-1 transition shadow"
-                    title="Fullscreen Whiteboard Mode"
-                  >
-                    <Layers className="w-3 h-3" />
-                    <span>Maximize Whiteboard</span>
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-1 text-[10px] pt-1">
-                  {(['3-Act', '5-Act', 'Hero’s Journey', 'Custom'] as const).map((preset) => (
-                    <button
-                      key={preset}
-                      onClick={() => handlePresetChange(preset)}
-                      className={`px-2 py-0.5 rounded font-bold border transition ${
-                        storyArc.preset === preset
-                          ? 'bg-emerald-950 text-emerald-300 border-emerald-600'
-                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Interactive blueprint. Switch narrative philosophies instantly without losing text. Maximize for immersive grid whiteboard.
-                </p>
-              </div>
-
-              {/* Arc Cards List */}
-              <div className="space-y-3">
-                {storyArc.cards.map((card, idx) => {
-                  const ghostHint = getGhostGuidanceHint(card.actTitle);
-                  const linkedScene = scenes.find((s) => s.id === card.linkedSceneId);
-                  const pinnedShot = (script.shots || []).find((sh) => sh.id === card.sketchId);
-
-                  return (
-                    <div
-                      key={card.id}
-                      className="p-3.5 bg-slate-800/90 border border-slate-700 rounded-lg space-y-2.5 shadow-sm relative group"
-                    >
-                      {/* Ghost Guidance Hint Text */}
-                      <div className="text-[10px] text-amber-300/70 italic bg-slate-950/60 p-1.5 rounded border border-slate-900 leading-relaxed">
-                        {ghostHint}
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2">
-                        <input
-                          type="text"
-                          value={card.actTitle}
-                          onChange={(e) => handleUpdateArcCard(card.id, 'actTitle', e.target.value)}
-                          className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 font-bold w-full focus:outline-none focus:border-emerald-400"
-                          placeholder="Section title..."
-                        />
-                        <button
-                          onClick={() => handleDeleteArcCard(card.id)}
-                          className="p-1 text-slate-500 hover:text-rose-400 rounded transition"
-                          title="Delete section"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">
-                          Narrative Goal & Key Beat:
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={card.goal}
-                          onChange={(e) => handleUpdateArcCard(card.id, 'goal', e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 resize-none"
-                          placeholder="What must happen in this section?"
-                        />
-                      </div>
-
-                      {/* Scene Link & Sketch Pin Linkage */}
-                      <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-700/50 text-[10px]">
-                        <div className="flex-1 min-w-[130px]">
-                          <label className="block text-slate-400 uppercase font-bold mb-0.5">Scene Link:</label>
-                          <select
-                            value={card.linkedSceneId || ''}
-                            onChange={(e) => handleUpdateArcCard(card.id, 'linkedSceneId', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-1 text-slate-200 font-bold focus:outline-none focus:border-emerald-400"
-                          >
-                            <option value="">-- No Scene Attached --</option>
-                            {scenes.map((s) => (
-                              <option key={s.id} value={s.id}>#{s.sceneNumber}: {s.heading.substring(0, 20)}...</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="flex-1 min-w-[130px]">
-                          <label className="block text-slate-400 uppercase font-bold mb-0.5">Pin Sketch Ref:</label>
-                          <select
-                            value={card.sketchId || ''}
-                            onChange={(e) => handleUpdateArcCard(card.id, 'sketchId', e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-1 text-slate-200 font-bold focus:outline-none focus:border-emerald-400"
-                          >
-                            <option value="">-- No Sketch Pinned --</option>
-                            {(script.shots || []).filter(sh => sh.sketchDataUrl).map((sh) => (
-                              <option key={sh.id} value={sh.id}>Shot {sh.shotNumber} ({sh.shotType})</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {pinnedShot?.sketchDataUrl && (
-                        <div className="flex items-center gap-2 pt-1">
-                          <img src={pinnedShot.sketchDataUrl} alt="Pinned sketch" className="w-12 h-9 object-cover rounded border border-emerald-500/50" />
-                          <span className="text-[10px] text-emerald-300 font-bold">Pinned Shot #{pinnedShot.shotNumber} Reference</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                <button
-                  type="button"
-                  onClick={handleAddArcCard}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 border border-dashed border-slate-700 hover:border-emerald-500 text-emerald-400 rounded-lg font-bold flex items-center justify-center gap-1.5 transition text-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Custom Story Card</span>
-                </button>
-              </div>
-            </div>
+            <StoryArcTabContent onOpenStoryArc={() => setIsWhiteboardMaximized(true)} />
           )}
 
           {/* TAB 4: THE MASTER'S INSPIRATIONS */}

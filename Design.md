@@ -40,6 +40,7 @@
 - `src/lib/slugline/sluglineGhostText.ts`: Smart compose inline ghost text suggestion generator.
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
 - `src/components/navigator/PreProductionDocButton.tsx`: Premium amber-tinted trigger button positioned directly above the scenes panel search bar to launch the Pre-Production suite.
+- `src/components/navigator/StoryArcTabContent.tsx`: Dedicated Story Arc panel component providing a clean, spacious button to open the fullscreen story arc whiteboard.
 - `src/components/TableReadModal.tsx`: Multi-voice playback and script rehearsal audio engine offset safely with dual-header clearance (top-28).
 - `src/components/SettingsModal.tsx`: Preferences and environment configurations.
 - `src/lib/gameCooldownManager.ts`: 10-minute focus sprint timer and session storage persistence to regulate break games.
