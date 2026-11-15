@@ -51,9 +51,70 @@ export interface StoryArcCard {
   linkedSceneId?: string;  // Attached scene ID
 }
 
+export interface SubPlotTrack {
+  id: string;
+  name: string;
+  color: string;
+  cards: StoryArcCard[];
+  audienceEmotion?: string;
+}
+
+export type HeroJourneyPacing = 'Slow' | 'Moderate' | 'Fast';
+
+export interface HeroJourneyBeat {
+  id: string;
+  title: string;
+  summary: string;
+  pacingSpeed: HeroJourneyPacing;
+  pageCount: number;
+  isEmptyPlaceholder?: boolean;
+}
+
+export interface HeroJourneyStageRow {
+  id: string;
+  title: string;
+  actGroup: 0 | 1 | 2;
+  promptHint: string;
+  timelinePercent?: number;
+  isCustom?: boolean;
+}
+
+export interface CharacterFortuneNode {
+  id: string;
+  percentX: number;
+  fortune: number;
+}
+
+export interface HeroJourneyData {
+  stages?: HeroJourneyStageRow[];
+  mainBeats: HeroJourneyBeat[];
+  subPlotBeats: Record<string, HeroJourneyBeat[]>;
+}
+
+export interface LoglineData {
+  protagonist: string;
+  goal: string;
+  obstacle: string;
+  stakes: string;
+  hook: string;
+  order: [number, number, number]; // e.g. [0, 1, 2] for shuffling questions 1, 2, 3
+  text: string;
+}
+
+export interface SynopsisData {
+  text: string;
+  comps?: string;
+}
+
 export interface StoryArcStructure {
   preset: '3-Act' | '5-Act' | 'Hero’s Journey' | 'Custom';
   cards: StoryArcCard[];
+  audienceEmotion?: string;
+  subPlots?: SubPlotTrack[];
+  heroJourney?: HeroJourneyData;
+  characterArcs?: Record<string, CharacterFortuneNode[]>;
+  logline?: LoglineData;
+  synopsis?: SynopsisData;
 }
 
 export interface ShotInfo {
@@ -241,6 +302,12 @@ export interface ScreenplayDocument {
   releaseForms?: ReleaseFormItem[];
   productionScheduleDays?: ProductionScheduleDay[];
   isActorHighlightingActive?: boolean; // Strictly defaults to false (OFF)
+  theme?: {
+    preset: 'Vintage' | 'Charcoal' | 'Eucalyptus' | 'Custom';
+    basePreset?: 'Vintage' | 'Charcoal' | 'Eucalyptus';
+    scriptPaperColor?: string;
+    scriptTextColor?: string;
+  };
 }
 
 export interface RevisionHistoryItem {

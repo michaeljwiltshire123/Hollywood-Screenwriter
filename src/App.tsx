@@ -24,6 +24,8 @@ import { Footer } from './components/Footer';
 import { FormattingToolbar } from './components/FormattingToolbar';
 import { NavigatorSidePanel } from './components/NavigatorSidePanel';
 import { ScreenplayEditor } from './components/ScreenplayEditor';
+import { resolveThemeConfig } from './lib/themePresets';
+import { getModalTheme } from './lib/modalTheme';
 import { TitlePageModal } from './components/TitlePageModal';
 import { RevisionHistoryModal } from './components/RevisionHistoryModal';
 import { SettingsModal } from './components/SettingsModal';
@@ -44,6 +46,8 @@ import { FocusTopBar } from './components/FocusTopBar';
 
 export default function App() {
   const [script, setScript] = useState<ScreenplayDocument>(INITIAL_SAMPLE_SCRIPT);
+  const themeConfig = resolveThemeConfig(script.theme);
+  const mt = getModalTheme(themeConfig);
   const [activeElementId, setActiveElementId] = useState<string | null>(
     INITIAL_SAMPLE_SCRIPT.elements[0]?.id || null
   );
@@ -789,7 +793,13 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col pt-14 font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div
+      className="h-screen w-screen overflow-hidden flex flex-col pt-14 font-sans selection:bg-amber-400 selection:text-slate-950 transition-colors"
+      style={{
+        backgroundColor: themeConfig.workspaceBackdrop,
+        color: themeConfig.primaryText,
+      }}
+    >
       {/* Hidden File Input for Native Open Fallback */}
       <input
         type="file"
@@ -840,6 +850,38 @@ export default function App() {
         onSave={handleSaveProject}
         onSaveAs={handleSaveAsProject}
         onOpenProject={loadNativeFile}
+        currentThemePreset={themeConfig.basePreset}
+        onSelectThemePreset={(preset) =>
+          handleScriptChange({
+            ...script,
+            theme: { preset, basePreset: preset, scriptPaperColor: undefined, scriptTextColor: undefined },
+          })
+        }
+        onCustomPaperColor={(color) =>
+          handleScriptChange({
+            ...script,
+            theme: {
+              ...(script.theme || { preset: themeConfig.basePreset }),
+              preset: themeConfig.basePreset,
+              basePreset: themeConfig.basePreset,
+              scriptPaperColor: color,
+            },
+          })
+        }
+        onCustomTextColor={(color) =>
+          handleScriptChange({
+            ...script,
+            theme: {
+              ...(script.theme || { preset: themeConfig.basePreset }),
+              preset: themeConfig.basePreset,
+              basePreset: themeConfig.basePreset,
+              scriptTextColor: color,
+            },
+          })
+        }
+        currentPaperColor={themeConfig.scriptPaper}
+        currentTextColor={themeConfig.scriptText}
+        themeConfig={themeConfig}
       />
 
       {/* Top Sleek Dual Progress Bars during Focus Mode */}
@@ -851,6 +893,7 @@ export default function App() {
           elapsedSeconds={focusElapsedSeconds}
           onExitFocus={() => setIsFocusMode(false)}
           onFinishEarly={() => setIsFocusSummaryOpen(true)}
+          themeConfig={themeConfig}
         />
       )}
 
@@ -859,13 +902,20 @@ export default function App() {
         {/* Mobile/Tablet Backdrop overlay for drawer mode (< lg) */}
         {isSidePanelOpen && !isFocusMode && (
           <div
-            className="fixed inset-0 top-[3.5rem] bg-slate-950/70 z-30 lg:hidden cursor-pointer"
+            className="fixed inset-0 top-[3.5rem] z-30 lg:hidden cursor-pointer"
+            style={mt.overlayStyle}
             onClick={() => setIsSidePanelOpen(false)}
           />
         )}
 
         {isSidePanelOpen && !isFocusMode && (
-          <div className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-[88vw] max-w-sm sm:w-96 bg-slate-900 border-r border-slate-800 shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-30 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none">
+          <div
+            className="fixed inset-y-0 left-0 top-[3.5rem] bottom-0 z-40 w-[88vw] max-w-sm sm:w-96 border-r shadow-2xl transition-all duration-300 flex flex-col lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-30 lg:h-full lg:w-80 xl:w-96 lg:shrink-0 lg:shadow-none"
+            style={{
+              backgroundColor: themeConfig.sidebarPanel,
+              borderColor: themeConfig.borders,
+            }}
+          >
             <NavigatorSidePanel
               script={script}
               isOpen={isSidePanelOpen && !isFocusMode}
@@ -881,17 +931,22 @@ export default function App() {
               revisions={revisions}
               onRollbackRevision={handleRollback}
               onOpenProductionSchedule={() => setIsProductionScheduleOpen(true)}
+              themeConfig={themeConfig}
             />
           </div>
         )}
 
-        <div className="h-full flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
+        <div
+          className="h-full flex-1 flex flex-col min-w-0 overflow-hidden transition-colors"
+          style={{ backgroundColor: themeConfig.workspaceBackdrop }}
+        >
           {importBannerMessage && (
-            <div className="bg-amber-950/90 border-b border-amber-500/60 text-amber-200 px-4 py-2 text-xs font-mono flex items-center justify-between z-20 shrink-0">
-              <span className="truncate">{importBannerMessage}</span>
+            <div className="border-b px-4 py-2 text-xs font-mono flex items-center justify-between z-20 shrink-0" style={mt.headerStyle}>
+              <span className="truncate font-semibold">{importBannerMessage}</span>
               <button
                 onClick={() => setImportBannerMessage(null)}
-                className="text-amber-400 hover:text-white font-bold ml-3 text-sm shrink-0 cursor-pointer"
+                className="font-bold ml-3 text-sm shrink-0 cursor-pointer hover:opacity-75"
+                style={mt.accentStyle}
               >
                 ✕
               </button>
@@ -927,6 +982,7 @@ export default function App() {
               onLoadSample={handleOpenSampleScript}
               onExport={handleExport}
               onSaveAs={handleSaveAsProject}
+              themeConfig={themeConfig}
             />
           </div>
 
@@ -940,6 +996,7 @@ export default function App() {
               setActiveType={setActiveType}
               cursorPos={cursorPos}
               setCursorPos={setCursorPos}
+              themeConfig={themeConfig}
               onJumpRef={(fn) => {
                 jumpFnRef.current = fn;
               }}
@@ -948,7 +1005,13 @@ export default function App() {
 
           {/* Footer Status Bar (Hidden in Focus Mode) */}
           {!isFocusMode && (
-            <div className="shrink-0 z-10 border-t border-slate-800 bg-slate-950">
+            <div
+              className="shrink-0 z-10 border-t transition-colors"
+              style={{
+                backgroundColor: themeConfig.topBottomBars,
+                borderColor: themeConfig.borders,
+              }}
+            >
               <Footer
                 script={script}
                 latencyMs={latencyMs}
@@ -958,6 +1021,7 @@ export default function App() {
                 linkedFileName={linkedFileName}
                 hasFileHandle={!!fileHandle}
                 onRelinkFile={loadNativeFile}
+                themeConfig={themeConfig}
               />
             </div>
           )}
@@ -975,6 +1039,7 @@ export default function App() {
         onLoadFile={handleImport}
         onOpenSampleScript={handleOpenSampleScript}
         onLoadNativeFile={'showOpenFilePicker' in window ? loadNativeFile : undefined}
+        themeConfig={themeConfig}
       />
 
       <RevisionHistoryModal
@@ -983,6 +1048,7 @@ export default function App() {
         revisions={revisions}
         onRollback={handleRollback}
         onCreateSnapshot={saveSnapshot}
+        themeConfig={themeConfig}
       />
 
       <SettingsModal
@@ -990,6 +1056,7 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         editorFont={editorFont}
         onUpdateFont={setEditorFont}
+        themeConfig={themeConfig}
       />
 
       <DebugDashboardModal
@@ -997,6 +1064,7 @@ export default function App() {
         onClose={() => setIsDebugOpen(false)}
         script={script}
         latencyMs={latencyMs}
+        themeConfig={themeConfig}
       />
 
       <PomodoroAlertModal
@@ -1008,6 +1076,7 @@ export default function App() {
           setIsPomodoroAlertOpen(false);
           handleOpenBreakGames();
         }}
+        themeConfig={themeConfig}
       />
 
       <BreakGameModal
@@ -1029,18 +1098,21 @@ export default function App() {
             }
           }
         }}
+        themeConfig={themeConfig}
       />
 
       <GameLockoutModal
         isOpen={isGameLockoutOpen}
         onClose={() => setIsGameLockoutOpen(false)}
         remainingSeconds={gameCooldownSeconds}
+        themeConfig={themeConfig}
       />
 
       <TableReadModal
         isOpen={isTableReadOpen}
         onClose={() => setIsTableReadOpen(false)}
         script={script}
+        themeConfig={themeConfig}
       />
 
       <ProductionScheduleModal
@@ -1050,6 +1122,7 @@ export default function App() {
         scenes={extractScenes(script.elements)}
         characters={extractCharacters(script.elements)}
         onChangeScript={handleScriptChange}
+        themeConfig={themeConfig}
       />
 
       {/* Focus Sprint Modals */}
@@ -1059,6 +1132,7 @@ export default function App() {
         onStartFocus={handleStartFocusSprint}
         defaultMins={focusTargetMins}
         defaultWords={focusTargetWords}
+        themeConfig={themeConfig}
       />
 
       <FocusSummaryModal
@@ -1073,6 +1147,7 @@ export default function App() {
         elapsedSeconds={focusElapsedSeconds}
         goalHitTimeSeconds={focusGoalHitTimeSeconds}
         scriptTitle={script.title}
+        themeConfig={themeConfig}
       />
     </div>
   );

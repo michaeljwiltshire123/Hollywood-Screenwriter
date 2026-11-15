@@ -1,90 +1,52 @@
 import React from 'react';
 import { TitlePage } from '../../types';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 
 interface TitlePageFormFieldsProps {
   form: TitlePage;
   setForm: React.Dispatch<React.SetStateAction<TitlePage>>;
+  themeConfig?: AppThemeConfig;
 }
 
-export const TitlePageFormFields: React.FC<TitlePageFormFieldsProps> = ({ form, setForm }) => {
+export const TitlePageFormFields: React.FC<TitlePageFormFieldsProps> = ({ form, setForm, themeConfig }) => {
+  const m = getModalTheme(themeConfig);
+  const inputCls = 'w-full border rounded-lg px-3 py-2 focus:outline-none';
+  const field = (label: string, key: keyof TitlePage, placeholder: string, extraCls = '', isTitle = false) => (
+    <div>
+      <label className="block font-bold uppercase mb-1" style={m.mutedStyle}>{label}</label>
+      <input
+        type="text"
+        value={(form[key] as string) || ''}
+        onChange={(e) => setForm({ ...form, [key]: isTitle ? e.target.value.toUpperCase() : e.target.value })}
+        className={`${inputCls} ${extraCls}`}
+        style={isTitle ? { ...m.inputStyle, color: m.theme.accentText } : m.inputStyle}
+        placeholder={placeholder}
+        autoFocus={isTitle}
+      />
+    </div>
+  );
+
   return (
     <>
-      <div>
-        <label className="block text-slate-400 font-bold uppercase mb-1">Script Title</label>
-        <input
-          type="text"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value.toUpperCase() })}
-          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-amber-300 font-bold placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-          placeholder="e.g. THE GREAT ESCAPE or UNTITLED SCREENPLAY"
-          autoFocus
-        />
-      </div>
-
+      {field('Script Title', 'title', 'e.g. THE GREAT ESCAPE or UNTITLED SCREENPLAY', 'font-bold', true)}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-slate-400 font-bold uppercase mb-1">Credit Line</label>
-          <input
-            type="text"
-            value={form.credit}
-            onChange={(e) => setForm({ ...form, credit: e.target.value })}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-            placeholder="e.g. Written by"
-          />
-        </div>
-        <div>
-          <label className="block text-slate-400 font-bold uppercase mb-1">Author Name(s)</label>
-          <input
-            type="text"
-            value={form.author}
-            onChange={(e) => setForm({ ...form, author: e.target.value })}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-            placeholder="e.g. Jane Doe / Pen Name"
-          />
-        </div>
+        {field('Credit Line', 'credit', 'e.g. Written by')}
+        {field('Author Name(s)', 'author', 'e.g. Jane Doe / Pen Name')}
       </div>
-
-      <div>
-        <label className="block text-slate-400 font-bold uppercase mb-1">Source Material (Optional)</label>
-        <input
-          type="text"
-          value={form.source}
-          onChange={(e) => setForm({ ...form, source: e.target.value })}
-          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-          placeholder="e.g. Based on the novel by / Original Screenplay"
-        />
-      </div>
-
+      {field('Source Material (Optional)', 'source', 'e.g. Based on the novel by / Original Screenplay')}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-slate-400 font-bold uppercase mb-1">Date</label>
-          <input
-            type="text"
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-            placeholder="e.g. August 2026"
-          />
-        </div>
-        <div>
-          <label className="block text-slate-400 font-bold uppercase mb-1">Draft Colour / Revisions</label>
-          <input
-            type="text"
-            value={form.draftColor || ''}
-            onChange={(e) => setForm({ ...form, draftColor: e.target.value })}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-            placeholder="e.g. White Draft / First Draft"
-          />
-        </div>
+        {field('Date', 'date', 'e.g. August 2026')}
+        {field('Draft Colour / Revisions', 'draftColor', 'e.g. White Draft / First Draft')}
       </div>
-
       <div>
-        <label className="block text-slate-400 font-bold uppercase mb-1">Contact / Representative Info</label>
+        <label className="block font-bold uppercase mb-1" style={m.mutedStyle}>Contact / Representative Info</label>
         <textarea
           value={form.contact}
           onChange={(e) => setForm({ ...form, contact: e.target.value })}
           rows={2}
-          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-400 resize-none"
+          className={`${inputCls} resize-none`}
+          style={m.inputStyle}
           placeholder="e.g. Contact details, agency representation, email or phone..."
         />
       </div>

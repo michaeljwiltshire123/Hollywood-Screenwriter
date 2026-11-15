@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Coffee, Lock, Settings } from 'lucide-react';
+import { AppThemeConfig } from '../../lib/themePresets';
 import { PomodoroSettingsDropdown } from './PomodoroSettingsDropdown';
 
 interface PomodoroWidgetProps {
@@ -9,6 +10,7 @@ interface PomodoroWidgetProps {
   isRunning?: boolean;
   onTogglePomodoro?: () => void;
   onSetPomodoroMinutes?: (minutes: number) => void;
+  themeConfig?: AppThemeConfig;
 }
 
 export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
@@ -18,6 +20,7 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
   isRunning = true,
   onTogglePomodoro,
   onSetPomodoroMinutes,
+  themeConfig,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const mins = Math.floor(seconds / 60);
@@ -26,15 +29,16 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
   return (
     <div
       id="header-pomodoro-widget"
-      className={`relative flex items-center bg-slate-800 border rounded-lg transition shrink-0 ${
-        gameCooldownSeconds > 0
-          ? 'border-amber-500/40 hover:border-amber-400'
-          : 'border-slate-700 hover:border-amber-400'
-      }`}
+      className="relative flex items-center border rounded-lg transition shrink-0"
+      style={{
+        backgroundColor: themeConfig?.sceneCards || '#F4ECE0',
+        borderColor: gameCooldownSeconds > 0 ? (themeConfig?.accentButtons || '#8C6239') : (themeConfig?.borders || '#E4D3B9'),
+      }}
     >
       <button
         onClick={onOpenBreakModal}
-        className="px-2.5 py-1.5 min-h-[38px] text-amber-300 text-xs font-bold flex items-center gap-1.5 transition shrink-0 whitespace-nowrap cursor-pointer hover:text-white"
+        className="px-2.5 py-1.5 min-h-[38px] text-xs font-bold flex items-center gap-1.5 transition shrink-0 whitespace-nowrap cursor-pointer hover:opacity-80"
+        style={{ color: themeConfig?.primaryText || '#433422' }}
         title={
           gameCooldownSeconds > 0
             ? `Focus Sprint Active: Break games locked for another ${Math.floor(
@@ -44,15 +48,19 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
         }
       >
         {gameCooldownSeconds > 0 ? (
-          <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <Lock className="w-3.5 h-3.5 shrink-0" style={{ color: themeConfig?.accentText || '#8C6239' }} />
         ) : (
-          <Coffee className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <Coffee className="w-3.5 h-3.5 shrink-0" style={{ color: themeConfig?.accentText || '#8C6239' }} />
         )}
         <span>{mins}:{secs}</span>
       </button>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 min-h-[38px] text-slate-400 hover:text-white border-l border-slate-700 transition cursor-pointer"
+        className="p-1.5 min-h-[38px] border-l transition cursor-pointer hover:opacity-80"
+        style={{
+          color: themeConfig?.primaryText || '#433422',
+          borderColor: themeConfig?.borders || '#E4D3B9',
+        }}
         title="Pomodoro Settings"
       >
         <Settings className="w-3.5 h-3.5" />
@@ -65,6 +73,7 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
           onTogglePomodoro={onTogglePomodoro}
           onSetPomodoroMinutes={onSetPomodoroMinutes}
           onClose={() => setIsOpen(false)}
+          themeConfig={themeConfig}
         />
       )}
     </div>

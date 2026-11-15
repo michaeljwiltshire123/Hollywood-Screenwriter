@@ -74,9 +74,9 @@ export const INITIAL_SAMPLE_SCRIPT: ScreenplayDocument = {
   storyArc: {
     preset: '3-Act',
     cards: [
-      { id: 'card-1', actTitle: 'Act I: The Hook', goal: 'Arthur introduces the geometry of screenplay formatting and breaks the fourth wall.' },
-      { id: 'card-2', actTitle: 'Act II: The Setup & Flow', goal: 'Lily learns element switching, the Navigator suite, and Focus Mode.' },
-      { id: 'card-3', actTitle: 'Act III: The Meta Breakthrough', goal: 'Lily writes in real-time, completing a 6-page script that is this exact document.' }
+      { id: 'card-1', actTitle: '', goal: '' },
+      { id: 'card-2', actTitle: '', goal: '' },
+      { id: 'card-3', actTitle: '', goal: '' }
     ]
   },
   elements: [

@@ -1,4 +1,6 @@
 import React from 'react';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 
 interface PomodoroSettingsDropdownProps {
   mins: number;
@@ -6,6 +8,7 @@ interface PomodoroSettingsDropdownProps {
   onTogglePomodoro?: () => void;
   onSetPomodoroMinutes?: (minutes: number) => void;
   onClose: () => void;
+  themeConfig?: AppThemeConfig;
 }
 
 export const PomodoroSettingsDropdown: React.FC<PomodoroSettingsDropdownProps> = ({
@@ -14,30 +17,36 @@ export const PomodoroSettingsDropdown: React.FC<PomodoroSettingsDropdownProps> =
   onTogglePomodoro,
   onSetPomodoroMinutes,
   onClose,
+  themeConfig,
 }) => {
+  const m = getModalTheme(themeConfig);
+
   return (
     <div
-      className="absolute right-0 top-full mt-2 z-50 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-3 text-xs font-mono"
+      className="absolute right-0 top-full mt-2 z-50 w-52 border rounded-xl shadow-2xl p-3 text-xs font-mono"
+      style={m.windowStyle}
       onMouseLeave={onClose}
     >
-      <div className="font-bold text-amber-300 mb-2">Pomodoro Settings</div>
+      <div className="font-bold mb-2" style={m.accentStyle}>Pomodoro Settings</div>
       <button
         onClick={() => {
           onTogglePomodoro?.();
           onClose();
         }}
-        className="w-full text-left px-2.5 py-1.5 mb-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold"
+        className="w-full text-left px-2.5 py-1.5 mb-2 rounded border font-bold cursor-pointer hover:opacity-85 transition"
+        style={m.secondaryBtnStyle}
       >
         {isRunning ? '⏸ Pause Timer' : '▶ Resume Timer'}
       </button>
       <div>
-        <label className="text-[10px] text-slate-400 block mb-1">Set Minutes:</label>
+        <label className="text-[10px] block mb-1" style={m.mutedStyle}>Set Minutes:</label>
         <div className="flex gap-1">
           <input
             type="number"
             defaultValue={mins}
             id="header-pomodoro-input"
-            className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 font-bold"
+            className="w-full border rounded px-2 py-1 font-bold focus:outline-none"
+            style={m.inputStyle}
           />
           <button
             onClick={() => {
@@ -47,7 +56,8 @@ export const PomodoroSettingsDropdown: React.FC<PomodoroSettingsDropdownProps> =
               }
               onClose();
             }}
-            className="px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded cursor-pointer"
+            className="px-3 font-bold rounded cursor-pointer hover:opacity-90 transition"
+            style={m.primaryBtnStyle}
           >
             Set
           </button>

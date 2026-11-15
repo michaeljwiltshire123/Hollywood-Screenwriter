@@ -8,6 +8,8 @@ import { CharacterAutocomplete } from './CharacterAutocomplete';
 import { Plus, Trash2, Tag, MoveUp, MoveDown, User, StickyNote, Volume2, Shirt, Sparkles, X, FileText, Palette } from 'lucide-react';
 import { findSpeakingCharacterForDialogue, getCharacterHighlightColor } from '../lib/actorHighlighting';
 import { getHandDrawnHighlighterStyle } from '../lib/handDrawnHighlighter';
+import { AppThemeConfig } from '../lib/themePresets';
+import { getModalTheme } from '../lib/modalTheme';
 
 interface ScreenplayEditorProps {
   script: ScreenplayDocument;
@@ -20,6 +22,7 @@ interface ScreenplayEditorProps {
   setCursorPos: (pos: CursorPosition | null) => void;
   onJumpRef?: (fn: (index: number) => void) => void;
   editorFont?: 'Courier Prime' | 'Courier New';
+  themeConfig?: AppThemeConfig;
 }
 
 export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
@@ -33,11 +36,13 @@ export const ScreenplayEditor: React.FC<ScreenplayEditorProps> = ({
   setCursorPos,
   onJumpRef,
   editorFont = 'Courier Prime',
+  themeConfig,
 }) => {
   const elementRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const mainRef = useRef<HTMLElement | null>(null);
   const isComposingRef = useRef(false);
   const elements = script?.elements || [];
+  const mt = getModalTheme(themeConfig);
 
   /**
    * Scroll Offset / Scroll Margin Engine (Typewriter Scroll Buffer)
@@ -740,53 +745,81 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
   return (
     <main
       ref={mainRef}
-      className="flex-1 bg-slate-950 overflow-y-auto py-8 pb-[60vh] px-2 sm:px-6 min-h-[calc(100vh-7rem)] select-text scroll-pb-64 scroll-pt-28"
+      className="flex-1 overflow-y-auto py-8 pb-[60vh] px-2 sm:px-6 min-h-[calc(100vh-7rem)] select-text scroll-pb-64 scroll-pt-28 transition-colors"
+      style={{
+        backgroundColor: themeConfig?.workspaceBackdrop || '#030712',
+      }}
     >
       <div className="max-w-[850px] mx-auto space-y-8">
         {/* Title Page Paper Card */}
         <div
-          className="bg-white text-black shadow-2xl rounded-sm border border-slate-200 p-8 sm:p-16 text-[12pt] min-h-[500px] flex flex-col justify-between select-text relative"
-          style={{ fontFamily: fontStyleValue }}
+          className="shadow-2xl rounded-sm border p-8 sm:p-16 text-[12pt] min-h-[500px] flex flex-col justify-between select-text relative transition-colors"
+          style={{
+            fontFamily: fontStyleValue,
+            backgroundColor: themeConfig?.scriptPaper || '#FFFFFF',
+            color: themeConfig?.scriptText || themeConfig?.primaryText || '#000000',
+            borderColor: themeConfig?.borders || '#E4D3B9',
+          }}
         >
           <div className="text-center my-auto space-y-6">
-            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-widest text-black">
+            <h1
+              className="text-2xl sm:text-3xl font-bold uppercase tracking-widest"
+              style={{ color: themeConfig?.scriptText || themeConfig?.primaryText || '#000000' }}
+            >
               {script.titlePage.title || script.title}
             </h1>
 
-            <div className="text-xs text-gray-700 space-y-1">
+            <div className="text-xs space-y-1" style={{ opacity: 0.85 }}>
               <p className="italic">{script.titlePage.credit}</p>
               <p className="font-bold uppercase text-sm">{script.titlePage.author}</p>
-              {script.titlePage.source && <p className="text-gray-500 mt-2">{script.titlePage.source}</p>}
+              {script.titlePage.source && <p className="mt-2" style={{ opacity: 0.7 }}>{script.titlePage.source}</p>}
             </div>
           </div>
 
-          <div className="flex justify-between items-end text-xs text-gray-700 pt-12 border-t border-gray-200">
+          <div
+            className="flex justify-between items-end text-xs pt-12 border-t"
+            style={{ borderColor: themeConfig?.borders || '#E4D3B9', opacity: 0.85 }}
+          >
             <div className="whitespace-pre-line text-left">{script.titlePage.contact}</div>
             <div className="text-right">
               <p className="font-bold">{script.titlePage.date}</p>
-              <p className="text-gray-500">{script.titlePage.draftColor || 'White Draft'}</p>
+              <p style={{ opacity: 0.7 }}>{script.titlePage.draftColor || 'White Draft'}</p>
             </div>
           </div>
         </div>
 
         {/* Page 1 Header & Script Title Banner */}
-        <div className="flex items-center justify-between text-xs font-mono px-2 text-slate-400 border-b border-slate-800/80 pb-2">
-          <div className="flex items-center gap-2 font-bold text-amber-400 uppercase tracking-widest text-[11px] sm:text-xs">
-            <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <div
+          className="flex items-center justify-between text-xs font-mono px-2 border-b pb-2"
+          style={{
+            color: themeConfig?.primaryText || '#433422',
+            borderColor: themeConfig?.borders || '#E4D3B9',
+          }}
+        >
+          <div
+            className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] sm:text-xs"
+            style={{ color: themeConfig?.accentText || '#8C6239' }}
+          >
+            <FileText className="w-3.5 h-3.5 shrink-0" style={{ color: themeConfig?.accentText || '#8C6239' }} />
             <span className="truncate max-w-[300px] sm:max-w-[500px]">
               {script.titlePage.title || script.title || 'UNTITLED SCREENPLAY'}
             </span>
           </div>
-          <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+          <div className="flex items-center gap-3 text-[11px] opacity-80">
             <span className="hidden sm:inline italic">By {script.titlePage.author || script.author || 'Author'}</span>
-            <span className="font-bold text-slate-400">PAGE 1.</span>
+            <span className="font-bold">PAGE 1.</span>
           </div>
         </div>
 
         {/* Main Screenplay Page Paper Canvas */}
         <div
-          className="bg-white text-black shadow-2xl rounded-sm border border-slate-200 p-6 sm:p-12 min-h-[1100px] text-[12pt] leading-relaxed relative"
-          style={{ fontFamily: fontStyleValue }}
+          className="shadow-2xl rounded-sm border p-6 sm:p-12 min-h-[1100px] text-[12pt] leading-relaxed relative transition-colors"
+          style={{
+            fontFamily: fontStyleValue,
+            backgroundColor: themeConfig?.scriptPaper || '#FFFFFF',
+            color: themeConfig?.scriptText || themeConfig?.primaryText || '#000000',
+            borderColor: themeConfig?.borders || '#E4D3B9',
+          }}
         >
           {script.elements.map((elem, idx) => {
             const isSelected = activeElementId === elem.id;
@@ -831,28 +864,52 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
             return (
               <React.Fragment key={elem.id}>
                 {pageNum && (
-                  <div className="my-10 pt-8 border-t-2 border-dashed border-slate-300 flex justify-between items-center text-xs text-slate-500 font-mono select-none">
-                    <span className="uppercase text-[10px] font-bold tracking-wider text-amber-700">
+                  <div
+                    className="my-10 pt-8 border-t-2 border-dashed flex justify-between items-center text-xs font-mono select-none"
+                    style={{
+                      borderColor: themeConfig?.borders || '#CBD5E1',
+                      color: themeConfig?.scriptText || themeConfig?.primaryText || '#433422',
+                    }}
+                  >
+                    <span className="uppercase text-[10px] font-bold tracking-wider opacity-75">
                       PAGE BREAK ({script.title} • {script.draftStatus})
                     </span>
-                    <span className="font-bold text-black">{pageNum}.</span>
+                    <span className="font-bold">{pageNum}.</span>
                   </div>
                 )}
 
                 <div
                   onContextMenu={(e) => handleContextMenu(e, elem)}
                   className={`relative group transition-colors rounded px-2 py-1 ${
-                    isSelected ? 'bg-amber-50/70 border-l-4 border-amber-500 shadow-2xs' : 'hover:bg-slate-50'
+                    isSelected
+                      ? 'border-l-4 shadow-2xs'
+                      : themeConfig?.isPaperDark
+                      ? 'hover:bg-white/5'
+                      : 'hover:bg-black/5'
                   }`}
+                  style={
+                    isSelected
+                      ? {
+                          borderLeftColor: themeConfig?.accentButtons || '#8C6239',
+                          backgroundColor: themeConfig?.isPaperDark
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.04)',
+                        }
+                      : undefined
+                  }
                 >
                   {/* Floating Element Control Tag on Hover/Focus */}
                   <div className="absolute -left-28 top-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity hidden lg:flex items-center gap-1 select-none z-10">
-                    <span className="text-[9px] font-bold uppercase bg-slate-900 text-amber-300 px-1.5 py-0.5 rounded shadow-xs font-mono">
+                    <span
+                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shadow-xs font-mono border"
+                      style={{ ...mt.cardStyle, color: mt.theme.accentText }}
+                    >
                       {elem.type}
                     </span>
                     <button
                       onClick={() => handleDeleteElement(elem.id)}
-                      className="p-1 bg-slate-800 hover:bg-rose-900 text-slate-300 hover:text-white rounded"
+                      className="p-1 border hover:bg-rose-600 hover:text-white rounded transition cursor-pointer"
+                      style={mt.secondaryBtnStyle}
                       title="Delete element"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -995,28 +1052,36 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
           })}
 
           {/* Quick Add Bottom Button */}
-          <div className="mt-8 pt-4 border-t border-slate-100 flex justify-center">
+          <div
+            className="mt-8 pt-4 border-t flex justify-center"
+            style={{ borderColor: themeConfig?.borders || '#E4D3B9' }}
+          >
             <button
               onClick={() => handleAddElementAfter(elements[elements.length - 1]?.id || '')}
-              className="px-4 py-2 bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-300 hover:border-amber-400 font-mono text-xs rounded-full flex items-center gap-1.5 transition cursor-pointer"
+              className="px-4 py-2 border font-mono text-xs rounded-full flex items-center gap-1.5 transition cursor-pointer hover:opacity-85"
+              style={{
+                backgroundColor: themeConfig?.sceneCards || '#F4ECE0',
+                borderColor: themeConfig?.borders || '#E4D3B9',
+                color: themeConfig?.primaryText || '#433422',
+              }}
             >
-              <Plus className="w-4 h-4 text-amber-600" />
+              <Plus className="w-4 h-4" style={{ color: themeConfig?.accentText || '#8C6239' }} />
               <span>Add Element (Enter)</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Custom Pro Context Menu Overlay (Dark Theme) */}
+      {/* Custom Pro Context Menu Overlay */}
       {contextMenu && (
         <div
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          className="fixed z-50 w-56 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl py-1.5 font-mono text-xs text-slate-100 animate-in fade-in zoom-in-95 duration-100"
+          style={{ ...mt.windowStyle, top: contextMenu.y, left: contextMenu.x }}
+          className="fixed z-50 w-56 backdrop-blur-md border rounded-xl shadow-2xl py-1.5 font-mono text-xs animate-in fade-in zoom-in-95 duration-100"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-3 py-1 border-b border-slate-800 text-[9px] uppercase tracking-wider text-amber-400 font-bold flex items-center justify-between">
+          <div className="px-3 py-1 border-b text-[9px] uppercase tracking-wider font-bold flex items-center justify-between" style={{ ...mt.accentStyle, ...mt.borderStyle }}>
             <span>PRO TOOLS MENU</span>
-            <button onClick={() => setContextMenu(null)} className="text-slate-500 hover:text-slate-300">
+            <button onClick={() => setContextMenu(null)} className="opacity-65 hover:opacity-100 cursor-pointer">
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -1024,13 +1089,10 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
           <div className="p-1 space-y-0.5">
             <button
               onClick={handleToggleActorHighlight}
-              className={`w-full text-left px-2.5 py-1.5 rounded font-medium flex items-center gap-2 transition cursor-pointer ${
-                script.isActorHighlightingActive
-                  ? 'bg-amber-500/25 text-amber-300 hover:bg-amber-500/35 border border-amber-500/40'
-                  : 'hover:bg-slate-800 text-slate-200'
-              }`}
+              className="w-full text-left px-2.5 py-1.5 rounded font-medium flex items-center gap-2 transition cursor-pointer hover:opacity-80"
+              style={script.isActorHighlightingActive ? mt.primaryBtnStyle : undefined}
             >
-              <Palette className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <Palette className="w-3.5 h-3.5 shrink-0" style={script.isActorHighlightingActive ? undefined : mt.accentStyle} />
               <span>
                 Actor Highlight: {script.isActorHighlightingActive ? 'Active' : 'Off'}
               </span>
@@ -1040,25 +1102,25 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
               <>
                 <button
                   onClick={handleAddWriterNote}
-                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-amber-500/20 text-amber-300 font-medium flex items-center gap-2 transition cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:opacity-75 font-medium flex items-center gap-2 transition cursor-pointer"
                 >
-                  <StickyNote className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <StickyNote className="w-3.5 h-3.5 shrink-0" style={mt.accentStyle} />
                   <span>Add Writer Note</span>
                 </button>
 
                 <button
                   onClick={handleTagProp}
-                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:opacity-75 font-medium flex items-center gap-2 transition cursor-pointer"
                 >
-                  <Tag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Tag className="w-3.5 h-3.5 shrink-0" style={mt.accentStyle} />
                   <span>Tag as Prop</span>
                 </button>
 
                 <button
                   onClick={handleTagWardrobe}
-                  className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 rounded hover:opacity-75 font-medium flex items-center gap-2 transition cursor-pointer"
                 >
-                  <Shirt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <Shirt className="w-3.5 h-3.5 shrink-0" style={mt.accentStyle} />
                   <span>Tag as Wardrobe</span>
                 </button>
               </>
@@ -1066,17 +1128,17 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
 
             <button
               onClick={handleReadScene}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+              className="w-full text-left px-2.5 py-1.5 rounded hover:opacity-75 font-medium flex items-center gap-2 transition cursor-pointer"
             >
-              <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <Volume2 className="w-3.5 h-3.5 shrink-0" style={mt.accentStyle} />
               <span>Read This Scene Aloud</span>
             </button>
 
             <button
               onClick={handleAlternateDialogue}
-              className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-2 transition cursor-pointer"
+              className="w-full text-left px-2.5 py-1.5 rounded hover:opacity-75 font-medium flex items-center gap-2 transition cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 shrink-0" style={mt.accentStyle} />
               <span>Set Alternate Dialogue</span>
             </button>
           </div>

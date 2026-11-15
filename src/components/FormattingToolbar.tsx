@@ -1,5 +1,6 @@
 import React from 'react';
 import { ElementType } from '../types';
+import { AppThemeConfig } from '../lib/themePresets';
 import { FormatShortcutsHelp } from './FormatShortcutsHelp';
 import { FormatBarOpenMenu } from './format_bar/FormatBarOpenMenu';
 import { FormatBarExportMenu } from './format_bar/FormatBarExportMenu';
@@ -16,6 +17,7 @@ interface FormattingToolbarProps {
   onLoadSample?: () => void;
   onExport?: (format: 'pdf' | 'docx' | 'screenplay' | 'print' | 'actor-pdf') => void;
   onSaveAs?: () => void;
+  themeConfig?: AppThemeConfig;
 }
 
 const ELEMENT_BUTTONS: { type: ElementType; label: string; shortcut: string; hint: string }[] = [
@@ -30,46 +32,44 @@ const ELEMENT_BUTTONS: { type: ElementType; label: string; shortcut: string; hin
 ];
 
 export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
-  activeType,
-  onChangeType,
-  activeElementIndex,
-  totalElements,
-  onOpenProject,
-  onImport,
-  onNewScript,
-  onLoadSample,
-  onExport,
-  onSaveAs,
+  activeType, onChangeType, activeElementIndex, totalElements,
+  onOpenProject, onImport, onNewScript, onLoadSample, onExport, onSaveAs, themeConfig,
 }) => {
   return (
-    <div className="bg-slate-900 border-b border-slate-800 text-slate-200 py-2 px-4 shadow-sm select-none shrink-0 w-full relative z-30 overflow-visible">
+    <div
+      className="border-b py-2 px-4 shadow-sm select-none shrink-0 w-full relative z-30 overflow-visible transition-colors"
+      style={{
+        backgroundColor: themeConfig?.topBottomBars,
+        borderColor: themeConfig?.borders,
+        color: themeConfig?.primaryText,
+      }}
+    >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs relative overflow-visible">
-        {/* Literal Plain English Format Buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto md:overflow-visible no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full md:w-auto py-0.5 relative overflow-visible">
-          <span className="text-[10px] uppercase font-mono font-bold text-slate-400 mr-1 shrink-0">
-            FORMAT:
-          </span>
+        <div className="flex items-center gap-1.5 overflow-x-auto md:overflow-visible no-scrollbar w-full md:w-auto py-0.5 relative overflow-visible">
+          <span className="text-[10px] uppercase font-mono font-bold opacity-70 mr-1 shrink-0">FORMAT:</span>
           {ELEMENT_BUTTONS.map((item) => {
             const isActive = activeType === item.type;
             return (
               <button
                 key={item.type}
                 onClick={() => onChangeType(item.type)}
-                className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition shrink-0 flex items-center gap-1 border ${
-                  isActive
-                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-xs'
-                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition shrink-0 flex items-center gap-1 border cursor-pointer ${
+                  isActive ? 'shadow-xs font-bold' : 'hover:opacity-80'
                 }`}
+                style={{
+                  backgroundColor: isActive ? (themeConfig?.accentButtons || '#8C6239') : (themeConfig?.sceneCards || '#F4ECE0'),
+                  color: isActive ? '#FFFFFF' : (themeConfig?.primaryText || '#433422'),
+                  borderColor: isActive ? (themeConfig?.accentButtons || '#8C6239') : (themeConfig?.borders || '#E4D3B9'),
+                }}
                 title={`${item.label} (${item.shortcut}): ${item.hint}`}
               >
                 <span>{item.label}</span>
               </button>
             );
           })}
-          <FormatShortcutsHelp />
+          <FormatShortcutsHelp themeConfig={themeConfig} />
         </div>
 
-        {/* Right Section: OPEN and EXPORT buttons directly next to element counter */}
         <div className="flex items-center gap-3 shrink-0">
           {onOpenProject && onImport && onNewScript && onLoadSample && (
             <FormatBarOpenMenu
@@ -77,12 +77,11 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
               onImport={onImport}
               onNewScript={onNewScript}
               onLoadSample={onLoadSample}
+              themeConfig={themeConfig}
             />
           )}
-          {onExport && (
-            <FormatBarExportMenu onExport={onExport} onSaveAs={onSaveAs} />
-          )}
-          <div className="hidden md:flex items-center text-[11px] font-mono text-slate-500 shrink-0 pr-1">
+          {onExport && <FormatBarExportMenu onExport={onExport} onSaveAs={onSaveAs} themeConfig={themeConfig} />}
+          <div className="hidden md:flex items-center text-[11px] font-mono opacity-75 shrink-0 pr-1">
             Element {activeElementIndex + 1} of {totalElements}
           </div>
         </div>

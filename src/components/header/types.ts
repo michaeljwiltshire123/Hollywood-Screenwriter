@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScreenplayDocument } from '../../types';
+import { AppThemeConfig } from '../../lib/themePresets';
 
 export interface HeaderProps {
   script: ScreenplayDocument;
@@ -38,4 +39,11 @@ export interface HeaderProps {
   onSave?: () => void;
   onSaveAs?: () => void;
   onOpenProject?: () => void;
+  currentThemePreset?: 'Vintage' | 'Charcoal' | 'Eucalyptus' | 'Custom';
+  onSelectThemePreset?: (preset: 'Vintage' | 'Charcoal' | 'Eucalyptus') => void;
+  onCustomPaperColor?: (color: string) => void;
+  onCustomTextColor?: (color: string) => void;
+  currentPaperColor?: string;
+  currentTextColor?: string;
+  themeConfig?: AppThemeConfig;
 }

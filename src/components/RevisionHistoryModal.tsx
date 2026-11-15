@@ -1,6 +1,8 @@
 import React from 'react';
-import { X, History, RotateCcw, Save, Layers } from 'lucide-react';
+import { X, History, RotateCcw, Save } from 'lucide-react';
 import { RevisionHistoryItem } from '../types';
+import { AppThemeConfig } from '../lib/themePresets';
+import { getModalTheme } from '../lib/modalTheme';
 
 interface RevisionHistoryModalProps {
   isOpen: boolean;
@@ -8,39 +10,38 @@ interface RevisionHistoryModalProps {
   revisions: RevisionHistoryItem[];
   onRollback: (rev: RevisionHistoryItem) => void;
   onCreateSnapshot: () => void;
+  themeConfig?: AppThemeConfig;
 }
 
 export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
-  isOpen,
-  onClose,
-  revisions,
-  onRollback,
-  onCreateSnapshot,
+  isOpen, onClose, revisions, onRollback, onCreateSnapshot, themeConfig,
 }) => {
   if (!isOpen) return null;
+  const m = getModalTheme(themeConfig);
 
   return (
-    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-xl w-full text-slate-100 overflow-hidden flex flex-col max-h-[85vh]">
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+    <div className="fixed inset-x-0 top-28 bottom-0 backdrop-blur-xs z-50 flex items-center justify-center p-4 font-mono" style={m.overlayStyle}>
+      <div className="border rounded-xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]" style={m.windowStyle}>
+        <div className="p-4 border-b flex items-center justify-between" style={m.headerStyle}>
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-amber-400" />
-            <h2 className="font-bold text-sm uppercase text-amber-300">
+            <History className="w-5 h-5" style={m.accentStyle} />
+            <h2 className="font-bold text-sm uppercase" style={m.accentStyle}>
               INDEXEDDB REVISION LOGS & SNAPSHOTS
             </h2>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+          <button onClick={onClose} className="p-1 rounded opacity-70 hover:opacity-100 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">
+        <div className="p-4 border-b flex items-center justify-between gap-3" style={m.cardStyle}>
+          <span className="text-xs" style={m.mutedStyle}>
             Every keystroke is saved atomically to IndexedDB. Create manual snapshots for major drafts.
           </span>
           <button
             onClick={onCreateSnapshot}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded flex items-center gap-1 shrink-0"
+            className="px-3 py-1.5 font-bold text-xs rounded flex items-center gap-1 shrink-0 cursor-pointer hover:opacity-90 transition"
+            style={m.primaryBtnStyle}
           >
             <Save className="w-3.5 h-3.5" />
             Create Snapshot
@@ -49,23 +50,24 @@ export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2 text-xs">
           {revisions.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 italic">
+            <div className="text-center py-12 italic" style={m.mutedStyle}>
               No saved revisions yet. Start editing to generate atomic IndexedDB logs.
             </div>
           ) : (
             revisions.map((rev) => (
               <div
                 key={rev.id}
-                className="p-3 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between hover:border-amber-500/50 transition"
+                className="p-3 border rounded-lg flex items-center justify-between transition"
+                style={m.cardStyle}
               >
                 <div>
-                  <div className="font-bold text-slate-200 flex items-center gap-2">
+                  <div className="font-bold flex items-center gap-2">
                     <span>{rev.label}</span>
-                    <span className="text-[10px] text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ ...m.headerStyle, ...m.accentStyle }}>
                       {rev.elementCount} elements
                     </span>
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-[10px] mt-0.5" style={m.mutedStyle}>
                     {new Date(rev.timestamp).toLocaleString()}
                   </div>
                 </div>
@@ -75,7 +77,8 @@ export const RevisionHistoryModal: React.FC<RevisionHistoryModalProps> = ({
                     onRollback(rev);
                     onClose();
                   }}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded font-semibold text-xs flex items-center gap-1.5"
+                  className="px-3 py-1.5 border rounded font-semibold text-xs flex items-center gap-1.5 cursor-pointer hover:opacity-85 transition"
+                  style={{ ...m.headerStyle, ...m.accentStyle }}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Rollback

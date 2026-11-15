@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { ScreenplayDocument, ReleaseFormItem } from '../../types';
-import { FileCheck, Printer, Plus, Trash2, Edit3, X, FileText, CheckCircle2 } from 'lucide-react';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
+import { FileCheck, Printer, Plus, Trash2, Edit3, X, FileText } from 'lucide-react';
 
 interface ReleaseFormsTabProps {
   script: ScreenplayDocument;
   onChangeScript: (updated: ScreenplayDocument) => void;
   watermarkLogoUrl?: string;
+  themeConfig?: AppThemeConfig;
 }
 
 const DEFAULT_AGREEMENT_TEMPLATES: Record<string, string> = {
@@ -36,7 +39,9 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
   script,
   onChangeScript,
   watermarkLogoUrl,
+  themeConfig,
 }) => {
+  const mt = getModalTheme(themeConfig);
   const defaultForms: ReleaseFormItem[] = script.releaseForms || [
     {
       id: 'form-talent-1',
@@ -199,54 +204,35 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Bar Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 border border-slate-800 rounded-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border rounded-xl" style={mt.cardStyle}>
         <div>
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <FileCheck className="w-4 h-4 text-amber-400" />
+          <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+            <FileCheck className="w-4 h-4" style={mt.accentStyle} />
             Legal Release Forms & Clearances Library ({forms.length})
           </h2>
-          <p className="text-xs text-slate-400">
-            Fully customizable agreement texts for Actors, Minors, Locations, Extras, Artwork/Props, Music Clearances, and Public Filming Notices.
+          <p className="text-xs" style={mt.mutedStyle}>
+            Fully customisable agreement texts for Actors, Minors, Locations, Extras, Artwork/Props, Music Clearances, and Public Filming Notices.
           </p>
         </div>
 
         <div id="tour-releases-selector" className="flex flex-wrap items-center gap-1.5">
-          <button
-            onClick={() => handleAddForm('TALENT')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Actor
-          </button>
-          <button
-            onClick={() => handleAddForm('MINOR')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-pink-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Minor (Parental)
-          </button>
-          <button
-            onClick={() => handleAddForm('LOCATION')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Location
-          </button>
-          <button
-            onClick={() => handleAddForm('MATERIALS')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Artwork / Materials
-          </button>
-          <button
-            onClick={() => handleAddForm('MUSIC')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Music Clearance
-          </button>
-          <button
-            onClick={() => handleAddForm('CROWD_NOTICE')}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded text-xs font-bold transition"
-          >
-            + Crowd Notice Poster
-          </button>
+          {[
+            { type: 'TALENT' as const, label: '+ Actor' },
+            { type: 'MINOR' as const, label: '+ Minor (Parental)' },
+            { type: 'LOCATION' as const, label: '+ Location' },
+            { type: 'MATERIALS' as const, label: '+ Artwork / Materials' },
+            { type: 'MUSIC' as const, label: '+ Music Clearance' },
+            { type: 'CROWD_NOTICE' as const, label: '+ Crowd Notice Poster' },
+          ].map((btn) => (
+            <button
+              key={btn.type}
+              onClick={() => handleAddForm(btn.type)}
+              className="px-2.5 py-1 border rounded text-xs font-bold transition cursor-pointer hover:opacity-85"
+              style={mt.secondaryBtnStyle}
+            >
+              {btn.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -255,10 +241,11 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
         {forms.map((form) => (
           <div
             key={form.id}
-            className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between"
+            className="p-4 border rounded-xl space-y-3 flex flex-col justify-between"
+            style={mt.cardStyle}
           >
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="flex items-center justify-between border-b pb-2" style={mt.borderStyle}>
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
                     form.formType === 'TALENT'
@@ -313,7 +300,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
               <div className="space-y-2 text-xs">
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold block">
+                  <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>
                     {form.formType === 'LOCATION'
                       ? 'Property / Location Owner'
                       : form.formType === 'MINOR'
@@ -330,18 +317,20 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                     type="text"
                     value={form.grantorName}
                     onChange={(e) => handleFormChange(form.id, 'grantorName', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-100 font-bold"
+                    className="w-full border rounded p-1.5 font-bold"
+                    style={mt.inputStyle}
                   />
                 </div>
 
                 {form.formType === 'MINOR' && (
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Parent / Legal Guardian Name</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Parent / Legal Guardian Name</label>
                     <input
                       type="text"
                       value={form.parentGuardianName || ''}
                       onChange={(e) => handleFormChange(form.id, 'parentGuardianName', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-pink-300"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                       placeholder="e.g. Jane Doe (Parent)"
                     />
                   </div>
@@ -349,12 +338,13 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
                 {form.formType === 'LOCATION' && (
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Location Address</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Location Address</label>
                     <input
                       type="text"
                       value={form.locationDetails || ''}
                       onChange={(e) => handleFormChange(form.id, 'locationDetails', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-200"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                       placeholder="e.g. 124 Main Street Diner"
                     />
                   </div>
@@ -362,12 +352,13 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
                 {form.formType === 'MATERIALS' && (
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Artwork / Painting / Prop Details</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Artwork / Painting / Prop Details</label>
                     <input
                       type="text"
                       value={form.artworkDetails || ''}
                       onChange={(e) => handleFormChange(form.id, 'artworkDetails', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-purple-300"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                       placeholder="e.g. Oil Painting 'Abstract Blue #3' placed in living room set"
                     />
                   </div>
@@ -375,12 +366,13 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
                 {form.formType === 'MUSIC' && (
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Song Title & Track Details</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Song Title & Track Details</label>
                     <input
                       type="text"
                       value={form.musicDetails || ''}
                       onChange={(e) => handleFormChange(form.id, 'musicDetails', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-indigo-300"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                       placeholder="e.g. 'Midnight Rain' - Written & Performed by The Soundscapes"
                     />
                   </div>
@@ -388,27 +380,29 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Compensation</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Compensation</label>
                     <input
                       type="text"
                       value={form.compensation}
                       onChange={(e) => handleFormChange(form.id, 'compensation', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-300"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold block">Contact Details</label>
+                    <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Contact Details</label>
                     <input
                       type="text"
                       value={form.grantorContact}
                       onChange={(e) => handleFormChange(form.id, 'grantorContact', e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-300"
+                      className="w-full border rounded p-1.5"
+                      style={mt.inputStyle}
                     />
                   </div>
                 </div>
 
-                <div className="bg-slate-950 p-2 border border-slate-800 rounded text-[11px] text-slate-400 italic line-clamp-2">
+                <div className="p-2 border rounded text-[11px] italic line-clamp-2" style={mt.subCardStyle}>
                   "{form.agreementText || DEFAULT_AGREEMENT_TEMPLATES[form.formType] || 'No custom agreement text'}"
                 </div>
               </div>
@@ -417,15 +411,17 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setEditingForm(form)}
-                className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 rounded font-bold text-xs flex items-center justify-center gap-1 transition"
+                className="flex-1 py-1.5 border rounded font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer hover:opacity-85"
+                style={mt.secondaryBtnStyle}
               >
-                <Edit3 className="w-3.5 h-3.5" />
+                <Edit3 className="w-3.5 h-3.5" style={mt.accentStyle} />
                 <span>Edit Terms</span>
               </button>
 
               <button
                 onClick={() => handlePrintForm(form)}
-                className="flex-1 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm"
+                className="flex-1 py-1.5 rounded font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm hover:opacity-90"
+                style={mt.primaryBtnStyle}
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print Form</span>
@@ -437,22 +433,26 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
       {/* Editable Agreement Text Modal */}
       {editingForm && (
-        <div className="fixed inset-x-0 top-28 bottom-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[82vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div
+          className="fixed inset-x-0 top-28 bottom-0 z-50 backdrop-blur-xs flex items-center justify-center p-4"
+          style={mt.overlayStyle}
+        >
+          <div className="border rounded-2xl w-full max-w-2xl max-h-[82vh] overflow-y-auto p-6 space-y-4 shadow-2xl" style={mt.windowStyle}>
+            <div className="flex items-center justify-between border-b pb-3" style={mt.borderStyle}>
               <div>
-                <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-amber-400" />
-                  Customize Written Agreement Text & Legal Terms
+                <h3 className="text-base font-bold flex items-center gap-2">
+                  <FileText className="w-5 h-5" style={mt.accentStyle} />
+                  Customise Written Agreement Text & Legal Terms
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Form: <span className="font-mono text-sky-400">{editingForm.formType}</span> ({editingForm.grantorName})
+                <p className="text-xs" style={mt.mutedStyle}>
+                  Form: <span className="font-mono font-bold" style={mt.accentStyle}>{editingForm.formType}</span> ({editingForm.grantorName})
                 </p>
               </div>
 
               <button
                 onClick={() => setEditingForm(null)}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full transition"
+                className="p-1.5 border rounded-full transition cursor-pointer hover:opacity-80"
+                style={mt.secondaryBtnStyle}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -460,57 +460,62 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Grantor / Party Name</label>
+                <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>Grantor / Party Name</label>
                 <input
                   type="text"
                   value={editingForm.grantorName}
                   onChange={(e) => handleFormChange(editingForm.id, 'grantorName', e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-slate-100 font-bold"
+                  className="w-full border rounded p-2 font-bold"
+                  style={mt.inputStyle}
                 />
               </div>
 
               {editingForm.formType === 'MINOR' && (
                 <div>
-                  <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Parent or Legal Guardian Name</label>
+                  <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>Parent or Legal Guardian Name</label>
                   <input
                     type="text"
                     value={editingForm.parentGuardianName || ''}
                     onChange={(e) => handleFormChange(editingForm.id, 'parentGuardianName', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-pink-300 font-bold"
+                    className="w-full border rounded p-2 font-bold"
+                    style={mt.inputStyle}
                     placeholder="e.g. Mary Smith (Mother)"
                   />
                 </div>
               )}
 
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">
+                <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>
                   Full Written Agreement Body Paragraphs (Fully Editable)
                 </label>
                 <textarea
                   rows={8}
                   value={editingForm.agreementText || ''}
                   onChange={(e) => handleFormChange(editingForm.id, 'agreementText', e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-slate-200 font-mono text-xs leading-relaxed focus:border-amber-500 focus:outline-none"
+                  className="w-full border rounded p-3 font-mono text-xs leading-relaxed focus:outline-none"
+                  style={mt.inputStyle}
                   placeholder="Type or paste custom legal agreement clause..."
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Special Rider / Additional Notes</label>
+                <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>Special Rider / Additional Notes</label>
                 <input
                   type="text"
                   value={editingForm.notes || ''}
                   onChange={(e) => handleFormChange(editingForm.id, 'notes', e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-slate-300"
+                  className="w-full border rounded p-2"
+                  style={mt.inputStyle}
                   placeholder="e.g. Actor receives single card screen credit in main titles."
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t" style={mt.borderStyle}>
               <button
                 onClick={() => setEditingForm(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold text-xs transition"
+                className="px-4 py-2 border rounded font-bold text-xs transition cursor-pointer hover:opacity-80"
+                style={mt.secondaryBtnStyle}
               >
                 Close
               </button>
@@ -519,7 +524,8 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                   handlePrintForm(editingForm);
                   setEditingForm(null);
                 }}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                className="px-4 py-2 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer hover:opacity-90"
+                style={mt.primaryBtnStyle}
               >
                 <Printer className="w-4 h-4" />
                 <span>Save & Print Form</span>

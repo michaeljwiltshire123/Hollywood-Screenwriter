@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ScreenplayDocument, RiskAssessmentItem, SceneInfo } from '../../types';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 import { SafetySignsBank } from './SafetySignsBank';
 import { ShieldAlert, Plus, Trash2, Printer, AlertTriangle } from 'lucide-react';
 
@@ -8,6 +10,7 @@ interface RiskAssessmentTabProps {
   scenes: SceneInfo[];
   onChangeScript: (updated: ScreenplayDocument) => void;
   watermarkLogoUrl?: string;
+  themeConfig?: AppThemeConfig;
 }
 
 export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
@@ -15,7 +18,9 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
   scenes,
   onChangeScript,
   watermarkLogoUrl,
+  themeConfig,
 }) => {
+  const mt = getModalTheme(themeConfig);
   // Auto-scan script for potential risk categories
   const autoDetectedRisks: RiskAssessmentItem[] = [];
 
@@ -176,13 +181,13 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 border border-slate-800 rounded-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border rounded-xl" style={mt.cardStyle}>
         <div>
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4" style={mt.accentStyle} />
             On-Set Hazard Identification Aid & Safety Guidance
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs" style={mt.mutedStyle}>
             Hazard spotter tool auto-scanned from script scenes (Night shoots, Vehicles, Power/Electrical) with printable warning poster signs.
           </p>
         </div>
@@ -190,15 +195,17 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handleAddRisk}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded text-xs font-bold flex items-center gap-1 transition"
+            className="px-3 py-1.5 border rounded text-xs font-bold flex items-center gap-1 transition cursor-pointer hover:opacity-85"
+            style={mt.secondaryBtnStyle}
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" style={mt.accentStyle} />
             <span>Add Hazard Row</span>
           </button>
 
           <button
             onClick={handlePrintAssessment}
-            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
+            className="px-3.5 py-1.5 font-bold rounded text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95 hover:opacity-90"
+            style={mt.primaryBtnStyle}
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print Hazard Guidance</span>
@@ -207,26 +214,26 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
       </div>
 
       {/* Safety Notice Disclaimer */}
-      <div id="tour-risk-summary" className="p-3.5 bg-amber-950/40 border border-amber-600/50 rounded-xl text-xs text-amber-200/90 leading-relaxed space-y-1">
-        <div className="font-bold text-amber-400 flex items-center gap-1.5">
-          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+      <div id="tour-risk-summary" className="p-3.5 border rounded-xl text-xs leading-relaxed space-y-1" style={mt.subCardStyle}>
+        <div className="font-bold flex items-center gap-1.5" style={mt.accentStyle}>
+          <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>Important Producer Safety & Responsibility Disclaimer:</span>
         </div>
-        <p className="text-[11px] text-amber-200/80">
+        <p className="text-[11px]" style={mt.mutedStyle}>
           This checklist is an <strong>educational and organizational hazard identification aid</strong> to help cast and crew spot potential film set hazards. It does <strong>NOT replace a legally required, formal site risk assessment</strong>. The producer and location manager remain solely responsible for performing their own official risk assessments and complying with local health, safety, and permit regulations.
         </p>
       </div>
 
       {/* Risk Table */}
-      <div id="tour-risk-table" className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-xs font-bold uppercase text-slate-100">
+      <div id="tour-risk-table" className="border rounded-xl p-4 space-y-3" style={mt.cardStyle}>
+        <h3 className="text-xs font-bold uppercase">
           Identified Set Hazards & Mitigation Measures ({risks.length} Hazards)
         </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-slate-800 text-[10px] text-slate-400 uppercase">
+              <tr className="border-b text-[10px] uppercase" style={{ ...mt.borderStyle, ...mt.mutedStyle }}>
                 <th className="p-2">Category</th>
                 <th className="p-2">Hazard Description</th>
                 <th className="p-2">Risk</th>
@@ -235,7 +242,7 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
                 <th className="p-2 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y" style={mt.borderStyle}>
               {risks.map((r) => (
                 <tr key={r.id}>
                   <td className="p-2">
@@ -243,7 +250,8 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
                       type="text"
                       value={r.category}
                       onChange={(e) => handleRiskChange(r.id, 'category', e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-amber-300 font-bold w-32"
+                      className="border rounded px-1.5 py-1 font-bold w-32"
+                      style={{ ...mt.inputStyle, color: mt.theme.accentText }}
                     />
                   </td>
                   <td className="p-2">
@@ -251,16 +259,18 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
                       rows={2}
                       value={r.hazard}
                       onChange={(e) => handleRiskChange(r.id, 'hazard', e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-200 w-full resize-none text-xs"
+                      className="border rounded p-1.5 w-full resize-none text-xs"
+                      style={mt.inputStyle}
                     />
                   </td>
                   <td className="p-2">
                     <select
                       value={r.riskLevel}
                       onChange={(e) => handleRiskChange(r.id, 'riskLevel', e.target.value)}
-                      className={`bg-slate-950 border border-slate-800 rounded px-1.5 py-1 font-bold ${
-                        r.riskLevel === 'HIGH' ? 'text-rose-400' : r.riskLevel === 'MED' ? 'text-amber-400' : 'text-emerald-400'
+                      className={`border rounded px-1.5 py-1 font-bold ${
+                        r.riskLevel === 'HIGH' ? 'text-rose-500' : r.riskLevel === 'MED' ? 'text-amber-500' : 'text-emerald-600'
                       }`}
+                      style={{ backgroundColor: mt.inputStyle.backgroundColor, borderColor: mt.theme.borders }}
                     >
                       <option value="HIGH">HIGH</option>
                       <option value="MED">MED</option>
@@ -272,7 +282,8 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
                       rows={2}
                       value={r.controlMeasures}
                       onChange={(e) => handleRiskChange(r.id, 'controlMeasures', e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-200 w-full resize-none text-xs"
+                      className="border rounded p-1.5 w-full resize-none text-xs"
+                      style={mt.inputStyle}
                     />
                   </td>
                   <td className="p-2">
@@ -280,13 +291,14 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
                       type="text"
                       value={r.responsiblePerson}
                       onChange={(e) => handleRiskChange(r.id, 'responsiblePerson', e.target.value)}
-                      className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-slate-300 w-28"
+                      className="border rounded px-1.5 py-1 w-28"
+                      style={mt.inputStyle}
                     />
                   </td>
                   <td className="p-2 text-right">
                     <button
                       onClick={() => handleRemoveRisk(r.id)}
-                      className="p-1 hover:bg-rose-500/20 text-rose-400 rounded transition"
+                      className="p-1 hover:bg-rose-500/20 text-rose-500 rounded transition cursor-pointer"
                       title="Remove hazard row"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -300,7 +312,7 @@ export const RiskAssessmentTab: React.FC<RiskAssessmentTabProps> = ({
       </div>
 
       {/* Printable Warning Signs Bank */}
-      <SafetySignsBank />
+      <SafetySignsBank themeConfig={themeConfig} />
     </div>
   );
 };

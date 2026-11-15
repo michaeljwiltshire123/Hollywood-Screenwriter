@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { FileText } from 'lucide-react';
+import { AppThemeConfig } from '../../lib/themePresets';
 
 interface ScriptTitleEditorProps {
   title: string;
   onUpdateTitle: (title: string) => void;
+  themeConfig?: AppThemeConfig;
 }
 
 export const ScriptTitleEditor: React.FC<ScriptTitleEditorProps> = ({
   title,
   onUpdateTitle,
+  themeConfig,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentText, setCurrentText] = useState(title);
@@ -24,10 +27,16 @@ export const ScriptTitleEditor: React.FC<ScriptTitleEditorProps> = ({
 
   return (
     <div className="flex items-center gap-2 shrink-0 min-w-0">
-      <span className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-amber-400 hidden 2xl:inline whitespace-nowrap shrink-0">
+      <span
+        className="font-extrabold text-xs sm:text-sm tracking-wider uppercase hidden 2xl:inline whitespace-nowrap shrink-0"
+        style={{ color: themeConfig?.accentText || '#8C6239' }}
+      >
         SCREENWRITER PRO
       </span>
-      <div className="h-4 w-px bg-slate-700 hidden 2xl:block shrink-0" />
+      <div
+        className="h-4 w-px hidden 2xl:block shrink-0"
+        style={{ backgroundColor: themeConfig?.borders || '#E4D3B9' }}
+      />
 
       {isEditing ? (
         <input
@@ -40,7 +49,12 @@ export const ScriptTitleEditor: React.FC<ScriptTitleEditorProps> = ({
             if (e.key === 'Enter') handleSubmit();
           }}
           autoFocus
-          className="bg-slate-950 border border-amber-400 rounded-lg px-2.5 py-1 text-xs font-mono text-amber-300 focus:outline-none shrink-0 max-w-[140px] sm:max-w-[200px]"
+          className="border rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none shrink-0 max-w-[140px] sm:max-w-[200px]"
+          style={{
+            backgroundColor: themeConfig?.sceneCards || '#F4ECE0',
+            borderColor: themeConfig?.accentButtons || '#8C6239',
+            color: themeConfig?.primaryText || '#433422',
+          }}
         />
       ) : (
         <button
@@ -49,11 +63,19 @@ export const ScriptTitleEditor: React.FC<ScriptTitleEditorProps> = ({
             setCurrentText(title);
             setIsEditing(true);
           }}
-          className="flex items-center gap-1.5 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-amber-500/50 px-2.5 py-1.5 rounded-lg transition shrink-0 text-left group min-h-[38px]"
+          className="flex items-center gap-1.5 border px-2.5 py-1.5 rounded-lg transition shrink-0 text-left group min-h-[38px] hover:opacity-90 cursor-pointer"
+          style={{
+            backgroundColor: themeConfig?.sceneCards || '#F4ECE0',
+            borderColor: themeConfig?.borders || '#E4D3B9',
+            color: themeConfig?.primaryText || '#433422',
+          }}
           title="Click to rename screenplay title"
         >
-          <FileText className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-105 transition" />
-          <span className="font-mono text-xs font-bold text-slate-200 group-hover:text-amber-300 truncate max-w-[110px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[260px] whitespace-nowrap">
+          <FileText
+            className="w-4 h-4 shrink-0 group-hover:scale-105 transition"
+            style={{ color: themeConfig?.accentText || '#8C6239' }}
+          />
+          <span className="font-mono text-xs font-bold truncate max-w-[110px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[260px] whitespace-nowrap">
             {title || 'UNTITLED SCRIPT'}
           </span>
         </button>

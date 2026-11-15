@@ -37,6 +37,8 @@ import {
   PairPreset,
 } from '../lib/gameData';
 import { gameSound } from '../lib/gameSound';
+import { AppThemeConfig } from '../lib/themePresets';
+import { getModalTheme } from '../lib/modalTheme';
 
 interface BreakGameModalProps {
   isOpen: boolean;
@@ -44,6 +46,7 @@ interface BreakGameModalProps {
   onGetBackToWork?: () => void;
   playedGames: string[];
   onGameCompleted: (gameId: string) => void;
+  themeConfig?: AppThemeConfig;
 }
 
 const ALL_GAMES = [
@@ -72,6 +75,7 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
   onGetBackToWork,
   playedGames,
   onGameCompleted,
+  themeConfig,
 }) => {
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<'playing' | 'won'>('playing');
@@ -250,73 +254,61 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
   const selectedGame = ALL_GAMES.find((g) => g.id === activeGameId);
   const isTimeExpired = breakSecondsRemaining <= 0;
+  const m = getModalTheme(themeConfig);
 
   return (
-    <div className="fixed inset-x-0 top-28 bottom-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-2 sm:p-4 font-mono text-slate-100">
-      <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9)] max-w-2xl w-full overflow-hidden flex flex-col max-h-[85vh] relative">
+    <div className="fixed inset-x-0 top-28 bottom-0 backdrop-blur-xl z-50 flex items-center justify-center p-2 sm:p-4 font-mono" style={m.overlayStyle}>
+      <div className="border-2 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[85vh] relative" style={m.windowStyle}>
 
-        {/* Console Toast Overlay */}
+        {/* Toast Overlay */}
         {toast && (
           <div
-            className={`absolute top-16 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl border-2 text-xs font-black transition-all duration-300 animate-bounce flex items-center gap-2.5 ${
-              toast.type === 'success'
-                ? 'bg-emerald-950/95 border-emerald-400 text-emerald-200 shadow-emerald-900/50'
-                : toast.type === 'error'
-                ? 'bg-rose-950/95 border-rose-500 text-rose-200 shadow-rose-900/50'
-                : 'bg-amber-950/95 border-amber-400 text-amber-200 shadow-amber-900/50'
-            }`}
+            className="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl border-2 text-xs font-black transition-all duration-300 animate-bounce flex items-center gap-2.5"
+            style={toast.type === 'error' ? { backgroundColor: '#BE123C', borderColor: '#FDA4AF', color: '#FFFFFF' } : m.primaryBtnStyle}
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+            <Sparkles className="w-4 h-4 animate-spin" />
             <span>{toast.message}</span>
           </div>
         )}
 
-        {/* Cyber HUD Header */}
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
+        {/* Header */}
+        <div className="p-4 border-b flex items-center justify-between shrink-0" style={m.headerStyle}>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-2xl text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+            <div className="p-2.5 rounded-2xl shadow-md" style={m.primaryBtnStyle}>
               <Gamepad2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-black text-sm uppercase tracking-wider text-amber-300 flex items-center gap-2">
+              <h2 className="font-black text-sm uppercase tracking-wider flex items-center gap-2" style={m.accentStyle}>
                 GAME SUITE {selectedGame ? `• ${selectedGame.name}` : ''}
               </h2>
-              <div className="text-[10px] text-slate-400 font-sans flex items-center gap-2">
+              <div className="text-[10px] font-sans flex items-center gap-2" style={m.mutedStyle}>
                 <span>100% FREE FOREVER</span>
                 <span>•</span>
-                <span className="text-emerald-400 font-bold">{comboMultiplier > 1 ? `${comboMultiplier}x COMBO 🔥` : 'READY'}</span>
+                <span className="font-bold" style={m.accentStyle}>{comboMultiplier > 1 ? `${comboMultiplier}x COMBO 🔥` : 'READY'}</span>
               </div>
             </div>
           </div>
 
-          {/* Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Audio Toggle */}
             <button
-              onClick={() => {
-                setSoundEnabled(!soundEnabled);
-              }}
-              className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition border border-slate-700 cursor-pointer"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="p-2 rounded-xl transition border cursor-pointer hover:opacity-85"
+              style={m.secondaryBtnStyle}
               title={soundEnabled ? 'Mute Sound Effects' : 'Enable Sound Effects'}
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+              {soundEnabled ? <Volume2 className="w-4 h-4" style={m.accentStyle} /> : <VolumeX className="w-4 h-4 opacity-50" />}
             </button>
 
-            {/* Popcorn Points */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-xs font-black text-amber-300 shadow-inner">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-xs font-black shadow-inner" style={{ ...m.cardStyle, ...m.accentStyle }}>
               <span className="text-sm">🍿</span>
               <span>{popcornPoints} PTS</span>
             </div>
 
-            {/* Timer */}
             <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border ${
-                breakSecondsRemaining < 60
-                  ? 'bg-rose-500/20 border-rose-500 text-rose-300 animate-pulse ring-2 ring-rose-500/50'
-                  : 'bg-slate-800 border-slate-700 text-slate-300'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border ${breakSecondsRemaining < 60 ? 'animate-pulse' : ''}`}
+              style={breakSecondsRemaining < 60 ? { backgroundColor: '#BE123C', borderColor: '#FDA4AF', color: '#FFFFFF' } : m.cardStyle}
             >
-              <Clock className="w-3.5 h-3.5 text-sky-400" />
+              <Clock className="w-3.5 h-3.5" style={breakSecondsRemaining < 60 ? undefined : m.accentStyle} />
               <span>
                 {Math.floor(breakSecondsRemaining / 60)}:
                 {String(breakSecondsRemaining % 60).padStart(2, '0')}
@@ -329,14 +321,15 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                   setActiveGameId(null);
                   setGameState('playing');
                 }}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-black transition border border-slate-700 flex items-center gap-1 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl text-xs font-black transition border flex items-center gap-1 cursor-pointer hover:opacity-85"
+                style={m.secondaryBtnStyle}
               >
-                <Grid className="w-3.5 h-3.5 text-amber-400" />
+                <Grid className="w-3.5 h-3.5" style={m.accentStyle} />
                 <span className="hidden sm:inline">Menu</span>
               </button>
             )}
 
-            <button onClick={onClose} className="p-1.5 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition">
+            <button onClick={onClose} className="p-1.5 rounded-xl opacity-70 hover:opacity-100 transition cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -344,38 +337,36 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
         {/* Modal Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 flex flex-col justify-center items-center text-center">
-          {/* Lockout Screen */}
           {isTimeExpired ? (
             <div className="space-y-6 py-8 text-center my-auto">
-              <div className="w-20 h-20 bg-amber-500/20 border-2 border-amber-400 rounded-3xl flex items-center justify-center mx-auto text-amber-400 animate-pulse shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+              <div className="w-20 h-20 border-2 rounded-3xl flex items-center justify-center mx-auto animate-pulse shadow-lg" style={{ ...m.cardStyle, borderColor: m.theme.accentButtons, ...m.accentStyle }}>
                 <AlertTriangle className="w-10 h-10" />
               </div>
               <div className="space-y-2 max-w-md mx-auto">
-                <h3 className="text-2xl font-black text-amber-300 uppercase tracking-widest">Break Time Expired!</h3>
-                <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                <h3 className="text-2xl font-black uppercase tracking-widest" style={m.accentStyle}>Break Time Expired!</h3>
+                <p className="text-xs leading-relaxed font-sans" style={m.mutedStyle}>
                   You've enjoyed your 5-minute break. Let's return to your screenplay draft and write your next great scene.
                 </p>
               </div>
-
               <div className="pt-2">
                 <button
                   onClick={handleReturnToWork}
-                  className="font-mono uppercase font-black tracking-widest bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 px-8 py-4 rounded-2xl border-2 border-amber-300 shadow-2xl text-sm flex items-center justify-center gap-3 mx-auto transition hover:scale-105 cursor-pointer"
+                  className="font-mono uppercase font-black tracking-widest px-8 py-4 rounded-2xl border-2 shadow-2xl text-sm flex items-center justify-center gap-3 mx-auto transition hover:scale-105 cursor-pointer"
+                  style={m.primaryBtnStyle}
                 >
-                  <Zap className="w-5 h-5 fill-slate-950" />
+                  <Zap className="w-5 h-5 fill-current" />
                   <span>GET BACK TO WORK</span>
                 </button>
               </div>
             </div>
           ) : !activeGameId ? (
-            /* Game Selection Grid */
             <div className="w-full space-y-5 my-auto">
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-slate-100 tracking-wide uppercase flex items-center justify-center gap-2">
-                  <Flame className="w-5 h-5 text-amber-400" />
+                <h3 className="text-lg font-black tracking-wide uppercase flex items-center justify-center gap-2">
+                  <Flame className="w-5 h-5" style={m.accentStyle} />
                   <span>ARCADE BREAK SELECTION</span>
                 </h3>
-                <p className="text-xs text-slate-400 font-sans">Procedural content pools refresh every session. Earn popcorn points!</p>
+                <p className="text-xs font-sans" style={m.mutedStyle}>Procedural content pools refresh every session. Earn popcorn points!</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
@@ -386,25 +377,26 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                     <button
                       key={game.id}
                       onClick={() => initializeGame(game.id)}
-                      className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col justify-between gap-3 group hover:scale-[1.03] shadow-lg cursor-pointer bg-slate-950/70 ${game.color} hover:border-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.2)]`}
+                      className="p-4 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col justify-between gap-3 group hover:scale-[1.03] shadow-lg cursor-pointer"
+                      style={m.cardStyle}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700/80 group-hover:border-amber-400/60 transition">
-                          <IconComponent className="w-5 h-5 text-amber-400" />
+                        <div className="p-2.5 rounded-xl border transition" style={m.headerStyle}>
+                          <IconComponent className="w-5 h-5" style={m.accentStyle} />
                         </div>
                         {isPlayed && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black border flex items-center gap-1" style={m.primaryBtnStyle}>
                             <CheckCircle2 className="w-3 h-3" />
                             CLEARED
                           </span>
                         )}
                       </div>
                       <div className="space-y-1">
-                        <div className="font-black text-sm text-slate-100 group-hover:text-amber-300 transition flex items-center justify-between">
+                        <div className="font-black text-sm transition flex items-center justify-between" style={m.accentStyle}>
                           <span>{game.name}</span>
-                          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-amber-300 transition" />
+                          <ChevronRight className="w-4 h-4 opacity-70" />
                         </div>
-                        <p className="text-[11px] text-slate-400 leading-relaxed font-sans">{game.desc}</p>
+                        <p className="text-[11px] leading-relaxed font-sans" style={m.mutedStyle}>{game.desc}</p>
                       </div>
                     </button>
                   );
@@ -414,39 +406,39 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
               <div className="pt-4">
                 <button
                   onClick={handleReturnToWork}
-                  className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-amber-300 font-black rounded-2xl text-xs transition border border-slate-700 flex items-center justify-center gap-2 mx-auto cursor-pointer shadow-lg hover:scale-105"
+                  className="px-8 py-3 font-black rounded-2xl text-xs transition border flex items-center justify-center gap-2 mx-auto cursor-pointer shadow-lg hover:scale-105"
+                  style={m.primaryBtnStyle}
                 >
-                  <Zap className="w-4 h-4 fill-amber-300" />
+                  <Zap className="w-4 h-4 fill-current" />
                   <span>GET BACK TO WORK</span>
                 </button>
               </div>
             </div>
           ) : gameState === 'won' ? (
-            /* Victory Screen */
             <div className="space-y-5 py-8 my-auto">
-              <div className="w-20 h-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-3xl flex items-center justify-center mx-auto text-emerald-400 animate-bounce shadow-[0_0_30px_rgba(52,211,153,0.4)]">
+              <div className="w-20 h-20 border-2 rounded-3xl flex items-center justify-center mx-auto animate-bounce shadow-lg" style={m.primaryBtnStyle}>
                 <Trophy className="w-10 h-10" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-emerald-300 uppercase tracking-widest">ARCADE GAME CLEARED!</h3>
-                <p className="text-xs text-slate-300 font-sans max-w-sm mx-auto">
-                  Outstanding performance! You earned <strong className="text-amber-300">+25 Popcorn Points</strong>.
+                <h3 className="text-2xl font-black uppercase tracking-widest" style={m.accentStyle}>ARCADE GAME CLEARED!</h3>
+                <p className="text-xs font-sans max-w-sm mx-auto" style={m.mutedStyle}>
+                  Outstanding performance! You earned <strong style={m.accentStyle}>+25 Popcorn Points</strong>.
                 </p>
               </div>
               <div className="flex justify-center gap-3 pt-2">
                 <button
-                  onClick={() => {
-                    setActiveGameId(null);
-                  }}
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700 cursor-pointer"
+                  onClick={() => setActiveGameId(null)}
+                  className="px-6 py-3 font-bold rounded-xl text-xs transition border cursor-pointer hover:opacity-85"
+                  style={m.secondaryBtnStyle}
                 >
                   Pick Another Game
                 </button>
                 <button
                   onClick={handleReturnToWork}
-                  className="px-7 py-3 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black rounded-xl text-xs transition shadow-xl flex items-center gap-2 hover:scale-105 cursor-pointer"
+                  className="px-7 py-3 font-black rounded-xl text-xs transition shadow-xl flex items-center gap-2 hover:scale-105 cursor-pointer"
+                  style={m.primaryBtnStyle}
                 >
-                  <Zap className="w-4 h-4 fill-slate-950" />
+                  <Zap className="w-4 h-4 fill-current" />
                   <span>GET BACK TO WORK</span>
                 </button>
               </div>
@@ -457,7 +449,7 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
               {/* Game 1: Find the Pairs */}
               {activeGameId === 'pairs' && (
                 <div className="space-y-4">
-                  <div className="text-xs text-slate-400 font-sans">
+                  <div className="text-xs font-sans" style={m.mutedStyle}>
                     Match 6 visual screenwriting term pairs randomly sampled from our master vault:
                   </div>
 
@@ -477,13 +469,12 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                           } else {
                             const first = pairsCards[firstCardIdx];
                             if (first.pairId === c.pairId && first.id !== c.id) {
-                              // Match!
                               next[firstCardIdx].matched = true;
                               next[idx].matched = true;
                               setPairsCards(next);
                               setFirstCardIdx(null);
                               setPopcornPoints((p) => p + 15 * comboMultiplier);
-                              setComboMultiplier((m) => m + 1);
+                              setComboMultiplier((mult) => mult + 1);
                               if (soundEnabled) gameSound.playMatch();
                               showToast(`Match: ${c.title}! 🎬`, 'success');
 
@@ -491,7 +482,6 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                                 handleWin('pairs');
                               }
                             } else {
-                              // Mismatch
                               if (soundEnabled) gameSound.playMismatch();
                               setComboMultiplier(1);
                               showToast('Mismatch! Cards resetting...', 'error');
@@ -504,26 +494,27 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                             }
                           }
                         }}
-                        className={`p-3 rounded-2xl border-2 transition-all duration-300 h-28 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-lg ${
+                        className="p-3 rounded-2xl border-2 transition-all duration-300 h-28 flex flex-col items-center justify-center gap-1.5 cursor-pointer shadow-lg"
+                        style={
                           c.matched
-                            ? 'bg-emerald-950/50 border-emerald-500 text-emerald-300 opacity-70 ring-2 ring-emerald-500/40'
+                            ? { ...m.headerStyle, borderColor: '#10B981', opacity: 0.85 }
                             : c.flipped
-                            ? `${c.color} shadow-[0_0_20px_rgba(251,191,36,0.3)] scale-105`
-                            : 'bg-slate-950 border-slate-800 hover:border-slate-600 text-slate-500 hover:scale-[1.02]'
-                        }`}
+                            ? { ...m.primaryBtnStyle }
+                            : m.cardStyle
+                        }
                       >
                         {c.flipped || c.matched ? (
                           <>
-                            <div className="p-1.5 rounded-lg bg-slate-950/60">
+                            <div className="p-1.5 rounded-lg border" style={m.headerStyle}>
                               {renderPairIcon(c.iconName)}
                             </div>
                             <div className="font-black text-[10px] leading-tight uppercase">{c.title}</div>
-                            <div className="text-[9px] text-slate-400 font-sans line-clamp-1">{c.subtitle}</div>
+                            <div className="text-[9px] font-sans line-clamp-1 opacity-80">{c.subtitle}</div>
                           </>
                         ) : (
-                          <div className="flex flex-col items-center gap-1">
-                            <Film className="w-6 h-6 text-slate-700" />
-                            <span className="text-[10px] text-slate-600 font-black">REVEAL</span>
+                          <div className="flex flex-col items-center gap-1" style={m.mutedStyle}>
+                            <Film className="w-6 h-6" />
+                            <span className="text-[10px] font-black">REVEAL</span>
                           </div>
                         )}
                       </button>
@@ -534,12 +525,12 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
               {/* Game 2: Emoji Plotter */}
               {activeGameId === 'emoji' && emojiQuestions[emojiIdx] && (
-                <div className="space-y-5 bg-slate-950 p-6 rounded-3xl border-2 border-slate-800 max-w-lg mx-auto shadow-2xl">
+                <div className="space-y-5 p-6 rounded-3xl border-2 max-w-lg mx-auto shadow-2xl" style={m.cardStyle}>
                   <div className="space-y-1">
-                    <div className="text-[10px] text-amber-400 font-black tracking-widest uppercase">
+                    <div className="text-[10px] font-black tracking-widest uppercase" style={m.accentStyle}>
                       PLOT {emojiIdx + 1} OF {emojiQuestions.length}
                     </div>
-                    <div className="text-4xl tracking-[0.2em] py-4 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-inner">
+                    <div className="text-4xl tracking-[0.2em] py-4 rounded-2xl border shadow-inner" style={m.headerStyle}>
                       {emojiQuestions[emojiIdx].emojis}
                     </div>
                   </div>
@@ -552,20 +543,18 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                           if (opt === emojiQuestions[emojiIdx].correct) {
                             if (soundEnabled) gameSound.playMatch();
                             setPopcornPoints((p) => p + 15 * comboMultiplier);
-                            setComboMultiplier((m) => m + 1);
+                            setComboMultiplier((mult) => mult + 1);
                             showToast('Greenlit Pitch! Correct Movie! 🎬', 'success');
-                            if (emojiIdx + 1 < emojiQuestions.length) {
-                              setEmojiIdx(emojiIdx + 1);
-                            } else {
-                              handleWin('emoji');
-                            }
+                            if (emojiIdx + 1 < emojiQuestions.length) setEmojiIdx(emojiIdx + 1);
+                            else handleWin('emoji');
                           } else {
                             if (soundEnabled) gameSound.playMismatch();
                             setComboMultiplier(1);
                             showToast('Studio Exec Passed! Try another.', 'error');
                           }
                         }}
-                        className="p-3.5 bg-slate-900 hover:bg-slate-850 border-2 border-slate-800 hover:border-sky-400 rounded-2xl text-xs font-black text-slate-200 transition-all hover:scale-105 cursor-pointer shadow-md"
+                        className="p-3.5 border-2 rounded-2xl text-xs font-black transition-all hover:scale-105 cursor-pointer shadow-md"
+                        style={m.headerStyle}
                       >
                         {opt}
                       </button>
@@ -576,16 +565,16 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
               {/* Game 3: Word Scramble */}
               {activeGameId === 'scramble' && (
-                <div className="space-y-5 bg-slate-950 p-6 rounded-3xl border-2 border-slate-800 max-w-lg mx-auto shadow-2xl">
+                <div className="space-y-5 p-6 rounded-3xl border-2 max-w-lg mx-auto shadow-2xl" style={m.cardStyle}>
                   <div className="space-y-2">
-                    <div className="text-[10px] text-emerald-400 font-black tracking-widest uppercase">UNSCRAMBLE INDUSTRY TERM</div>
-                    <div className="text-3xl font-black tracking-[0.25em] text-amber-300 py-3 bg-slate-900 rounded-2xl border border-slate-800 shadow-inner">
+                    <div className="text-[10px] font-black tracking-widest uppercase" style={m.accentStyle}>UNSCRAMBLE INDUSTRY TERM</div>
+                    <div className="text-3xl font-black tracking-[0.25em] py-3 rounded-2xl border shadow-inner" style={{ ...m.headerStyle, ...m.accentStyle }}>
                       {scrambledWord}
                     </div>
                   </div>
 
                   {showScrambleHint && (
-                    <div className="p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-2xl text-xs font-mono text-amber-200 italic shadow-inner">
+                    <div className="p-3.5 border rounded-2xl text-xs font-mono italic shadow-inner" style={m.headerStyle}>
                       "{SCRAMBLE_MASTER[scrambleIdx].hint}"
                     </div>
                   )}
@@ -596,7 +585,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                       value={userScrambleGuess}
                       onChange={(e) => setUserScrambleGuess(e.target.value.toUpperCase())}
                       placeholder="TYPE ANSWER..."
-                      className="bg-slate-900 border-2 border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-100 font-black focus:outline-none focus:border-emerald-400 uppercase tracking-widest w-full max-w-[220px]"
+                      className="border-2 rounded-xl px-4 py-3 text-xs font-black focus:outline-none uppercase tracking-widest w-full max-w-[220px]"
+                      style={m.inputStyle}
                     />
                     <button
                       onClick={() => {
@@ -610,7 +600,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                           showToast('Incorrect spelling! Try again.', 'error');
                         }
                       }}
-                      className="px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-lg hover:scale-105"
+                      className="px-5 py-3 font-black rounded-xl text-xs transition cursor-pointer shadow-lg hover:scale-105"
+                      style={m.primaryBtnStyle}
                     >
                       SUBMIT
                     </button>
@@ -618,19 +609,17 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
                   <div className="flex justify-center gap-2 pt-1 text-xs">
                     <button
-                      onClick={() => {
-                        setScrambleIdx((scrambleIdx + 1) % SCRAMBLE_MASTER.length);
-                      }}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                      onClick={() => setScrambleIdx((scrambleIdx + 1) % SCRAMBLE_MASTER.length)}
+                      className="px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer border"
+                      style={m.secondaryBtnStyle}
                     >
-                      <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+                      <RefreshCw className="w-3.5 h-3.5" style={m.accentStyle} />
                       New Word
                     </button>
                     <button
-                      onClick={() => {
-                        setShowScrambleHint(!showScrambleHint);
-                      }}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                      onClick={() => setShowScrambleHint(!showScrambleHint)}
+                      className="px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer border"
+                      style={{ ...m.secondaryBtnStyle, ...m.accentStyle }}
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
                       {showScrambleHint ? 'Hide Hint' : 'Script Hint'}
@@ -641,10 +630,10 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
               {/* Game 4: Script Trivia */}
               {activeGameId === 'trivia' && triviaQuestions[triviaIdx] && (
-                <div className="space-y-5 bg-slate-950 p-6 rounded-3xl border-2 border-slate-800 max-w-lg mx-auto shadow-2xl">
+                <div className="space-y-5 p-6 rounded-3xl border-2 max-w-lg mx-auto shadow-2xl" style={m.cardStyle}>
                   <div className="space-y-1">
-                    <div className="text-[10px] text-purple-400 font-black tracking-widest uppercase">QUESTION {triviaIdx + 1} OF {triviaQuestions.length}</div>
-                    <div className="text-sm font-black text-slate-100 py-2 leading-snug">{triviaQuestions[triviaIdx].q}</div>
+                    <div className="text-[10px] font-black tracking-widest uppercase" style={m.accentStyle}>QUESTION {triviaIdx + 1} OF {triviaQuestions.length}</div>
+                    <div className="text-sm font-black py-2 leading-snug">{triviaQuestions[triviaIdx].q}</div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-2.5 pt-1">
@@ -655,23 +644,21 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                           if (opt === triviaQuestions[triviaIdx].correct) {
                             if (soundEnabled) gameSound.playMatch();
                             setPopcornPoints((p) => p + 15 * comboMultiplier);
-                            setComboMultiplier((m) => m + 1);
+                            setComboMultiplier((mult) => mult + 1);
                             showToast('Hollywood Master! Correct Answer! 🎬', 'success');
-                            if (triviaIdx + 1 < triviaQuestions.length) {
-                              setTriviaIdx(triviaIdx + 1);
-                            } else {
-                              handleWin('trivia');
-                            }
+                            if (triviaIdx + 1 < triviaQuestions.length) setTriviaIdx(triviaIdx + 1);
+                            else handleWin('trivia');
                           } else {
                             if (soundEnabled) gameSound.playMismatch();
                             setComboMultiplier(1);
                             showToast('Wrong answer! Try another option.', 'error');
                           }
                         }}
-                        className="px-4 py-3 bg-slate-900 hover:bg-slate-850 border-2 border-slate-800 hover:border-purple-400 rounded-2xl text-xs font-black text-slate-200 transition text-left cursor-pointer flex items-center justify-between group hover:scale-[1.01]"
+                        className="px-4 py-3 border-2 rounded-2xl text-xs font-black transition text-left cursor-pointer flex items-center justify-between group hover:scale-[1.01]"
+                        style={m.headerStyle}
                       >
                         <span>{opt}</span>
-                        <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-purple-400 transition" />
+                        <ChevronRight className="w-4 h-4 opacity-70" />
                       </button>
                     ))}
                   </div>
@@ -680,10 +667,10 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
               {/* Game 5: 9x9 Studio Sudoku */}
               {activeGameId === 'sudoku' && (
-                <div className="space-y-4 bg-slate-950 p-4 sm:p-5 rounded-3xl border-2 border-slate-800 max-w-md mx-auto shadow-2xl">
+                <div className="space-y-4 p-4 sm:p-5 rounded-3xl border-2 max-w-md mx-auto shadow-2xl" style={m.cardStyle}>
                   <div className="flex justify-between items-center px-1 text-xs">
                     <div className="flex gap-1.5 items-center">
-                      <span className="text-slate-400 font-bold">Difficulty:</span>
+                      <span className="font-bold" style={m.mutedStyle}>Difficulty:</span>
                       {(['easy', 'medium', 'hard'] as const).map((d) => (
                         <button
                           key={d}
@@ -693,11 +680,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                             setNukeUsed(false);
                             setSelectedSudokuCell(null);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition ${
-                            sudokuDifficulty === d
-                              ? 'bg-rose-500 text-slate-950 shadow-md'
-                              : 'bg-slate-800 text-slate-400 hover:text-white'
-                          }`}
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition border cursor-pointer"
+                          style={sudokuDifficulty === d ? m.primaryBtnStyle : m.secondaryBtnStyle}
                         >
                           {d}
                         </button>
@@ -708,8 +692,6 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                       onClick={() => {
                         if (nukeUsed) return;
                         if (soundEnabled) gameSound.playNuke();
-
-                        // Find first empty cell and reveal true solution
                         for (let r = 0; r < 9; r++) {
                           for (let c = 0; c < 9; c++) {
                             if (sudokuState.puzzle[r][c] === 0) {
@@ -725,31 +707,25 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                         }
                       }}
                       disabled={nukeUsed}
-                      className="px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 disabled:opacity-40 text-slate-950 font-black rounded-lg text-[10px] flex items-center gap-1 cursor-pointer shadow-md"
+                      className="px-3 py-1 disabled:opacity-40 font-black rounded-lg text-[10px] flex items-center gap-1 cursor-pointer shadow-md"
+                      style={m.primaryBtnStyle}
                     >
-                      <Zap className="w-3 h-3 fill-slate-950" />
+                      <Zap className="w-3 h-3 fill-current" />
                       Writer's Block Nuke
                     </button>
                   </div>
 
                   {/* 9x9 Grid */}
-                  <div className="grid grid-cols-9 gap-0.5 bg-slate-800 p-1.5 rounded-2xl max-w-[320px] mx-auto shadow-inner border border-slate-700">
+                  <div className="grid grid-cols-9 gap-0.5 p-1.5 rounded-2xl max-w-[320px] mx-auto shadow-inner border" style={m.headerStyle}>
                     {sudokuState.puzzle.map((row, rIdx) =>
                       row.map((cell, cIdx) => {
                         const isSelected = selectedSudokuCell?.r === rIdx && selectedSudokuCell?.c === cIdx;
                         return (
                           <button
                             key={`${rIdx}-${cIdx}`}
-                            onClick={() => {
-                              setSelectedSudokuCell({ r: rIdx, c: cIdx });
-                            }}
-                            className={`w-7 h-7 flex items-center justify-center text-xs font-black transition border cursor-pointer ${
-                              isSelected
-                                ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300 scale-105 z-10'
-                                : cell > 0
-                                ? 'bg-slate-950 text-slate-100 border-slate-800'
-                                : 'bg-slate-900/90 text-rose-400 border-slate-800 hover:bg-slate-850'
-                            }`}
+                            onClick={() => setSelectedSudokuCell({ r: rIdx, c: cIdx })}
+                            className={`w-7 h-7 flex items-center justify-center text-xs font-black transition border cursor-pointer ${isSelected ? 'scale-105 z-10' : ''}`}
+                            style={isSelected ? m.primaryBtnStyle : cell > 0 ? m.headerStyle : m.inputStyle}
                           >
                             {cell > 0 ? cell : ''}
                           </button>
@@ -768,14 +744,11 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                             showToast('Tap a grid cell first!', 'info');
                             return;
                           }
-
                           const { r, c } = selectedSudokuCell;
                           const nextP = sudokuState.puzzle.map((row, ri) =>
                             row.map((val, ci) => (ri === r && ci === c ? num : val))
                           );
                           setSudokuState({ ...sudokuState, puzzle: nextP });
-
-                          // Check if puzzle matches solution
                           let matches = true;
                           for (let ri = 0; ri < 9; ri++) {
                             for (let ci = 0; ci < 9; ci++) {
@@ -790,7 +763,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                             handleWin('sudoku');
                           }
                         }}
-                        className="w-7 h-8 bg-slate-800 hover:bg-rose-500 hover:text-slate-950 text-slate-200 font-black rounded-lg text-xs transition border border-slate-700 cursor-pointer shadow-sm"
+                        className="w-7 h-8 font-black rounded-lg text-xs transition border cursor-pointer shadow-sm hover:opacity-85"
+                        style={m.secondaryBtnStyle}
                       >
                         {num}
                       </button>
@@ -801,9 +775,9 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
 
               {/* Game 6: Word Search */}
               {activeGameId === 'wordsearch' && wordSearchData && (
-                <div className="space-y-4 bg-slate-950 p-4 sm:p-5 rounded-3xl border-2 border-slate-800 max-w-md mx-auto shadow-2xl">
+                <div className="space-y-4 p-4 sm:p-5 rounded-3xl border-2 max-w-md mx-auto shadow-2xl" style={m.cardStyle}>
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] text-teal-400 font-black tracking-widest uppercase">
+                    <span className="text-[10px] font-black tracking-widest uppercase" style={m.accentStyle}>
                       CATEGORY: {wordSearchData.categoryName}
                     </span>
                     <button
@@ -814,9 +788,10 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                         setFoundCellKeys(new Set<string>());
                         setSelectedSearchCells([]);
                       }}
-                      className="text-[10px] text-slate-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer font-bold"
+                      className="text-[10px] flex items-center gap-1 cursor-pointer font-bold hover:opacity-80"
+                      style={m.accentStyle}
                     >
-                      <RefreshCw className="w-3 h-3 text-amber-400" />
+                      <RefreshCw className="w-3 h-3" />
                       New Category
                     </button>
                   </div>
@@ -828,11 +803,8 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                       return (
                         <span
                           key={w}
-                          className={`px-3 py-1 rounded-xl text-xs font-black border transition-all ${
-                            isFound
-                              ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 line-through scale-95 opacity-80'
-                              : 'bg-slate-900 border-slate-800 text-slate-400'
-                          }`}
+                          className={`px-3 py-1 rounded-xl text-xs font-black border transition-all ${isFound ? 'line-through scale-95 opacity-80' : ''}`}
+                          style={isFound ? m.primaryBtnStyle : m.headerStyle}
                         >
                           {w}
                         </span>
@@ -860,24 +832,20 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                                   setSelectedSearchCells([]);
                                   return;
                                 }
-
                                 const dr = Math.sign(rIdx - first.r);
                                 const dc = Math.sign(cIdx - first.c);
                                 const stepsR = Math.abs(rIdx - first.r);
                                 const stepsC = Math.abs(cIdx - first.c);
-
                                 if (!(first.r === rIdx || first.c === cIdx || stepsR === stepsC)) {
                                   if (soundEnabled) gameSound.playMismatch();
                                   showToast('Select letters in a straight line!', 'error');
                                   setSelectedSearchCells([]);
                                   return;
                                 }
-
                                 const path: Array<{ r: number; c: number }> = [];
                                 let curR = first.r;
                                 let curC = first.c;
                                 let constructed = '';
-
                                 while (true) {
                                   path.push({ r: curR, c: curC });
                                   constructed += wordSearchData.grid[curR][curC];
@@ -885,38 +853,26 @@ export const BreakGameModal: React.FC<BreakGameModalProps> = ({
                                   curR += dr;
                                   curC += dc;
                                 }
-
                                 if (wordSearchData.targetWords.includes(constructed) && !foundWords.includes(constructed)) {
                                   const nextFound = [...foundWords, constructed];
                                   setFoundWords(nextFound);
-
                                   const nextKeys = new Set(foundCellKeys);
                                   path.forEach((pt) => nextKeys.add(`${pt.r}-${pt.c}`));
                                   setFoundCellKeys(nextKeys);
-
                                   setPopcornPoints((p) => p + 20 * comboMultiplier);
-                                  setComboMultiplier((m) => m + 1);
+                                  setComboMultiplier((mult) => mult + 1);
                                   if (soundEnabled) gameSound.playMatch();
                                   showToast(`Greenlit! Found "${constructed}" 🎬`, 'success');
-
-                                  if (nextFound.length === wordSearchData.targetWords.length) {
-                                    handleWin('wordsearch');
-                                  }
+                                  if (nextFound.length === wordSearchData.targetWords.length) handleWin('wordsearch');
                                 } else {
                                   if (soundEnabled) gameSound.playMismatch();
                                   showToast('Not a target word or already found!', 'error');
                                 }
-
                                 setSelectedSearchCells([]);
                               }
                             }}
-                            className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center transition border cursor-pointer ${
-                              isFoundCell
-                                ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 border-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)] scale-105 z-10'
-                                : isSelected
-                                ? 'bg-amber-400 text-slate-950 border-amber-300 scale-110 shadow-lg ring-2 ring-amber-300'
-                                : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-600'
-                            }`}
+                            className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center transition border cursor-pointer ${isFoundCell || isSelected ? 'scale-105 z-10' : ''}`}
+                            style={isFoundCell ? { backgroundColor: '#10B981', borderColor: '#10B981', color: '#FFFFFF' } : isSelected ? m.primaryBtnStyle : m.headerStyle}
                           >
                             {char}
                           </button>

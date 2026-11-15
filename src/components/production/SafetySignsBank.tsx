@@ -1,5 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Printer, ShieldAlert, Zap, Flame, Eye, Volume2, Camera, Lock, Wind, Radio, AlertOctagon } from 'lucide-react';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 
 export interface SafetySign {
   id: string;
@@ -126,7 +128,8 @@ const SAFETY_SIGNS: SafetySign[] = [
   },
 ];
 
-export const SafetySignsBank: React.FC = () => {
+export const SafetySignsBank: React.FC<{ themeConfig?: AppThemeConfig }> = ({ themeConfig }) => {
+  const mt = getModalTheme(themeConfig);
   const handlePrintSign = (sign: SafetySign) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -178,11 +181,11 @@ export const SafetySignsBank: React.FC = () => {
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: mt.theme.primaryText }}>
+            <ShieldAlert className="w-4 h-4" style={mt.accentStyle} />
             Printable On-Set Safety Warning Signs Bank (10 High-Visibility Posters)
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs" style={mt.mutedStyle}>
             Click any visual warning sign to instantly print high-impact ISO-style warning posters for set doors, generators, and filming locations.
           </p>
         </div>

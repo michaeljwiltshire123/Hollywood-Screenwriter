@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ScreenplayDocument, SceneInfo, CharacterInfo } from '../../types';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 import { CallSheetTab } from './CallSheetTab';
 import { RiskAssessmentTab } from './RiskAssessmentTab';
 import { ReleaseFormsTab } from './ReleaseFormsTab';
@@ -15,25 +17,34 @@ interface ProductionScheduleModalProps {
   scenes: SceneInfo[];
   characters: CharacterInfo[];
   onChangeScript: (updated: ScreenplayDocument) => void;
+  themeConfig?: AppThemeConfig;
 }
 
 export const ProductionScheduleModal: React.FC<ProductionScheduleModalProps> = ({
-  isOpen, onClose, script, scenes, characters, onChangeScript,
+  isOpen, onClose, script, scenes, characters, onChangeScript, themeConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<ProductionTab>('CALLSHEET');
   const [isTourOpen, setIsTourOpen] = useState(false);
 
   if (!isOpen) return null;
+  const mt = getModalTheme(themeConfig);
 
   return (
-    <div className="fixed inset-x-0 top-28 bottom-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 font-sans">
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+    <div
+      className="fixed inset-x-0 top-28 bottom-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-md animate-in fade-in duration-200 font-sans"
+      style={mt.overlayStyle}
+    >
+      <div
+        className="border rounded-2xl w-full max-w-6xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+        style={mt.windowStyle}
+      >
         <ProductionSuiteHeader
           title={script.title}
           scenesCount={scenes.length}
           charactersCount={characters.length}
           onOpenTour={() => setIsTourOpen(true)}
           onClose={onClose}
+          themeConfig={themeConfig}
         />
 
         <ProductionSuiteTabs
@@ -41,6 +52,7 @@ export const ProductionScheduleModal: React.FC<ProductionScheduleModalProps> = (
           script={script}
           onChangeScript={onChangeScript}
           onSelectTab={setActiveTab}
+          themeConfig={themeConfig}
         />
 
         <div id="production-modal-scroll-container" className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
@@ -48,10 +60,10 @@ export const ProductionScheduleModal: React.FC<ProductionScheduleModalProps> = (
             <CallSheetTab script={script} characters={characters} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} />
           )}
           {activeTab === 'RISK' && (
-            <RiskAssessmentTab script={script} scenes={scenes} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} />
+            <RiskAssessmentTab script={script} scenes={scenes} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} themeConfig={themeConfig} />
           )}
           {activeTab === 'RELEASES' && (
-            <ReleaseFormsTab script={script} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} />
+            <ReleaseFormsTab script={script} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} themeConfig={themeConfig} />
           )}
         </div>
       </div>

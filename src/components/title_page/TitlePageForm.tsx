@@ -2,6 +2,8 @@ import React from 'react';
 import { ArrowLeft, CheckCircle, Save } from 'lucide-react';
 import { TitlePage } from '../../types';
 import { TitlePageFormFields } from './TitlePageFormFields';
+import { AppThemeConfig } from '../../lib/themePresets';
+import { getModalTheme } from '../../lib/modalTheme';
 
 interface TitlePageFormProps {
   form: TitlePage;
@@ -11,22 +13,18 @@ interface TitlePageFormProps {
   onBack: () => void;
   onClose?: () => void;
   isDirectEdit?: boolean;
+  themeConfig?: AppThemeConfig;
 }
 
 export const TitlePageForm: React.FC<TitlePageFormProps> = ({
-  form,
-  setForm,
-  isCreatingNew,
-  onSubmit,
-  onBack,
-  onClose,
-  isDirectEdit = false,
+  form, setForm, isCreatingNew, onSubmit, onBack, onClose, isDirectEdit = false, themeConfig,
 }) => {
   const handleCancel = isDirectEdit && onClose ? onClose : onBack;
+  const m = getModalTheme(themeConfig);
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-amber-200 text-xs">
+      <div className="p-3 border rounded-xl flex items-center justify-between text-xs" style={m.cardStyle}>
         <span>
           {isCreatingNew
             ? 'Fill out your title page details below to launch your new script:'
@@ -36,43 +34,34 @@ export const TitlePageForm: React.FC<TitlePageFormProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="text-xs text-amber-400 hover:text-amber-200 flex items-center gap-1 shrink-0 font-bold ml-2 cursor-pointer"
+            className="text-xs flex items-center gap-1 shrink-0 font-bold ml-2 cursor-pointer hover:opacity-80"
+            style={m.accentStyle}
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back
           </button>
         )}
       </div>
 
-      <TitlePageFormFields form={form} setForm={setForm} />
+      <TitlePageFormFields form={form} setForm={setForm} themeConfig={themeConfig} />
 
-      <div className="pt-3 flex justify-between items-center border-t border-slate-800">
+      <div className="pt-3 flex justify-between items-center border-t" style={m.borderStyle}>
         <button
           type="button"
           onClick={handleCancel}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 rounded-lg transition flex items-center gap-1.5 cursor-pointer font-bold text-xs"
+          className="px-4 py-2 border rounded-lg transition flex items-center gap-1.5 cursor-pointer font-bold text-xs hover:opacity-85"
+          style={m.secondaryBtnStyle}
         >
-          {isDirectEdit ? (
-            'Cancel'
-          ) : (
-            <>
-              <ArrowLeft className="w-4 h-4" /> Back
-            </>
-          )}
+          {isDirectEdit ? 'Cancel' : (<><ArrowLeft className="w-4 h-4" /> Back</>)}
         </button>
         <button
           type="submit"
-          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg flex items-center gap-2 shadow-lg transition cursor-pointer active:scale-95"
+          className="px-5 py-2.5 font-bold rounded-lg flex items-center gap-2 shadow-lg transition cursor-pointer active:scale-95 hover:opacity-90"
+          style={m.primaryBtnStyle}
         >
           {isCreatingNew ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              Create & Start Script
-            </>
+            <><CheckCircle className="w-4 h-4" /> Create & Start Script</>
           ) : (
-            <>
-              <Save className="w-4 h-4" />
-              Save Title Page
-            </>
+            <><Save className="w-4 h-4" /> Save Title Page</>
           )}
         </button>
       </div>

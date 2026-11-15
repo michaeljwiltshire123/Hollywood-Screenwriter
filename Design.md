@@ -2,9 +2,9 @@
 
 ## Application Structure
 - `src/App.tsx`: Central application state, keyboard shortcuts, disk persistence, and navigation controller.
-- `src/components/Header.tsx`: Top bar coordinating screenplay title, navigation drawer, focus mode, and responsive layout.
+- `src/components/Header.tsx`: Top bar coordinating navigation drawer, focus mode, theme switcher, and responsive action layout.
 - `src/components/header/NavigatorToggle.tsx`: Prominent two-line toggle button for Navigator & Production Tools.
-- `src/components/header/ScriptTitleEditor.tsx`: Screenplay title display and click-to-edit input with responsive constraints.
+- `src/components/header/ScriptTitleEditor.tsx`: Legacy screenplay title display and click-to-edit component (currently omitted from Header to keep header controls compact).
 - `src/components/header/PomodoroWidget.tsx`: Pomodoro break game trigger, countdown timer, and settings menu.
 - `src/components/header/ExportMenu.tsx`: Export dropdown providing pure PDF document generation, Word Docx, .screenplay project outputs, and direct script printing.
 - `src/lib/pdf/exportScreenplayPdf.ts`: Pure vector text PDF screenplay compiler generating letter-format industry-standard documents with title page and running headers.
@@ -18,6 +18,10 @@
 - `src/lib/print/printElementStyles.ts`: Screenplay element indentation, margins, dialogue widths, and orphan prevention rules.
 - `src/components/header/ImportProjectMenu.tsx`: Open file, import script, new blank script, and sample loader.
 - `src/components/header/MainBarQuickActions.tsx`: Main bar quick buttons for Table Read, Revision History, and Title Page.
+- `src/components/header/ThemeDropdownButton.tsx`: Theme switcher dropdown offering Vintage, Charcoal, Eucalyptus presets and Paper/Text colour pickers.
+- `src/components/header/ThemeColorPickers.tsx`: Native colour picker controls for customising script paper background and script text colour independently.
+- `src/lib/themePresets.ts`: Theme preset definitions (Vintage, Charcoal, Eucalyptus), luminance helpers, and `resolveThemeConfig` mapper.
+- `src/lib/modalTheme.ts`: Shared modal, popover, and sub-window theme token helper (`getModalTheme`) mapping `AppThemeConfig` across all dialogues and tools.
 - `src/components/header/HeaderActionButtons.tsx`: Action controller organizing header actions and responsive toolgroups.
 - `src/components/TitlePageModal.tsx`: Script creation modal and metadata editor with empty defaults and discreet placeholder hints.
 - `src/components/title_page/StartupOptionsGrid.tsx`: Startup options grid with prominent action buttons and bordered metadata editor button.
@@ -40,7 +44,7 @@
 - `src/lib/slugline/sluglineGhostText.ts`: Smart compose inline ghost text suggestion generator.
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
 - `src/components/navigator/PreProductionDocButton.tsx`: Premium amber-tinted trigger button positioned directly above the scenes panel search bar to launch the Pre-Production suite.
-- `src/components/navigator/StoryArcTabContent.tsx`: Dedicated Story Arc panel component providing a clean, spacious button to open the fullscreen story arc whiteboard.
+- `src/components/navigator/StoryArcTabContent.tsx`: Dedicated Story Arc bridge component immediately launching the full-screen Story Lab workspace without redundant intermediate cards.
 - `src/components/TableReadModal.tsx`: Multi-voice playback and script rehearsal audio engine offset safely with dual-header clearance (top-28).
 - `src/components/SettingsModal.tsx`: Preferences and environment configurations.
 - `src/lib/gameCooldownManager.ts`: 10-minute focus sprint timer and session storage persistence to regulate break games.
@@ -107,3 +111,101 @@
 - `src/components/production/ProductionSuiteHeader.tsx`: Extracted top bar with title, metadata, tour trigger, and modal close.
 - `src/components/production/ProductionSuiteTabs.tsx`: Extracted suite tab navigation and production company logo uploader.
 - `src/components/production/ProductionScheduleModal.tsx`: Modular root modal container integrating active tab views and live page tour.
+- `src/components/story_lab/`: Dedicated Story Lab workspace architecture (<100 lines per file):
+  * `storyLabTypes.ts`: Type definitions for 3-Act milestones, pacing metrics, and spark answers.
+  * `storyLabOps.ts`: Zero-math guarded pacing calculation (`calculateSafePacing`) and `importScenesIntoActs` helper.
+  * `storyLabSparkOps.ts`: Empty canvas initialization (`createDefaultEmptyCards`), content detection (`hasCardContent`), and guided prompt application.
+  * `useStoryLabState.ts`: Modal state hook governing 3/5-act toggling, reset guards, and script synchronization.
+  * `StoryLabTimeline.tsx`: Unified horizontal Writers' Wall & Vonnegut fortune timeline with tick marks for Act I, Act II, Midpoint, Act III, and Climax.
+  * `storyStickitOps.ts`: Proportional Writers' Wall stickit position, stagger tier, and pacing calculator for Act cards and 12-stage Hero's Journey beats.
+  * `StoryLabStickitsWall.tsx`: Tactile colour-coded Post-it sticky notes and pin stems pinned directly onto the main timeline canvas with edge-safe hover expansion.
+  * `TimelineContextMenu.tsx`: Right-click context menu on the timeline canvas for pinning a new beat card at the clicked timestamp across Main Story or any Sub-Plot.
+  * `StoryLabActionBar.tsx`: Clean action row conditionally rendering "Create a 3-Act Story" (switching to "Expand to 5 Acts" once all 3 cards have notes), "Create Synopsis", editable Audience Feeling reminder, "Start New", and "Idea Vault".
+  * `AudienceEmotionInput.tsx`: Editable audience-feeling reminder badge/input placed directly to the left of "Start New" for writers working freely or via guided prompts.
+  * `StoryLabSynopsisModal.tsx`: Dedicated story synopsis review modal formatting all act beats into a readable document with one-click clipboard copying.
+  * `FiveActExpansionModal.tsx`: 3-step guided wizard for transforming 3 acts into 5 acts (New Act III furthest point -> New Act II outside events -> New Act IV preparation).
+  * `FiveActExpansionStepView.tsx`: Step view router managing prompt questions and speed sprint launchers for 5-act expansion.
+  * `FiveActPyramidView.tsx`: Visual layout matching the dramatic pyramid structure (3 original cards along the bottom with faded middle, topped by a 3-card pyramid under the dramatic arc).
+  * `FiveActPyramidArcSvg.tsx`: Vector dramatic arc SVG curve connecting the pyramid apex and shoulders to the base.
+  * `FiveActPyramidBaseRow.tsx`: Extracted modular component rendering the base row of original act cards for the pyramid view.
+  * `StoryLabPyramidCard.tsx`: Dedicated card component for the pyramid configuration with blue-bordered styling, faded middle state, and light plot points expansion.
+  * `fiveActPyramidHelper.ts`: Extractor mapping 5-act structure and preserved middle into apex, shoulders, and base.
+  * `StoryLabActCard.tsx`: Act card component supporting direct text editing with solo Idea Generation button (no expand button).
+  * `StoryLabCardFooter.tsx`: Modular card footer rendering Idea Generation and optional "Create more plotpoints" button.
+  * `StoryLabPlotpointsDeck.tsx`: Light-themed 3-card plot points deck replacing the card in pristine white paper styling with clean Collapse button.
+  * `characterFortuneTypes.ts`: Type definitions for Kurt Vonnegut G-I character fortune axis and timeline tag points.
+  * `characterExtractor.ts`: Character extractor harvesting cast from script elements, character bibles, and scenes with distinct colour palettes.
+  * `CharacterFortuneDropdown.tsx`: Multi-select character dropdown enabling writers to plot and compare protagonist vs antagonist trajectories.
+  * `StoryLabTimelineTrack.tsx`: Baseline timeline track rendering Act I/II/Midpoint/III/Climax milestones and +Good / -Ill Fortune guidelines.
+  * `StoryLabGiCurveSvg.tsx`: Smooth Catmull-Rom/Bezier spline SVG generator rendering thin coloured character fortune curves left-to-right across freeform nodes.
+  * `StoryLabGiTagsLayer.tsx`: Plain unnumbered circular fortune nodes supporting 2D click-drag positioning, click selection, and keyboard/button deletion.
+  * `useCharacterFortuneState.ts`: Custom hook managing multi-character 5-node default arcs, 2D node dragging, right-click insertion, and node deletion persisted on the script.
+  * `StoryLabGrid.tsx`: Responsive grid and pyramid layout router.
+  * `StoryLabHeader.tsx`: Parchment header with Story Lab title, target minutes input (guarded against zero-math), and "Return to Script" button.
+  * `StoryLabModal.tsx`: Fullscreen `#FDFBF7` workspace assembling header, timeline, action bar, and cards.
+  * `StoryLabModalsLayer.tsx`: Popover aggregator managing confirm-reset, synopsis, and guided-spark overlays.
+  * `StoryLabConfirmResetModal.tsx`: Confirmation modal triggered when "Start New" is pressed with existing content.
+  * `StoryLabGuidedModal.tsx`: 4-step reverse-engineering story spark wizard (Ending feeling -> Act III Climax -> Act I Beginning Rhyme -> Act II Middle Transformation).
+  * `StoryLabGuidedStepView.tsx`: Step view router branching between emotion/climax and rhyme/middle prompts.
+  * `StoryLabGuidedFooterControls.tsx`: Extracted back/next navigation controls for guided wizard steps.
+  * `StoryLabStepEmotionClimax.tsx`: Steps 1 and 2 inputs for ending emotion and Act III climax with Smart Chips Input and Connected Refiner.
+  * `StoryLabStepRhymeMiddle.tsx`: Steps 3 and 4 inputs for Act I rhyming beginning and Act II crucible middle.
+  * `StoryLabSmartChipsInput.tsx`: Interactive smart chip input component converting typed words into removable pill badges with ✕ buttons.
+  * `StoryLabEmotionRefiner.tsx`: Clean text tab refiner rendering Positive, Negative, and Neutral tabs directly above suggested emotion chips.
+  * `semanticEmotionLookup.ts`: Zero-AI cinematic emotion mapper categorised by Positive, Negative, and Neutral valence constellations.
+  * `StoryLabCardBackups.tsx`: Expandable backup choices component rendered under 3-Act cards allowing writers to sleep on backup ideas.
+  * `subPlotOps.ts`: Sub-plot colour palettes, factory, act synchronisation, and per-act sub-plot counters.
+  * `useSubPlotState.ts`: Sub-plot collection state manager handling creation, renaming, recolouring, emotion notes, card editing, and deletion.
+  * `PlotSwitcherDropdown.tsx`: Plot selector beside Audience Feeling for switching between Main Story only, sub-plots, and creating new sub-plots.
+  * `SubPlotLaneRow.tsx`: Full-width colour-coded sub-plot lane beneath the Main Story with tall text boxes, swatch picker, and idea triggers.
+  * `SubPlotPocketTabs.tsx`: Tactile index-card folder pocket tabs tucked under each Main Act card showing written vs empty sub-plot beats.
+  * `SideSlideSubPlotCard.tsx`: Inline colour-coded sub-plot overlay sliding out beside its parent Main Act without dimming or squashing the grid.
+  * `SideSlideSubPlotSettings.tsx`: Compact collapsible settings panel inside the side-slide card for renaming, tint switching, emotion notes, and deleting.
+  * `hero_journey/`: Two-panel 12-stage Hero's Journey story grid architecture (<100 lines per file):
+    - `heroJourneyConstants.ts`: 12 classic Hero's Journey stage definitions and pacing speed styles.
+    - `heroJourneyMapper.ts`: Act-to-stage auto-distribution helper, zero-math page count guard, and sub-plot track sync.
+    - `heroJourneyRowOps.ts`: Pure row insertion and deletion helpers matching timeline percentages and inter-row gaps.
+    - `HeroJourneyRowGapButton.tsx`: Subtle ghost `+ Add row` divider appearing between table rows on hover/focus.
+    - `useHeroJourneyState.ts`: State hook managing selected beat editing, plotline filtering, page totals, row insertion, and Act re-import.
+    - `HeroJourneyDraftingPanel.tsx`: Left Drafting Workspace panel for editing beat title, summary, pacing speed, and page count.
+    - `HeroJourneyFilterStats.tsx`: Bottom-left plotline filter controls, New Sub-Plot button, and stage/page totals readout.
+    - `HeroJourneyBeatCard.tsx`: Synchronised beat card displaying title, summary snippet, page count, and pacing speed badge.
+    - `HeroJourneyGridMatrix.tsx`: Right 12-stage matrix with sticky frozen Main Plot column and horizontal column navigation.
+    - `HeroJourneyStageTooltip.tsx`: Interactive (i) info icon displaying stage writing guide and tips under 50 words on hover.
+    - `HeroJourneyWorkspace.tsx`: Two-panel workspace container integrating theme tokens with live Hero's Journey state.
+  * `idea_sprint/`: Modular Speed Brainstorming Sprint engine (<100 lines per file):
+    - `ideaSprintTypes.ts`: Type definitions for sprint sessions, vault items, and backup ideas.
+    - `ideaSprintTwists.ts`: Zero-AI static pool of 10 provocative story twists for the 3-lives Wild Card.
+    - `ideaSprintAudio.ts`: Web Audio API typewriter paper click sound synthesiser.
+    - `ideaSprintRankHelper.ts`: Gamified rank calculator and ideas-per-minute pace calculator.
+    - `IdeaSprintLauncherModal.tsx`: Pre-sprint setup pop-up allowing custom question and timer selection.
+    - `IdeaSprintHeader.tsx`: Active sprint top bar with timer countdown, 3 twist lives, and Finish Sprint trigger.
+    - `useIdeaSprintActiveState.ts`: Custom hook managing active sprint timer, streak multipliers, and idle burn rate.
+    - `IdeaSprintMotivationBar.tsx`: High-stakes gamified pace ticker with Flow Surge 2X/3X multipliers and Inertia Warning alerts.
+    - `IdeaSprintPaperCanvas.tsx`: Traditional lined notebook paper canvas enforcing strict no-deletion rules (Backspace, Delete, Cut, and length reduction blocked) until sprint timer expires.
+    - `IdeaSprintSummaryItem.tsx`: Selectable idea item component for primary and backup selections.
+    - `IdeaSprintSummaryModal.tsx`: Post-sprint modal allowing manual selection of 1 Primary idea + up to 2 Backup ideas + save to Idea Vault.
+    - `IdeaSprintModal.tsx`: Main modal orchestrator managing launcher -> active sprint -> summary.
+    - `IdeaVaultItemList.tsx`: Render engine displaying saved sprint session questions as clean collapsible accordion labels expanding to reveal all ideas.
+    - `IdeaVaultDropdown.tsx`: Idea Vault dropdown in Story Lab header providing instant access to saved brainstorm sessions.
+  * `logline/`: Modular logline creation suite (<100 lines per file):
+    - `LoglineWizardModal.tsx`: 5-question wizard modal orchestrator integrating answer weaves, examples, and idea sprint.
+    - `LoglineQuestionsColumn.tsx`: 5 core prompt question inputs with dedicated Brainstorm launchers.
+    - `LoglineWeavesColumn.tsx`: Live template weave cards and 50-word final logline editor.
+    - `LoglineWizardFooter.tsx`: Cancel and Save Logline action footer.
+    - `useLoglineSprint.ts`: Custom hook linking question brainstorming to IdeaSprint and applying chosen ideas directly to input fields.
+    - `ClassicExamplesBanner.tsx`: Collapsible classic film logline reference cards.
+    - `loglineConstants.ts`: Question definitions, placeholders, and classic film pitch examples.
+    - `loglineHelpers.ts`: Template interpolation formulas and word counter helper.
+  * `synopsis/`: Modular professional synopsis suite architecture (<100 lines per file):
+    - `SynopsisEditorModal.tsx`: Main synopsis modal orchestrator assembling header, controls, editor, and timeline drawer.
+    - `SynopsisHeader.tsx`: Top bar with title, subtitle, timeline toggle, and close button.
+    - `SynopsisTopControls.tsx`: Responsive top bar coordinating How to Guide expand/collapse and Comps input.
+    - `SynopsisHowToGuide.tsx`: Compact, punchy "How to Guide" containing What & Why, 4-Paragraph Blueprint, and golden rules in ultra-concise bullets.
+    - `SynopsisCompsInput.tsx`: Side-by-side optional comparable titles input kept separate from synopsis text.
+    - `SynopsisTextArea.tsx`: Multi-line synopsis canvas with agent word-count indicators and grammar tense/pronoun tips.
+    - `SynopsisTimelineDrawer.tsx`: Collapsible reference drawer rendering act beats and Hero's Journey stages with insert buttons (default off).
+    - `SynopsisExportActions.tsx`: Action bar providing Copy, Print/PDF, Email, Download Word, Cancel, and Save triggers.
+    - `synopsisExportOps.ts`: Pure export helper functions for clipboard, Word .doc, direct print, and email dispatch.
+- `scripts/verify-db.js`: Verification script ensuring IndexedDB schema, store names, and backup keys align.
+
