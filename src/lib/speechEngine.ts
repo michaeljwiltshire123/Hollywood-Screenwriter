@@ -1,93 +1,98 @@
-// Speech Synthesis Engine using native browser Web Speech API (100% free, zero tokens)
+import { TimbrePreset } from './tableReadTypes';
+import { getVoiceRateCalibration, resolveBaseVoiceForSelection, resolveVoicePersona, isFxTimbre } from './speechVoiceManager';
+import { ActiveFxPlayback, playMespeakFxLine } from './fxPlaybackHelper';
 
-export interface VoiceOption {
-  voice: SpeechSynthesisVoice;
-  name: string;
-  lang: string;
-}
-
-export function getAvailableVoices(): VoiceOption[] {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
-  const voices = window.speechSynthesis.getVoices();
-  return voices.map((v) => ({
-    voice: v,
-    name: `${v.name} (${v.lang})`,
-    lang: v.lang,
-  }));
-}
-
-export function assignCharacterVoices(characterNames: string[]): Record<string, { pitch: number; rate: number; voiceIndex: number }> {
-  const map: Record<string, { pitch: number; rate: number; voiceIndex: number }> = {};
-  const voices = getAvailableVoices();
-  
-  characterNames.forEach((char, idx) => {
-    // Generate distinct pitch and voice mapping based on index hash
-    const pitch = 0.85 + ((idx * 0.15) % 0.5);
-    const rate = 1.0;
-    const voiceIndex = voices.length > 0 ? idx % voices.length : 0;
-    map[char.toUpperCase()] = { pitch, rate, voiceIndex };
-  });
-  
-  return map;
+export interface SpeakOptions {
+  pitch?: number;
+  rate?: number;
+  volume?: number;
+  voiceURI?: string;
+  timbre?: TimbrePreset;
+  charOffset?: number;
+  isParenthetical?: boolean;
+  onEnd?: () => void;
+  onBoundary?: (charIndex: number, charLength?: number) => void;
 }
 
 export class SpeechController {
-  private synth: SpeechSynthesis | null = null;
+  private synth: SpeechSynthesis | null = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private activeFx: ActiveFxPlayback | null = null;
+  private currentText = '';
+  private currentOptions: SpeakOptions = {};
+  private lastBoundaryIndex = 0;
+  private playSeq = 0;
+  private pendingTimer: number | null = null;
 
-  constructor() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      this.synth = window.speechSynthesis;
-    }
-  }
-
-  speak(
-    text: string,
-    options: { pitch?: number; rate?: number; voiceIndex?: number; onEnd?: () => void; onBoundary?: (charIndex: number) => void }
-  ) {
-    if (!this.synth) return;
+  speak(text: string, options: SpeakOptions = {}, fromIndex = 0) {
     this.stop();
+    const seq = ++this.playSeq;
+    this.currentText = text;
+    this.currentOptions = options;
+    this.lastBoundaryIndex = fromIndex;
+    const spokenText = fromIndex > 0 ? text.substring(fromIndex) : text;
+    if (!spokenText.trim()) { options.onEnd?.(); return; }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.pitch = options.pitch ?? 1.0;
-    utterance.rate = options.rate ?? 1.0;
-
-    const voices = this.synth.getVoices();
-    if (options.voiceIndex !== undefined && voices[options.voiceIndex]) {
-      utterance.voice = voices[options.voiceIndex];
+    if (isFxTimbre(options.timbre)) {
+      playMespeakFxLine(
+        spokenText,
+        options.timbre!,
+        options.rate ?? 1.0,
+        options.charOffset ?? 0,
+        !!options.isParenthetical,
+        () => seq === this.playSeq,
+        options.onBoundary,
+        () => { if (seq === this.playSeq) { this.activeFx = null; options.onEnd?.(); } }
+      ).then((handle) => {
+        if (seq === this.playSeq) this.activeFx = handle;
+        else handle?.stop();
+      });
+      return;
     }
 
-    if (options.onEnd) {
-      utterance.onend = options.onEnd;
-      utterance.onerror = options.onEnd;
-    }
+    if (!this.synth) { options.onEnd?.(); return; }
+    this.pendingTimer = window.setTimeout(() => {
+      if (!this.synth || seq !== this.playSeq) return;
+      const u = new SpeechSynthesisUtterance(spokenText);
+      const match = resolveBaseVoiceForSelection(this.synth.getVoices(), options.voiceURI || '', options.timbre || 'NARRATOR', options.charOffset || 0);
+      if (match) { u.voice = match; u.lang = match.lang || 'en-GB'; }
+      const persona = resolveVoicePersona(options.voiceURI);
+      const rawRate = (options.rate ?? 1.0) * (persona ? persona.rateMultiplier : 1.0) * getVoiceRateCalibration(match);
+      const safeRate = Math.min(match && !match.localService ? 2.0 : 5.0, Math.max(0.5, rawRate));
+      const safePitch = Math.min(2.0, Math.max(0.1, options.pitch ?? persona?.pitch ?? 1.0));
 
-    if (options.onBoundary) {
-      utterance.onboundary = (e) => {
-        options.onBoundary?.(e.charIndex);
+      u.volume = options.isParenthetical ? 0.38 : (options.volume ?? 1.0);
+      u.rate = options.isParenthetical ? Math.max(0.5, safeRate * 0.88) : safeRate;
+      u.pitch = options.isParenthetical ? Math.max(0.1, safePitch * 0.95) : safePitch;
+      u.onend = () => { if (seq === this.playSeq) options.onEnd?.(); };
+      u.onerror = () => { if (seq === this.playSeq) this.currentUtterance = null; };
+      u.onboundary = (e) => {
+        this.lastBoundaryIndex = fromIndex + e.charIndex;
+        options.onBoundary?.(this.lastBoundaryIndex, e.charLength || 4);
       };
-    }
-
-    this.currentUtterance = utterance;
-    this.synth.speak(utterance);
+      this.currentUtterance = u;
+      this.synth.speak(u);
+    }, 25);
   }
 
-  pause() {
-    if (this.synth?.speaking) {
-      this.synth.pause();
+  updateLiveRate(newBaseSpeed: number, extraRatio = 1.0) {
+    const rate = Math.min(5.0, Math.max(0.5, newBaseSpeed * extraRatio));
+    if (this.activeFx) {
+      this.currentOptions.rate = rate;
+      this.activeFx.setSpeedRatio(rate);
+      return;
     }
-  }
-
-  resume() {
-    if (this.synth?.paused) {
-      this.synth.resume();
-    }
+    if (!this.synth || !this.currentText || (!this.synth.speaking && !this.pendingTimer)) return;
+    this.currentOptions.rate = rate;
+    this.speak(this.currentText, this.currentOptions, this.lastBoundaryIndex);
   }
 
   stop() {
-    if (this.synth) {
-      this.synth.cancel();
-    }
+    this.playSeq++;
+    if (this.activeFx) { this.activeFx.stop(); this.activeFx = null; }
+    if (this.pendingTimer) { clearTimeout(this.pendingTimer); this.pendingTimer = null; }
+    if (this.currentUtterance) { this.currentUtterance.onend = null; this.currentUtterance.onerror = null; this.currentUtterance = null; }
+    this.synth?.cancel();
   }
 }
 

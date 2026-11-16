@@ -289,10 +289,30 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
       const targetType = getElementTypeFromKeyboardEvent(e);
       if (targetType) {
         e.preventDefault();
+        setIsCharacterMenuDismissed(true);
+        setIsSluglineMenuDismissed(true);
+        setCharacterSelectedIndex(0);
+        setSluglineSelectedIndex(0);
         handleTypeChange(elem.id, targetType);
         setCursorPos({ elementId: elem.id, offset });
         return;
       }
+    }
+
+    // TAB / SHIFT+TAB / ALT+TAB: Strictly cycle element format (never select dropdown options)
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      // Immediately dismiss autocomplete popups so suggestions don't linger on newly formatted elements
+      setIsCharacterMenuDismissed(true);
+      setIsSluglineMenuDismissed(true);
+      setCharacterSelectedIndex(0);
+      setSluglineSelectedIndex(0);
+
+      const isReverse = e.shiftKey || e.altKey;
+      const nextType = getNextElementTypeOnTab(elem.type, isReverse);
+      handleTypeChange(elem.id, nextType);
+      setCursorPos({ elementId: elem.id, offset });
+      return;
     }
 
     // CHARACTER INTERCEPTIONS (Dropdown Autocomplete Highlight & Selection)
@@ -318,8 +338,8 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
           return;
         }
 
-        // ENTER / ARROW RIGHT / TAB: Insert highlighted name into script
-        if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowRight' || e.key === 'Tab') {
+        // ENTER: Insert highlighted name into script and transition to DIALOGUE
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           const safeIdx = Math.min(characterSelectedIndex, Math.max(0, matchingChars.length - 1));
           const selected = matchingChars[safeIdx] || matchingChars[0];
@@ -329,10 +349,7 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
             handleContentChange(elem.id, selected, selected.length);
           }
           setIsCharacterMenuDismissed(true);
-
-          if (e.key === 'Enter') {
-            handleAddElementAfter(elem.id, 'DIALOGUE');
-          }
+          handleAddElementAfter(elem.id, 'DIALOGUE');
           return;
         }
 
@@ -365,8 +382,8 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
           return;
         }
 
-        // ENTER / ARROW RIGHT / TAB: Insert highlighted suggestion into script
-        if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowRight' || e.key === 'Tab') {
+        // ENTER: Insert highlighted suggestion into script
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           const safeIdx = Math.min(sluglineSelectedIndex, Math.max(0, currentSuggestions.length - 1));
           const selected = currentSuggestions[safeIdx] || currentSuggestions[0];
@@ -376,9 +393,7 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
             handleContentChange(elem.id, selected.completionText, selected.completionText.length);
             if (selected.category === 'TIME') {
               setIsSluglineMenuDismissed(true);
-              if (e.key === 'Enter') {
-                handleAddElementAfter(elem.id, 'ACTION');
-              }
+              handleAddElementAfter(elem.id, 'ACTION');
             } else {
               setSluglineSelectedIndex(0);
             }
@@ -416,16 +431,6 @@ const DEFAULT_CHARACTERS = ['CHARACTER 1', 'SARAH', 'JOHN', 'MARY', 'ALEX'];
           return;
         }
       }
-    }
-
-    // TAB: Cycle Element Type forward (to right) | ALT+TAB or SHIFT+TAB: Cycle left (reverse)
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const isReverse = e.shiftKey || e.altKey;
-      const nextType = getNextElementTypeOnTab(elem.type, isReverse);
-      handleTypeChange(elem.id, nextType);
-      setCursorPos({ elementId: elem.id, offset });
-      return;
     }
 
     // ENTER: Predictive Next Element / Split Line

@@ -29,7 +29,7 @@
 - `src/components/title_page/TitlePageForm.tsx`: Dedicated form container for script title, author, date, and draft colour metadata.
 - `src/components/title_page/TitlePageFormFields.tsx`: Inputs and text areas for title page attributes.
 - `src/components/title_page/useTitlePageModalState.ts`: Custom hook managing modal phases, draft states, and form submissions.
-- `src/components/ScreenplayEditor.tsx`: Main pagination and script canvas supporting industry-standard screenplay formatting, predictive element flow, Alt+letter shortcuts (Alt+S/A/C/D/T), and bi-directional Tab format cycling (Tab right, Alt+Tab / Shift+Tab left).
+- `src/components/ScreenplayEditor.tsx`: Main pagination and script canvas supporting industry-standard screenplay formatting, predictive element flow, Alt+letter shortcuts (Alt+S/A/C/D/T), and bi-directional Tab format cycling (Tab right, Alt+Tab / Shift+Tab left) strictly isolated from autocomplete dropdowns.
 - `src/components/FormattingToolbar.tsx`: Format selector bar with clean element counter, format buttons, format helper button, and docked Open and Export action menus.
 - `src/components/format_bar/FormatBarOpenMenu.tsx`: Dedicated Open menu in the formatting toolbar providing quick project open, import, new script, and sample loader.
 - `src/components/format_bar/FormatBarExportMenu.tsx`: Dedicated Export menu in the formatting toolbar providing PDF, Word Docx, project save, and script printing.
@@ -45,8 +45,31 @@
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
 - `src/components/navigator/PreProductionDocButton.tsx`: Premium amber-tinted trigger button positioned directly above the scenes panel search bar to launch the Pre-Production suite.
 - `src/components/navigator/StoryArcTabContent.tsx`: Dedicated Story Arc bridge component immediately launching the full-screen Story Lab workspace without redundant intermediate cards.
-- `src/components/TableReadModal.tsx`: Multi-voice playback and script rehearsal audio engine offset safely with dual-header clearance (top-28).
-- `src/components/SettingsModal.tsx`: Preferences and environment configurations.
+- `src/components/TableReadModal.tsx`: Modular Table Read coordinator managing cast casting, speech loop, live rate modulation, and spacebar rehearsal cueing (<100 lines).
+- `src/components/table_read/`:
+  * `TableReadHeader.tsx`: Title, Edge Natural / Offline OS engine badge, room tone toggle, audio export trigger (<100 lines).
+  * `TableReadControlsBar.tsx`: Play/pause, restart, 0.5x to 5.0x speed slider with live hot-swapping, Dialogue-Only toggle, Smart Cadence toggle (<100 lines).
+  * `TableReadCastPanel.tsx`: Left sidebar housing the prominent top Narrator card and character casting list (<100 lines).
+  * `TableReadNarratorCard.tsx`: Dedicated top card for casting the Narrator voice and audition preview (<100 lines).
+  * `TableReadCharacterCard.tsx`: Character casting card with mute toggle and 10 gender/FX voice modes (Male, Female, Elder, Baby, Alien, Chipmunk, Monster, Surfer, Robot, Ghost) (<100 lines).
+  * `VoiceSelectDropdown.tsx`: Gender-filtered persona and system voice dropdown with standalone FX indicator and 1-click audition button (<100 lines).
+  * `TableReadScriptViewer.tsx`: Script scroll container with element cards and word-by-word karaoke tracking (<100 lines).
+  * `TableReadElementCard.tsx`: Individual script card with theme-matched word karaoke and live rehearsal countdown banner (<100 lines).
+  * `TableReadExportModal.tsx`: Rehearsal audio export modal generating spoken MP3, lossless WAV, and interactive HTML rehearsal packages with progress readout (<100 lines).
+  * `useTableReadPlayback.ts`: Hook managing speech synthesis loop, spacebar cue advance, word boundary events, and rehearsal gap timer (<100 lines).
+- `src/types/mespeak.d.ts`: TypeScript declarations for offline meSpeak synthesiser and bundled JSON voice packs (<100 lines).
+- `src/lib/tableReadTypes.ts`: Timbre presets, voice persona definitions, and casting interfaces (<100 lines).
+- `src/lib/voiceGenderClassifier.ts`: Word-boundary gender classifier, safe character detection, and per-voice speed calibrator (<100 lines).
+- `src/lib/voicePersonas.ts`: Curated library of 10 Male and 10 Female character vocal personas (<100 lines).
+- `src/lib/mespeakSynth.ts`: Offline meSpeak synthesiser wrapper generating WAV buffers from bundled English UK/US voice data (<100 lines).
+- `src/lib/webAudioFxRack.ts`: Shared Web Audio DSP FX graph (pitch/rate, ring modulation, wave-shaper distortion, and echo reverb) for live and offline rendering (<100 lines).
+- `src/lib/fxPlaybackHelper.ts`: Real-time Web Audio FX playback controller with live rate modulation and karaoke boundary ticks (<100 lines).
+- `src/lib/speechEngine.ts`: Hybrid audio router dispatching FX timbres to meSpeak + Web Audio DSP and dramatic cast roles to native OS/Edge voices (<100 lines).
+- `src/lib/speechVoiceManager.ts`: Edge Natural & Offline OS voice filtering, FX local-pitch routing, and persona resolver (<100 lines).
+- `src/lib/rehearsalGapTimer.ts`: Actor reading time calculator based on word count with math guards (<100 lines).
+- `src/lib/mp3Encoder.ts`: Pure 16-bit PCM WAV and 128kbps MP3 encoder built on @breezystack/lamejs (<100 lines).
+- `src/lib/tableReadAudioExporter.ts`: Spoken rehearsal track renderer combining meSpeak synthesis, OfflineAudioContext DSP, rehearsal chimes/gaps, and MP3/WAV export (<100 lines).
+- `src/lib/tableReadHtmlExporter.ts`: Standalone offline actor rehearsal HTML audio player generator (<100 lines).
 - `src/lib/gameCooldownManager.ts`: 10-minute focus sprint timer and session storage persistence to regulate break games.
 - `src/components/GameLockoutModal.tsx`: Focus sprint notification modal displaying live cooldown countdown when games are temporarily blocked.
 - `src/lib/actorHighlighting.ts`: Soft pastel palette constants, character colour resolver, dialogue speaker tracker, and hex-to-rgb vector transformer.
@@ -141,8 +164,8 @@
   * `StoryLabGiTagsLayer.tsx`: Plain unnumbered circular fortune nodes supporting 2D click-drag positioning, click selection, and keyboard/button deletion.
   * `useCharacterFortuneState.ts`: Custom hook managing multi-character 5-node default arcs, 2D node dragging, right-click insertion, and node deletion persisted on the script.
   * `StoryLabGrid.tsx`: Responsive grid and pyramid layout router.
-  * `StoryLabHeader.tsx`: Parchment header with Story Lab title, target minutes input (guarded against zero-math), and "Return to Script" button.
-  * `StoryLabModal.tsx`: Fullscreen `#FDFBF7` workspace assembling header, timeline, action bar, and cards.
+  * `StoryLabModal.tsx`: Fullscreen `#FDFBF7` workspace portal rendered via `createPortal` to `document.body` with `z-[100]` to avoid parent stacking context and header overlap.
+  * `StoryLabWorkspaceBody.tsx`: Main workspace container coordinating Header, Timeline, Action Bar, and Grid/Hero's Journey views.
   * `StoryLabModalsLayer.tsx`: Popover aggregator managing confirm-reset, synopsis, and guided-spark overlays.
   * `StoryLabConfirmResetModal.tsx`: Confirmation modal triggered when "Start New" is pressed with existing content.
   * `StoryLabGuidedModal.tsx`: 4-step reverse-engineering story spark wizard (Ending feeling -> Act III Climax -> Act I Beginning Rhyme -> Act II Middle Transformation).

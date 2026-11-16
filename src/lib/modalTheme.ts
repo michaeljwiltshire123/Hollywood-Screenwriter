@@ -16,6 +16,8 @@ export interface ModalThemeStyles {
   borderStyle: React.CSSProperties;
 }
 
+export type ModalTheme = ModalThemeStyles;
+
 export function getModalTheme(themeConfig?: AppThemeConfig): ModalThemeStyles {
   const theme = themeConfig || resolveThemeConfig();
   const inputBg = theme.isDark ? theme.topBottomBars : '#FFFFFF';
