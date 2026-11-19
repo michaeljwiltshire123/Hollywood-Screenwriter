@@ -329,7 +329,7 @@ export const INITIAL_SAMPLE_SCRIPT: ScreenplayDocument = {
     {
       id: 'elem-meta-48',
       type: 'ACTION',
-      content: 'Lily clicks the PRODUCTION button in the top navigation bar. A sleek modal expands with Call Sheets, Shooting Schedules, and Risk Assessments.',
+      content: 'Lily clicks the PRODUCTION button in the top navigation bar. A sleek modal expands with Call Sheets, Shooting Schedules, and Health & Safety suites.',
     },
     {
       id: 'elem-meta-49',

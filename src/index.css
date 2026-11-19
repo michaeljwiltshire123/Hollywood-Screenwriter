@@ -19,12 +19,13 @@
   display: block;
 }
 
-/* Screenplay Print Container hidden during normal screen display */
-.screenplay-print-only {
+/* Print Containers hidden during normal screen display */
+.screenplay-print-only,
+#__app_print_root {
   display: none;
 }
 
-/* Print CSS for Clean Screenplay Printing */
+/* Print CSS for Clean Screenplay & In-Place Document Printing */
 @media print {
   /* Hide standard application root and all UI chrome */
   #root,
@@ -49,7 +50,8 @@
     color: #000000 !important;
   }
 
-  body, html {
+  body.printing-screenplay,
+  html:has(body.printing-screenplay) {
     background: #ffffff !important;
     color: #000000 !important;
     font-family: 'Courier Prime', 'Courier New', Courier, monospace !important;
@@ -59,8 +61,7 @@
   }
 
   @page {
-    size: letter portrait;
-    margin: 1in;
+    size: auto;
   }
 
   .title-page-container {

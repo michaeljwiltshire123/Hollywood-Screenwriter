@@ -1,3 +1,5 @@
+import { HealthSafetyData } from './types/healthSafety';
+
 export type ElementType =
   | 'SCENE HEADING'
   | 'ACTION'
@@ -256,6 +258,7 @@ export interface RiskAssessmentItem {
   likelihood: 'HIGH' | 'MED' | 'LOW';
   controlMeasures: string;
   responsiblePerson: string;
+  sceneRefs?: string;
 }
 
 export type ReleaseFormType = 'TALENT' | 'LOCATION' | 'EXTRA' | 'MATERIALS' | 'MINOR' | 'MUSIC' | 'CROWD_NOTICE';
@@ -299,6 +302,7 @@ export interface ScreenplayDocument {
   productionLogoUrl?: string; // Watermark / Production Company Logo Data URL
   callSheetData?: CallSheetData;
   riskAssessments?: RiskAssessmentItem[];
+  healthSafetyData?: HealthSafetyData;
   releaseForms?: ReleaseFormItem[];
   productionScheduleDays?: ProductionScheduleDay[];
   isActorHighlightingActive?: boolean; // Strictly defaults to false (OFF)

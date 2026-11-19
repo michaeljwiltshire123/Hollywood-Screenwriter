@@ -11,7 +11,10 @@
 - `src/lib/pdf/pdfTitlePage.ts`: Title page formatting engine rendering centered title block, author credentials, contact, date, and draft colour.
 - `src/lib/pdf/pdfElementRenderer.ts`: Screenplay element formatting rules, margin offsets, uppercase transforms, and orphan prevention rules.
 - `src/lib/printScript.ts`: Direct script printing trigger compiling and printing isolated screenplay documents without app buttons.
-- `src/lib/print/printScriptDocument.ts`: Standalone iframe printing pipeline ensuring crisp, reliable physical printer dispatch.
+- `src/lib/print/printScriptDocument.ts`: Standalone in-place printing pipeline ensuring crisp, reliable printer dispatch without opening new tabs.
+- `src/lib/print/printHtmlInPlace.ts`: Shared in-place print helper routing embedded sandbox previews to PrintPreviewModal and standalone tabs to synchronous `window.print()`.
+- `src/lib/print/printPreviewBus.ts` & `src/components/PrintPreviewModal.tsx`: Global in-app Print Preview overlay with live paper preview and 1-click PDF download.
+- `src/lib/print/htmlToPdfExporter.ts`: Universal HTML-to-PDF converter supporting portrait/landscape pages, page breaks, logos, SVGs, and tables.
 - `src/lib/print/generateScriptHtml.ts`: Standalone HTML generator compiling title page and screenplay body into pure screenplay format.
 - `src/lib/print/printStyles.ts`: Print stylesheet bundler combining page layout and element typography styles.
 - `src/lib/print/printPageStyles.ts`: Page size, 1-inch margins, Courier font, and title page centering layout.
@@ -43,6 +46,11 @@
 - `src/lib/slugline/sluglineSuggestions.ts`: Contextual prefix, location, and time of day suggestion calculator.
 - `src/lib/slugline/sluglineGhostText.ts`: Smart compose inline ghost text suggestion generator.
 - `src/components/NavigatorSidePanel.tsx`: Scenes, shots, arcs, story bibles, and statistics drawer. Includes sticky non-overlapping fullscreen controls positioned cleanly with dual-header clearance (top-28) below both the main header and formatting toolbar.
+- `src/utils/sparkEngine.ts`: Zero-AI weighted 8-category Spark Engine coordinating category selection, 0-character filtering, 5%-capped state-aware nudges, and token replacement (<100 lines).
+- `src/utils/sparks/`:
+  * `sparkContext.ts`: Core-cast selector (min 5% dialogue share for developed scripts, neutral fallback for solo characters), rotating 24-prop bank, and feature state checks (<100 lines).
+  * `sparkDeck.ts`: Full-deck category shuffler with rolling 15-template anti-repeat session memory (<100 lines).
+- `src/data/sparks/`: Modular JSON prompt banks across 8 categories (`scriptPrompts.json`, `trivia.json`, `paradoxes.json`, `motivation.json`, `antiCliche.json`, `psychology.json`, `sensory.json`, `subtext.json`).
 - `src/components/navigator/PreProductionDocButton.tsx`: Premium amber-tinted trigger button positioned directly above the scenes panel search bar to launch the Pre-Production suite.
 - `src/components/navigator/StoryArcTabContent.tsx`: Dedicated Story Arc bridge component immediately launching the full-screen Story Lab workspace without redundant intermediate cards.
 - `src/components/TableReadModal.tsx`: Modular Table Read coordinator managing cast casting, speech loop, live rate modulation, and spacebar rehearsal cueing (<100 lines).
@@ -134,6 +142,22 @@
 - `src/components/production/ProductionSuiteHeader.tsx`: Extracted top bar with title, metadata, tour trigger, and modal close.
 - `src/components/production/ProductionSuiteTabs.tsx`: Extracted suite tab navigation and production company logo uploader.
 - `src/components/production/ProductionScheduleModal.tsx`: Modular root modal container integrating active tab views and live page tour.
+- `src/types/healthSafety.ts`: TypeScript interfaces for Health & Safety Toolbox Talk, Incident Log, and Emergency Contacts (<100 lines).
+- `src/components/production/health_safety/`: Modular On-Set Health & Safety (H&S) Suite (<100 lines per file):
+  * `HealthSafetyTab.tsx`: Main coordinator with live auto-scan on open, Call Sheet sync, and Full Pack Print/PDF/Word exports.
+  * `hsHazardRules.ts` & `hsKeywordScanner.ts`: Zero-AI script scanner for sluglines, action, and shots with edit-preserving merge.
+  * `hsDefaultData.ts`: UK defaults and live Call Sheet emergency contact synchronisation helpers.
+  * `HazardChecklistSection.tsx` & `HazardRowItem.tsx`: Editable Automatic Set Hazard Checklist with Priority and Suggested Controls.
+  * `ToolboxTalkSection.tsx` & `ToolboxCrewList.tsx`: Editable Daily Safety Briefing with Call Sheet crew import and extra blank handwritten print lines.
+  * `IncidentLogSection.tsx`: Editable On-Set Incident & Near-Miss Log with extra blank clipboard rows on export.
+  * `EmergencyContactsSection.tsx`: Emergency hospital and set contact manager synced bidirectionally with Call Sheet.
+  * `hsLogoHelper.ts`: Image normaliser converting uploaded logos (PNG, JPEG, WebP, SVG) into scaled PNG assets for PDF and Word exports (<100 lines).
+  * `HsExportActions.tsx`, `hsPrintHelper.ts`, `hsHtmlTemplates.ts`, `hsPdfExporter.ts`, `hsWordExporter.ts`: Popup-free Print, vector PDF, and editable Word (.docx) exporters with production logo branding.
+- `src/components/production/safety_signs/`: Modular printable UK safety signs bank (<100 lines per file):
+  * `safetySignsData.ts`, `SafetySignCard.tsx`, `SafetySignsBank.tsx`: 12 British-English printable warning & safe-condition posters.
+- `src/components/production/release_forms/`: Modular Release Form selector & print helpers (<100 lines per file):
+  * `releaseFormOptions.ts`, `ReleaseFormPicker.tsx`: Empty-by-default release form pill chooser and active toolbar selector.
+  * `releaseFormPrintHelper.ts`: Single and batch multi-page Release Form HTML print compiler with logo and signature blocks.
 - `src/components/story_lab/`: Dedicated Story Lab workspace architecture (<100 lines per file):
   * `storyLabTypes.ts`: Type definitions for 3-Act milestones, pacing metrics, and spark answers.
   * `storyLabOps.ts`: Zero-math guarded pacing calculation (`calculateSafePacing`) and `importScenesIntoActs` helper.

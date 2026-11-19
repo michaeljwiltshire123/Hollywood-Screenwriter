@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { ScreenplayDocument, ReleaseFormItem } from '../../types';
 import { AppThemeConfig } from '../../lib/themePresets';
 import { getModalTheme } from '../../lib/modalTheme';
-import { FileCheck, Printer, Plus, Trash2, Edit3, X, FileText } from 'lucide-react';
+import { FileCheck, Printer, Trash2, Edit3, X, FileText } from 'lucide-react';
+import { printHtmlInPlace } from '../../lib/print/printHtmlInPlace';
+import { ReleaseFormPicker } from './release_forms/ReleaseFormPicker';
+import { buildAllReleaseFormsHtml, buildReleaseFormHtml } from './release_forms/releaseFormPrintHelper';
 
 interface ReleaseFormsTabProps {
   script: ScreenplayDocument;
@@ -42,35 +45,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
   themeConfig,
 }) => {
   const mt = getModalTheme(themeConfig);
-  const defaultForms: ReleaseFormItem[] = script.releaseForms || [
-    {
-      id: 'form-talent-1',
-      formType: 'TALENT',
-      grantorName: 'Lead Actor Name',
-      grantorContact: 'actor@agency.com | (555) 012-3456',
-      projectTitle: script.title || 'UNTITLED FILM',
-      producerName: script.author || 'Producer Name',
-      compensation: 'Standard SAG-AFTRA / Deferred Indie Rate ($100/day)',
-      date: new Date().toLocaleDateString(),
-      notes: 'Covers world-wide perpetual rights in all media.',
-      agreementText: DEFAULT_AGREEMENT_TEMPLATES.TALENT,
-      status: 'READY TO SIGN',
-    },
-    {
-      id: 'form-loc-1',
-      formType: 'LOCATION',
-      grantorName: 'Property Owner / Business Owner',
-      grantorContact: 'owner@location.com',
-      projectTitle: script.title || 'UNTITLED FILM',
-      producerName: script.author || 'Producer Name',
-      compensation: '$500 Location Fee + $250 Cleaning Deposit',
-      date: new Date().toLocaleDateString(),
-      locationDetails: '124 Main Street Diner & Parking Lot Area',
-      notes: 'Filming permitted 07:00 AM to 08:00 PM.',
-      agreementText: DEFAULT_AGREEMENT_TEMPLATES.LOCATION,
-      status: 'READY TO SIGN',
-    },
-  ];
+  const defaultForms: ReleaseFormItem[] = script.releaseForms || [];
 
   const [forms, setForms] = useState<ReleaseFormItem[]>(defaultForms);
   const [editingForm, setEditingForm] = useState<ReleaseFormItem | null>(null);
@@ -80,28 +55,17 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
     onChangeScript({ ...script, releaseForms: updated });
   };
 
+  const capitaliseName = (v: string) => v.replace(/(^|\s|-)[a-z]/g, (m) => m.toUpperCase());
+
   const handleAddForm = (type: ReleaseFormItem['formType']) => {
     const newForm: ReleaseFormItem = {
       id: `form-${type.toLowerCase()}-${Date.now()}`,
       formType: type,
-      grantorName:
-        type === 'TALENT'
-          ? 'Actor Name'
-          : type === 'LOCATION'
-          ? 'Location Owner'
-          : type === 'MATERIALS'
-          ? 'Artist / Prop Owner'
-          : type === 'MINOR'
-          ? 'Minor Name (Child)'
-          : type === 'MUSIC'
-          ? 'Composer / Band Name'
-          : type === 'CROWD_NOTICE'
-          ? 'Public Crowd Notice'
-          : 'Background Extra Name',
-      grantorContact: 'contact@email.com',
+      grantorName: '',
+      grantorContact: '',
       projectTitle: script.title || 'UNTITLED FILM',
       producerName: script.author || 'Producer Name',
-      compensation: type === 'CROWD_NOTICE' ? 'N/A (Public Notice)' : 'Negotiated Terms / Credit',
+      compensation: type === 'CROWD_NOTICE' ? 'N/A (Public Notice)' : '',
       date: new Date().toLocaleDateString(),
       agreementText: DEFAULT_AGREEMENT_TEMPLATES[type] || '',
       status: 'READY TO SIGN',
@@ -123,121 +87,55 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
   };
 
   const handlePrintForm = (form: ReleaseFormItem) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    printHtmlInPlace(buildReleaseFormHtml(form, DEFAULT_AGREEMENT_TEMPLATES, watermarkLogoUrl));
+  };
 
-    let titleText = 'STANDARD APPEARANCE & TALENT RELEASE AGREEMENT';
-    if (form.formType === 'LOCATION') titleText = 'LOCATION FILMING & PRODUCTION ACCESS AGREEMENT';
-    if (form.formType === 'EXTRA') titleText = 'BACKGROUND EXTRA RELEASE FORM';
-    if (form.formType === 'MATERIALS') titleText = 'MATERIALS / ARTWORK / PROP USE RELEASE';
-    if (form.formType === 'MINOR') titleText = 'MINOR TALENT RELEASE & PARENTAL CONSENT FORM';
-    if (form.formType === 'MUSIC') titleText = 'MUSIC SYNCHRONIZATION & MASTER USE RELEASE';
-    if (form.formType === 'CROWD_NOTICE') titleText = 'PUBLIC FILMING / CROWD NOTICE POSTER';
-
-    const agreement = form.agreementText || DEFAULT_AGREEMENT_TEMPLATES[form.formType] || '';
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${titleText} - ${form.grantorName}</title>
-          <style>
-            body { font-family: 'Courier New', Courier, monospace; padding: 40px; color: #111; background: #fff; line-height: 1.6; }
-            .header-banner { border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-            h1 { font-size: 18px; margin: 0; text-transform: uppercase; font-weight: bold; }
-            .meta { font-size: 11px; color: #444; }
-            .logo { max-height: 50px; max-width: 150px; }
-            .legal-text { font-size: 12px; margin: 20px 0; text-align: justify; white-space: pre-wrap; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; }
-            .field-row { margin-bottom: 8px; font-size: 12px; }
-            .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; }
-            .sig-line { border-top: 1px solid #000; pt-8; font-size: 12px; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="header-banner">
-            <div>
-              <h1>${titleText}</h1>
-              <div class="meta">PROJECT: ${form.projectTitle} | DATE: ${form.date}</div>
-            </div>
-            ${watermarkLogoUrl ? `<img src="${watermarkLogoUrl}" class="logo" alt="Logo" />` : ''}
-          </div>
-
-          <div class="field-row"><strong>GRANTOR / RELEASOR:</strong> ${form.grantorName}</div>
-          ${form.parentGuardianName ? `<div class="field-row"><strong>PARENT / GUARDIAN:</strong> ${form.parentGuardianName}</div>` : ''}
-          <div class="field-row"><strong>CONTACT DETAILS:</strong> ${form.grantorContact}</div>
-          <div class="field-row"><strong>PRODUCER / PRODUCTION CO:</strong> ${form.producerName}</div>
-          ${form.compensation ? `<div class="field-row"><strong>COMPENSATION / CONSIDERATION:</strong> ${form.compensation}</div>` : ''}
-          ${form.locationDetails ? `<div class="field-row"><strong>LOCATION ADDRESS:</strong> ${form.locationDetails}</div>` : ''}
-          ${form.artworkDetails ? `<div class="field-row"><strong>ARTWORK / MATERIAL DETAILS:</strong> ${form.artworkDetails}</div>` : ''}
-          ${form.musicDetails ? `<div class="field-row"><strong>MUSIC TRACK DETAILS:</strong> ${form.musicDetails}</div>` : ''}
-
-          <div class="legal-text">${agreement}</div>
-
-          ${form.notes ? `<div class="field-row"><strong>ADDITIONAL TERMS:</strong> ${form.notes}</div>` : ''}
-
-          ${
-            form.formType !== 'CROWD_NOTICE'
-              ? `
-          <div class="sig-grid">
-            <div>
-              <div class="sig-line">${form.formType === 'MINOR' ? 'PARENT / GUARDIAN SIGNATURE' : 'GRANTOR SIGNATURE'}</div>
-              <div style="font-size: 11px; margin-top: 4px;">Print Name: ${form.parentGuardianName || form.grantorName}</div>
-              <div style="font-size: 11px;">Date: ________________________</div>
-            </div>
-            <div>
-              <div class="sig-line">PRODUCER SIGNATURE</div>
-              <div style="font-size: 11px; margin-top: 4px;">Print Name: ${form.producerName}</div>
-              <div style="font-size: 11px;">Date: ________________________</div>
-            </div>
-          </div>
-          `
-              : `<div style="margin-top: 30px; font-weight: bold; text-align: center; border: 2px solid #000; padding: 15px;">PUBLIC NOTICE POSTED BY PRODUCTION MANAGEMENT</div>`
-          }
-
-          <script>window.onload = function() { window.print(); };</script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+  const handlePrintAllForms = () => {
+    if (forms.length === 0) return;
+    printHtmlInPlace(buildAllReleaseFormsHtml(forms, DEFAULT_AGREEMENT_TEMPLATES, script.title || 'Production', watermarkLogoUrl));
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Bar Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border rounded-xl" style={mt.cardStyle}>
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-            <FileCheck className="w-4 h-4" style={mt.accentStyle} />
-            Legal Release Forms & Clearances Library ({forms.length})
-          </h2>
-          <p className="text-xs" style={mt.mutedStyle}>
-            Fully customisable agreement texts for Actors, Minors, Locations, Extras, Artwork/Props, Music Clearances, and Public Filming Notices.
-          </p>
+      {/* Top Bar Header */}
+      <div className="space-y-3 p-4 border rounded-xl" style={mt.cardStyle}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+              <FileCheck className="w-4 h-4" style={mt.accentStyle} />
+              Legal Release Forms & Clearances Library ({forms.length})
+            </h2>
+            <p className="text-xs mt-0.5" style={mt.mutedStyle}>
+              Fully customisable agreement texts for Actors, Minors, Locations, Extras, Artwork/Props, Music Clearances, and Public Filming Notices.
+            </p>
+          </div>
+
+          {forms.length > 0 && (
+            <button
+              type="button"
+              onClick={handlePrintAllForms}
+              className="px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 shrink-0 transition cursor-pointer active:scale-95 shadow-sm hover:opacity-90"
+              style={mt.primaryBtnStyle}
+              title="Print all release forms together, one form per page"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print All Forms ({forms.length})</span>
+            </button>
+          )}
         </div>
 
-        <div id="tour-releases-selector" className="flex flex-wrap items-center gap-1.5">
-          {[
-            { type: 'TALENT' as const, label: '+ Actor' },
-            { type: 'MINOR' as const, label: '+ Minor (Parental)' },
-            { type: 'LOCATION' as const, label: '+ Location' },
-            { type: 'MATERIALS' as const, label: '+ Artwork / Materials' },
-            { type: 'MUSIC' as const, label: '+ Music Clearance' },
-            { type: 'CROWD_NOTICE' as const, label: '+ Crowd Notice Poster' },
-          ].map((btn) => (
-            <button
-              key={btn.type}
-              onClick={() => handleAddForm(btn.type)}
-              className="px-2.5 py-1 border rounded text-xs font-bold transition cursor-pointer hover:opacity-85"
-              style={mt.secondaryBtnStyle}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
+        {forms.length > 0 && (
+          <div className="pt-3 border-t" style={mt.borderStyle}>
+            <ReleaseFormPicker mt={mt} variant="toolbar" onSelect={handleAddForm} />
+          </div>
+        )}
       </div>
 
-      {/* Release Forms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Empty-State Pill Selector OR Active Release Forms Grid */}
+      {forms.length === 0 ? (
+        <ReleaseFormPicker mt={mt} variant="empty" onSelect={handleAddForm} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {forms.map((form) => (
           <div
             key={form.id}
@@ -247,21 +145,12 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between border-b pb-2" style={mt.borderStyle}>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
-                    form.formType === 'TALENT'
-                      ? 'bg-sky-500/10 text-sky-300 border-sky-500/30'
-                      : form.formType === 'MINOR'
-                      ? 'bg-pink-500/10 text-pink-300 border-pink-500/30'
-                      : form.formType === 'LOCATION'
-                      ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                      : form.formType === 'MATERIALS'
-                      ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                      : form.formType === 'MUSIC'
-                      ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30'
-                      : form.formType === 'CROWD_NOTICE'
-                      ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                  }`}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded border uppercase"
+                  style={{
+                    backgroundColor: mt.theme.topBottomBars,
+                    color: mt.theme.accentText,
+                    borderColor: mt.theme.borders,
+                  }}
                 >
                   {form.formType === 'TALENT'
                     ? 'Actor Release'
@@ -281,7 +170,8 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setEditingForm(form)}
-                    className="p-1 hover:bg-sky-500/20 text-sky-400 rounded transition flex items-center gap-1 text-[11px] font-bold px-2"
+                    className="p-1 rounded transition flex items-center gap-1 text-[11px] font-bold px-2 hover:opacity-80 cursor-pointer"
+                    style={mt.accentStyle}
                     title="Edit full written agreement text"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -290,7 +180,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
                   <button
                     onClick={() => handleRemoveForm(form.id)}
-                    className="p-1 hover:bg-rose-500/20 text-rose-400 rounded transition"
+                    className={`p-1 rounded transition cursor-pointer ${mt.theme.isDark ? 'hover:bg-rose-500/20 text-rose-400' : 'hover:bg-rose-500/10 text-rose-700'}`}
                     title="Remove release form"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -315,10 +205,12 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                   </label>
                   <input
                     type="text"
+                    autoCapitalize="words"
                     value={form.grantorName}
-                    onChange={(e) => handleFormChange(form.id, 'grantorName', e.target.value)}
+                    onChange={(e) => handleFormChange(form.id, 'grantorName', capitaliseName(e.target.value))}
                     className="w-full border rounded p-1.5 font-bold"
                     style={mt.inputStyle}
+                    placeholder="Enter full name..."
                   />
                 </div>
 
@@ -327,8 +219,9 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                     <label className="text-[10px] uppercase font-bold block" style={mt.mutedStyle}>Parent / Legal Guardian Name</label>
                     <input
                       type="text"
+                      autoCapitalize="words"
                       value={form.parentGuardianName || ''}
-                      onChange={(e) => handleFormChange(form.id, 'parentGuardianName', e.target.value)}
+                      onChange={(e) => handleFormChange(form.id, 'parentGuardianName', capitaliseName(e.target.value))}
                       className="w-full border rounded p-1.5"
                       style={mt.inputStyle}
                       placeholder="e.g. Jane Doe (Parent)"
@@ -387,6 +280,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                       onChange={(e) => handleFormChange(form.id, 'compensation', e.target.value)}
                       className="w-full border rounded p-1.5"
                       style={mt.inputStyle}
+                      placeholder="e.g. Fee or screen credit"
                     />
                   </div>
 
@@ -398,6 +292,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                       onChange={(e) => handleFormChange(form.id, 'grantorContact', e.target.value)}
                       className="w-full border rounded p-1.5"
                       style={mt.inputStyle}
+                      placeholder="Email or phone number"
                     />
                   </div>
                 </div>
@@ -410,6 +305,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
 
             <div className="flex gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setEditingForm(form)}
                 className="flex-1 py-1.5 border rounded font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer hover:opacity-85"
                 style={mt.secondaryBtnStyle}
@@ -419,6 +315,7 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
               </button>
 
               <button
+                type="button"
                 onClick={() => handlePrintForm(form)}
                 className="flex-1 py-1.5 rounded font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95 shadow-sm hover:opacity-90"
                 style={mt.primaryBtnStyle}
@@ -429,7 +326,8 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Editable Agreement Text Modal */}
       {editingForm && (
@@ -463,10 +361,12 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                 <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>Grantor / Party Name</label>
                 <input
                   type="text"
+                  autoCapitalize="words"
                   value={editingForm.grantorName}
-                  onChange={(e) => handleFormChange(editingForm.id, 'grantorName', e.target.value)}
+                  onChange={(e) => handleFormChange(editingForm.id, 'grantorName', capitaliseName(e.target.value))}
                   className="w-full border rounded p-2 font-bold"
                   style={mt.inputStyle}
+                  placeholder="Enter full name..."
                 />
               </div>
 
@@ -475,8 +375,9 @@ export const ReleaseFormsTab: React.FC<ReleaseFormsTabProps> = ({
                   <label className="text-[10px] uppercase font-bold block mb-1" style={mt.mutedStyle}>Parent or Legal Guardian Name</label>
                   <input
                     type="text"
+                    autoCapitalize="words"
                     value={editingForm.parentGuardianName || ''}
-                    onChange={(e) => handleFormChange(editingForm.id, 'parentGuardianName', e.target.value)}
+                    onChange={(e) => handleFormChange(editingForm.id, 'parentGuardianName', capitaliseName(e.target.value))}
                     className="w-full border rounded p-2 font-bold"
                     style={mt.inputStyle}
                     placeholder="e.g. Mary Smith (Mother)"

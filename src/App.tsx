@@ -43,6 +43,7 @@ import { ProductionScheduleModal } from './components/production/ProductionSched
 import { FocusGoalModal } from './components/FocusGoalModal';
 import { FocusSummaryModal } from './components/FocusSummaryModal';
 import { FocusTopBar } from './components/FocusTopBar';
+import { PrintPreviewModal } from './components/PrintPreviewModal';
 
 export default function App() {
   const [script, setScript] = useState<ScreenplayDocument>(INITIAL_SAMPLE_SCRIPT);
@@ -730,7 +731,7 @@ export default function App() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
         setIsDirty(false);
       } catch (err: any) {
         alert(`Word export failed: ${err.message}`);
@@ -1149,6 +1150,8 @@ export default function App() {
         scriptTitle={script.title}
         themeConfig={themeConfig}
       />
+
+      <PrintPreviewModal themeConfig={themeConfig} />
     </div>
   );
 }

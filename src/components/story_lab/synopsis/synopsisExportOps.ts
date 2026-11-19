@@ -1,3 +1,5 @@
+import { printHtmlInPlace } from '../../../lib/print/printHtmlInPlace';
+
 export const copyPitchToClipboard = async (
   scriptTitle: string, comps: string, loglineText: string, synopsisText: string, onCopied: () => void,
 ) => {
@@ -14,14 +16,10 @@ export const copyPitchToClipboard = async (
 export const printPitchDocument = (
   scriptTitle: string, targetLength: number, comps: string, loglineText: string, synopsisText: string, words: number,
 ) => {
-  const w = window.open('', '_blank');
-  if (!w) return;
   const compHtml = comps.trim() ? `<p><b>Comps:</b> ${comps}</p>` : '';
-  w.document.write(
-    `<html><head><title>${scriptTitle} - Synopsis</title><style>body{font-family:serif;padding:40px;max-width:700px;margin:auto;line-height:1.6;color:#111}h1{font-size:22px}h3{color:#555;margin-top:20px}.logline{font-style:italic;margin-bottom:20px;padding:12px;background:#f9f9f9;border-left:4px solid #333}</style></head><body><h1>${scriptTitle}</h1><p><b>Target Runtime:</b> ${targetLength} minutes</p>${compHtml}<h3>Logline</h3><div class="logline">${loglineText || 'No logline provided.'}</div><h3>Synopsis (${words} words)</h3><p>${synopsisText.replace(/\n/g, '<br/>')}</p></body></html>`
+  printHtmlInPlace(
+    `<!DOCTYPE html><html><head><title>${scriptTitle} - Synopsis</title><style>body{font-family:serif;padding:40px;max-width:700px;margin:auto;line-height:1.6;color:#111}h1{font-size:22px}h3{color:#555;margin-top:20px}.logline{font-style:italic;margin-bottom:20px;padding:12px;background:#f9f9f9;border-left:4px solid #333}</style></head><body><h1>${scriptTitle}</h1><p><b>Target Runtime:</b> ${targetLength} minutes</p>${compHtml}<h3>Logline</h3><div class="logline">${loglineText || 'No logline provided.'}</div><h3>Synopsis (${words} words)</h3><p>${synopsisText.replace(/\n/g, '<br/>')}</p></body></html>`
   );
-  w.document.close();
-  w.print();
 };
 
 export const emailPitchDraft = (
@@ -43,6 +41,8 @@ export const downloadPitchWordDoc = (
   const a = document.createElement('a');
   a.href = url;
   a.download = `${scriptTitle.toLowerCase().replace(/\s+/g, '_')}_synopsis.doc`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };

@@ -28,6 +28,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { SceneShotPlannerModal } from './navigator/shot_planner/SceneShotPlannerModal';
+import { printHtmlInPlace } from '../lib/print/printHtmlInPlace';
 import {
   ScreenplayDocument,
   SceneInfo,
@@ -47,6 +48,7 @@ import { StoryArcTabContent } from './navigator/StoryArcTabContent';
 import { StoryLabModal } from './story_lab/StoryLabModal';
 import { AppThemeConfig } from '../lib/themePresets';
 import { getModalTheme } from '../lib/modalTheme';
+import { generateSpark, dismissSparkNudge, SparkResult } from '../utils/sparkEngine';
 
 interface NavigatorSidePanelProps {
   script: ScreenplayDocument;
@@ -59,19 +61,6 @@ interface NavigatorSidePanelProps {
   onOpenProductionSchedule?: () => void;
   themeConfig?: AppThemeConfig;
 }
-
-const MASTER_PROVOCATIONS = [
-  "Imagine the antagonist is actually trying to help the protagonist, but in the most catastrophic way possible.",
-  "What happens if this scene starts 30 seconds later, right after the explosion or confession?",
-  "Every character in this scene must lie about their true motivation for at least two lines.",
-  "Introduce a ticking clock: A loud sound or event occurs in 3 minutes that everyone is dreading.",
-  "Switch the power dynamic: The character who feels weakest at the start must make a bold demand by the end.",
-  "Add an irrelevant physical object (e.g., a squeaky rubber duck, a heavy suitcase) that someone is forced to carry.",
-  "What if the dialogue is entirely subtext? No one says what they actually mean.",
-  "Remove all exposition: The audience must figure out who these people are purely through actions and glances.",
-  "Force a character to reveal their deepest secret in casual conversation while peeling an orange.",
-  "The room starts filling with water (or smoke). How does the argument change?"
-];
 
 
 const SHOT_TYPES = [
@@ -138,17 +127,22 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isCharacterBibleMaximized, isWhiteboardMaximized]);
 
-  // Master's Toolkit Provocation State
-  const [currentProvocation, setCurrentProvocation] = useState<string>(MASTER_PROVOCATIONS[0]);
+  // Master's Toolkit Spark Engine State
+  const [currentSpark, setCurrentSpark] = useState<SparkResult>(() => generateSpark(script));
   const [isSparkModalOpen, setIsSparkModalOpen] = useState<boolean>(false);
 
   const handleShuffleProvocation = () => {
-    const randomIndex = Math.floor(Math.random() * MASTER_PROVOCATIONS.length);
-    setCurrentProvocation(MASTER_PROVOCATIONS[randomIndex]);
+    if (currentSpark.isFeatureNudge && currentSpark.nudgeId) dismissSparkNudge(currentSpark.nudgeId);
+    setCurrentSpark(generateSpark(script, currentSpark.text));
+  };
+
+  const handleCloseSparkModal = () => {
+    if (currentSpark.isFeatureNudge && currentSpark.nudgeId) dismissSparkNudge(currentSpark.nudgeId);
+    setIsSparkModalOpen(false);
   };
 
   const handleOpenSparkModal = () => {
-    handleShuffleProvocation();
+    setCurrentSpark(generateSpark(script, currentSpark.text));
     setIsSparkModalOpen(true);
   };
 
@@ -330,9 +324,6 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
 
   // Print Shot List Function
   const handlePrintShotList = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -395,10 +386,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
         </body>
       </html>
     `;
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 500);
+    printHtmlInPlace(htmlContent);
   };
 
   if (!isOpen) return null;
@@ -463,7 +451,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
             { id: 'scenes', label: 'SCENES', title: 'Scene Heading Navigator', icon: Layers, active: activeTab === 'scenes', onClick: () => setActiveTab('scenes') },
             { id: 'arc', label: 'STORY LAB', title: 'Open Story Lab', icon: TrendingUp, active: isWhiteboardMaximized, onClick: () => setIsWhiteboardMaximized(true) },
             { id: 'inspiration', label: 'SPARK', title: 'Creative Inspirations & Provocations', icon: Lightbulb, active: activeTab === 'inspiration', onClick: () => setActiveTab('inspiration') },
-            { id: 'characters', label: 'BIBLE', title: 'Character Bibles & Appearance Logs', icon: Users, active: activeTab === 'characters', onClick: () => setActiveTab('characters') },
+            { id: 'characters', label: 'CHARACTERS', title: 'Character Bibles & Appearance Logs', icon: Users, active: activeTab === 'characters', onClick: () => setActiveTab('characters') },
             { id: 'stats', label: 'STATS', title: 'Script Page Stats & Breakdown', icon: BarChart3, active: activeTab === 'stats', onClick: () => setActiveTab('stats') },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -628,7 +616,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                     style={mt.primaryBtnStyle}
                   >
                     <Calendar className="w-4 h-4" />
-                    <span>Open Full Call Sheet, Risk & Production Suite</span>
+                    <span>Open Full Call Sheet, H&S & Production Suite</span>
                   </button>
                 )}
 
@@ -853,12 +841,22 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsCharacterBibleMaximized(true)}
-                    className="px-2.5 py-1 text-white font-bold rounded text-[10px] flex items-center gap-1 transition shadow cursor-pointer shrink-0 hover:opacity-90"
-                    style={{ backgroundColor: themeConfig?.accentButtons || '#8C6239' }}
+                    className="px-3.5 py-2 border-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all duration-150 cursor-pointer shadow-md hover:-translate-y-0.5 hover:shadow-lg active:scale-95 group shrink-0"
+                    style={{
+                      backgroundColor: themeConfig?.isDark ? '#181A20' : '#FFFBEB',
+                      borderColor: themeConfig?.isDark ? '#F59E0B' : '#D97706',
+                      color: themeConfig?.isDark ? '#F8FAFC' : '#1C1917',
+                      boxShadow: '0 4px 12px -2px rgba(217, 119, 6, 0.25)',
+                    }}
                     title="Maximise Character Bible"
                   >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span>Maximise Bible</span>
+                    <div
+                      className="w-5 h-5 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
+                      style={{ backgroundColor: '#D97706' }}
+                    >
+                      <Maximize2 className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Maximise</span>
                   </button>
                 </div>
               </div>
@@ -1192,7 +1190,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
             style={mt.windowStyle}
           >
             <button
-              onClick={() => setIsSparkModalOpen(false)}
+              onClick={handleCloseSparkModal}
               className="absolute top-4 right-4 p-1.5 rounded-full border transition cursor-pointer hover:opacity-80"
               style={mt.secondaryBtnStyle}
             >
@@ -1205,7 +1203,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-sm uppercase" style={mt.accentStyle}>Creative Provocation Spark</h3>
-                <p className="text-[10px]" style={mt.mutedStyle}>Random constraint for your next scene</p>
+                <p className="text-[10px]" style={mt.mutedStyle}>{currentSpark.categoryLabel}</p>
               </div>
             </div>
 
@@ -1214,7 +1212,27 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
                 <Lightbulb className="w-32 h-32" />
               </div>
               <p className="text-sm font-medium leading-relaxed italic relative z-10">
-                "{currentProvocation}"
+                {(() => {
+                  if (currentSpark.categoryKey !== 'motivation') return `"${currentSpark.text}"`;
+                  const dashIdx = currentSpark.text.lastIndexOf('—');
+                  if (dashIdx === -1) return currentSpark.text;
+                  const quotePart = currentSpark.text.slice(0, dashIdx + 1);
+                  const authorName = currentSpark.text.slice(dashIdx + 1).trim();
+                  if (!authorName) return currentSpark.text;
+                  return (
+                    <>
+                      {quotePart}{' '}
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(authorName)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-inherit no-underline hover:underline underline-offset-2"
+                      >
+                        {authorName}
+                      </a>
+                    </>
+                  );
+                })()}
               </p>
             </div>
 
@@ -1230,7 +1248,7 @@ export const NavigatorSidePanel: React.FC<NavigatorSidePanelProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setIsSparkModalOpen(false)}
+                onClick={handleCloseSparkModal}
                 className="px-4 py-2.5 border font-bold rounded-xl text-xs transition cursor-pointer hover:opacity-85"
                 style={mt.secondaryBtnStyle}
               >

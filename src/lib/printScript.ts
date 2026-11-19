@@ -1,60 +1,19 @@
 import { ScreenplayDocument } from '../types';
-import { buildScreenplayPdfDocument } from './pdf/buildScreenplayPdf';
+import { exportScreenplayPdf } from './pdf/exportScreenplayPdf';
 import { generateScriptHtml } from './print/generateScriptHtml';
+import { printHtmlInPlace } from './print/printHtmlInPlace';
 
 /**
- * Robust screenplay printer designed to work both inside sandboxed iframe previews
- * and top-level browser tabs.
+ * Prints the screenplay cleanly in place (or opens Print Preview inside embedded previews)
+ * without ever opening a new browser tab or leaving the workspace.
  */
 export function triggerScriptPrint(script: ScreenplayDocument): void {
   try {
-    const doc = buildScreenplayPdfDocument(script);
-    const pdfBlob = doc.output('blob');
-    const blobUrl = URL.createObjectURL(pdfBlob);
-
-    // Method 1: Create a hidden iframe with PDF source and print
-    const existingIframe = document.getElementById('__screenplay_pdf_print_frame');
-    if (existingIframe) existingIframe.remove();
-
-    const iframe = document.createElement('iframe');
-    iframe.id = '__screenplay_pdf_print_frame';
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    iframe.src = blobUrl;
-    document.body.appendChild(iframe);
-
-    iframe.onload = () => {
-      try {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      } catch (e) {
-        console.warn('Iframe print restricted, triggering fallback window', e);
-        openPrintWindowFallback(script, blobUrl);
-      }
-    };
+    printHtmlInPlace(generateScriptHtml(script), { onDownloadPdf: () => exportScreenplayPdf(script) });
   } catch (err) {
-    console.error('PDF print generation failed, falling back to HTML DOM print', err);
+    console.error('In-place script print failed, using DOM print container:', err);
     domHtmlPrintFallback(script);
   }
-}
-
-function openPrintWindowFallback(script: ScreenplayDocument, blobUrl?: string): void {
-  try {
-    if (blobUrl) {
-      const win = window.open(blobUrl, '_blank');
-      if (win) {
-        win.focus();
-        return;
-      }
-    }
-  } catch (e) {
-    console.warn('Window open blob blocked', e);
-  }
-  domHtmlPrintFallback(script);
 }
 
 function domHtmlPrintFallback(script: ScreenplayDocument): void {
@@ -71,11 +30,16 @@ function domHtmlPrintFallback(script: ScreenplayDocument): void {
     printContainer.className = 'screenplay-print-only';
     printContainer.innerHTML = innerBody;
     document.body.appendChild(printContainer);
+    document.body.classList.add('printing-screenplay');
 
-    setTimeout(() => {
-      window.print();
-    }, 50);
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('printing-screenplay');
+      printContainer.remove();
+    }, { once: true });
+
+    window.print();
   } catch (e) {
+    document.body.classList.remove('printing-screenplay');
     console.error('HTML DOM print fallback failed:', e);
     window.print();
   }

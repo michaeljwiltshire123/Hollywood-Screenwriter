@@ -3,7 +3,7 @@ import { ScreenplayDocument, SceneInfo, CharacterInfo } from '../../types';
 import { AppThemeConfig } from '../../lib/themePresets';
 import { getModalTheme } from '../../lib/modalTheme';
 import { CallSheetTab } from './CallSheetTab';
-import { RiskAssessmentTab } from './RiskAssessmentTab';
+import { HealthSafetyTab } from './health_safety/HealthSafetyTab';
 import { ReleaseFormsTab } from './ReleaseFormsTab';
 import { ProductionSuiteHeader } from './ProductionSuiteHeader';
 import { ProductionSuiteTabs } from './ProductionSuiteTabs';
@@ -60,7 +60,7 @@ export const ProductionScheduleModal: React.FC<ProductionScheduleModalProps> = (
             <CallSheetTab script={script} characters={characters} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} />
           )}
           {activeTab === 'RISK' && (
-            <RiskAssessmentTab script={script} scenes={scenes} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} themeConfig={themeConfig} />
+            <HealthSafetyTab script={script} scenes={scenes} onChangeScript={onChangeScript} themeConfig={themeConfig} />
           )}
           {activeTab === 'RELEASES' && (
             <ReleaseFormsTab script={script} onChangeScript={onChangeScript} watermarkLogoUrl={script.productionLogoUrl} themeConfig={themeConfig} />

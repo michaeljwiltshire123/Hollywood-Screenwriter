@@ -1,0 +1,437 @@
+[
+  "Logic Test: Look at {character1}'s last line—does the next beat happen THEREFORE or BUT, or are you drifting into 'and then'?",
+  "Genre Flip: Play the next six lines between {character1} and {character2} like a 1950s Western standoff where blinking means death.",
+  "60-Second Dare: Type four awful, unfiltered lines of dialogue for {character1} right now. No backspacing—just keep your fingers moving.",
+  "1-Min Sprint: List five stupid ways {character1} could ruin everything in {location} right now, then write the third-worst one.",
+  {
+    "id": "hack_1_haven_t_heard_character1_and_cha",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Haven't heard {character1} and {character2} out loud yet? Hit Table Read in the top bar and see if their banter actually lands."
+  },
+  "Tone Bender: Treat this exchange in {location} like a high-stakes heist where trust—not cash—is the loot {character1} is stealing.",
+  "Late Entry: Skip the polite hellos. Drop {character1} and {character2} straight into the middle of the row and let the reader catch up.",
+  "Pressure Test: Strip away {character1}'s favourite crutch—charm, humour, or money—for the next four lines and see how they survive.",
+  "Genre Flip: Write {character2}'s next entrance into {location} like a nature documentary observing a cornered predator.",
+  "60-Second Dare: Write three rapid action lines for {character1} in {location} using zero adjectives—pure verbs only.",
+  {
+    "id": "hack_2_character1_still_has_a_blank_pro",
+    "isFeatureNudge": true,
+    "featureKey": "characterBible",
+    "text": "App Hack: {character1} still has a blank profile in the Character Bible. Jot down one fatal flaw in there to sharpen their voice."
+  },
+  "Logic Test: If {character1} simply walked out of {location} right now, what would actually break? Make the cost immediate.",
+  "Power Flip: Whoever holds the upper hand entering {location} has to leave on their knees emotionally. Write the exact pivot line.",
+  "2-Min Sprint: Jot down six terrible misunderstandings if {character1} mishears one single word from {character2}.",
+  "Genre Flip: Direct this quiet chat in {location} like a ruthless courtroom cross-examination where every polite question is a trap.",
+  "60-Second Dare: Type a five-line whispered argument between {character1} and {character2} without fixing a single typo until line five.",
+  {
+    "id": "hack_3_losing_track_of_who_s_talking_tu",
+    "isFeatureNudge": true,
+    "featureKey": "actorHighlight",
+    "text": "App Hack: Losing track of who's talking? Turn on Actor Dialogue Highlighting in the Bible tab to colour-code {character1}'s lines on the page."
+  },
+  "Stakes Check: Give {character1} a brand-new piece of bad news right as they reach the exit of {location}.",
+  "Reverse Anchor: Jump to the final exit line of scene {scene_number}. What irreversible mistake did {character1} make two minutes earlier to earn it?",
+  "Genre Flip: Play the next beat between {character1} and {character2} like a Victorian ghost story where everyone is politely terrified.",
+  "1-Min Sprint: List six secrets {character2} would only confess if {location} suddenly caught fire.",
+  {
+    "id": "hack_4_curious_if_character1_s_emotiona",
+    "isFeatureNudge": true,
+    "featureKey": "characterArc",
+    "text": "App Hack: Curious if {character1}'s emotional arc actually moves? Open the Kurt Vonnegut Character Fortune Graph in Story Lab and plot their highs and lows."
+  },
+  "Dialogue Diet: Take {character1}'s longest line here, chop it in half, and let {prop} do the rest of the talking.",
+  "Logic Test: Every line of dialogue is an attack, a dodge, or a plea. Which one is {character1} throwing right now?",
+  "Genre Flip: Rewrite {character1} and {character2}'s standoff in {location} like a 1940s screwball comedy—double the pace and overlap every line.",
+  "60-Second Dare: Write four lines of subtext where {character1} and {character2} talk strictly about {prop} while clearly breaking up.",
+  {
+    "id": "hack_5_your_story_lab_board_is_still_em",
+    "isFeatureNudge": true,
+    "featureKey": "storyLab",
+    "text": "App Hack: Your Story Lab board is still empty. Pin three quick act cards in there to see where {location} actually leads."
+  },
+  "Obstacle Check: What does {character1} desperately want before leaving {location}, and why is {character2} the worst possible person to ask?",
+  "Pacing Pulse: Have the last three beats stayed at the exact same volume? Drop {character1} into sudden dead silence.",
+  "Genre Flip: Treat {character1} trying to leave {location} like a prison break where {character2} is the sharpest guard on duty.",
+  "3-Min Sprint: Without lifting your fingers, write ten wild directions scene {scene_number} could take if {prop} suddenly breaks.",
+  {
+    "id": "hack_6_feeling_distracted_by_sidebars_h",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Feeling distracted by sidebars? Hit Focus Mode (Zen Mode) to hide the clutter and leave just you and the page."
+  },
+  "Logic Test: Does {character2} actually need to be in {location}, or are they just standing around holding up the furniture?",
+  "Tone Bender: Play this tense confrontation like a bored customer service call where nobody is allowed to raise their voice.",
+  "60-Second Dare: Write three lines where {character1} answers every question from {character2} with a suspiciously specific lie.",
+  {
+    "id": "hack_7_stuck_staring_at_a_blinking_curs",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Stuck staring at a blinking cursor? Fire up the 3-Minute Idea Sprint Generator in Story Lab and dump ten messy ideas without deleting."
+  },
+  "Exit Hook: End scene {scene_number} on a sharp unanswered question so the next scene has no choice but to start running.",
+  "Genre Flip: Frame {character1} and {character2}'s quiet truce in {location} like two rival mob bosses dividing up territory.",
+  "1-Min Sprint: List five petty things {character1} hates about {location}, then weave one into their very next line.",
+  {
+    "id": "hack_8_want_to_know_if_you_re_overwriti",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Want to know if you're overwriting action blocks? Check Script Stats to see your exact Action-vs-Dialogue ratio."
+  },
+  "Goal Flip: What if {character1} enters {location} wanting an apology, and leaves realising they owe {character2} one?",
+  "Tone Bender: Direct this casual {time_of_day} chat like a ticking-bomb thriller where someone in {location} is wired.",
+  "60-Second Dare: Write four lines of pure physical business for {character1} in {location} with zero spoken words.",
+  {
+    "id": "hack_9_brain_fried_start_a_pomodoro_bre",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Brain fried? Start a Pomodoro break and play a quick round of Emoji Plotter to shake loose a new angle."
+  },
+  "Logic Test: Check {character1}'s motive—are they acting because of what just happened, or because the plot told them to?",
+  "Genre Flip: Play {character2}'s big confession like a cheesy infomercial pitch that {character1} isn't buying for a second.",
+  "2-Min Sprint: Write eight terrible first lines {character1} could blurt out in {location} before finding the one that stings.",
+  {
+    "id": "hack_10_haven_t_visualised_the_room_yet_",
+    "isFeatureNudge": true,
+    "featureKey": "shots",
+    "text": "App Hack: Haven't visualised the room yet? Log just one opening shot in the Scene Shot Planner to lock down what the camera sees first."
+  },
+  "Secret Lever: Give {character2} one piece of leverage over {character1} that neither of them mentions out loud in {location}.",
+  "Tone Bender: Treat this bitter argument like two exhausted parents whispering so they don't wake a baby in the next room.",
+  "60-Second Dare: Type three lines where {character1} tries to flatter {character2} and accidentally insults them twice.",
+  {
+    "id": "hack_11_want_to_test_if_a_scene_s_rhythm",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Want to test if a scene's rhythm really works? Crank Table Read speed up to 1.5x and listen for where the pacing drags."
+  },
+  "Ticking Clock: Drop a trivial {time_of_day} deadline into {location} so {character1} and {character2} can't afford to waffle.",
+  "Genre Flip: Write this awkward reunion in {location} like two undercover spies trying to pass a secret code in public.",
+  "1-Min Sprint: List five things {character1} would never admit to {character2}, then have them accidentally hint at number four.",
+  {
+    "id": "hack_12_juggling_too_many_side_plots_ope",
+    "isFeatureNudge": true,
+    "featureKey": "subPlots",
+    "text": "App Hack: Juggling too many side plots? Open Subplot Weaver Lanes in Story Lab to see if your B-story has vanished."
+  },
+  "Status Check: Give {prop} all the power in {location}—whoever holds it controls the entire conversation.",
+  "Tone Bender: Play this high-drama betrayal like two coworkers gossiping by the kettle during a {time_of_day} tea break.",
+  "60-Second Dare: Write four lines where {character1} refuses to use the word 'no' while still turning {character2} down flat.",
+  {
+    "id": "hack_13_not_sure_what_your_whole_script_",
+    "isFeatureNudge": true,
+    "featureKey": "logline",
+    "text": "App Hack: Not sure what your whole script is actually about yet? Run the 5-question Logline Wizard to boil it down to 50 crisp words."
+  },
+  "Logic Test: If you cut {character1}'s opening line in {location}, does the scene lose anything—or start twice as fast?",
+  "Genre Flip: Stage {character1} searching {location} for {prop} like a silent slapstick routine where everything makes noise.",
+  "2-Min Sprint: Jot down six ways {character2} could completely misread {character1}'s body language right now.",
+  {
+    "id": "hack_14_want_to_hear_character2_sound_co",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Want to hear {character2} sound completely different? Try swapping their timbre in Table Read (try Alien or Monster just for kicks)."
+  },
+  "Consequence Check: Let {character1} win the argument in {location}—and immediately realise winning just ruined their bigger plan.",
+  "Tone Bender: Direct this romantic or friendly beat like a tense hostage negotiation where one wrong word blows the deal.",
+  "60-Second Dare: Type three rapid-fire interruptions where {character1} and {character2} never let each other finish a sentence.",
+  {
+    "id": "hack_15_pinning_ideas_in_your_head_drop_",
+    "isFeatureNudge": true,
+    "featureKey": "storyLab",
+    "text": "App Hack: Pinning ideas in your head? Drop colour-coded cards onto the Writers' Wall & Timeline to see your act structure visually."
+  },
+  "Information Gap: Make the audience know something terrible about {prop} that {character1} is completely oblivious to.",
+  "Genre Flip: Write {character1}'s next three lines like a weary noir detective narrating their own bad decisions.",
+  "1-Min Sprint: List five excuses {character1} could invent to leave {location} immediately, then pick the most transparent lie.",
+  {
+    "id": "hack_16_need_a_quick_safety_net_before_e",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need a quick safety net before experimenting wildly? Hit Revision History to save a snapshot so you can roll back anytime."
+  },
+  "Subtext Test: Have {character1} say 'I'm fine' in {location}, then write three action lines that prove the exact opposite.",
+  "Tone Bender: Play this serious confession like a sports commentator calling a championship final in whisper-vision.",
+  "60-Second Dare: Write four lines of dialogue where every single sentence is five words or fewer.",
+  {
+    "id": "hack_17_still_using_a_plain_white_page_t",
+    "isFeatureNudge": true,
+    "featureKey": "theme",
+    "text": "App Hack: Still using a plain white page? Try switching to Vintage or Eucalyptus in the Theme Switcher to give your eyes a fresh vibe."
+  },
+  "Pivot Point: Force {character2} to ask one blunt question that makes {character1}'s entire cover story collapse.",
+  "Genre Flip: Treat {character1} and {character2}'s standoff in {location} like a nature ritual where two rivals puff up to look bigger.",
+  "2-Min Sprint: List seven objects that shouldn't be in {location} during {time_of_day}, then put the weirdest one in {character1}'s hand.",
+  {
+    "id": "hack_18_lost_track_of_where_character1_a",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Lost track of where {character1} actually shows up? Check the Automatic Character Scene Tracker to spot huge gaps in their screen time."
+  },
+  "Mirror Beat: Have {character2} throw {character1}'s exact advice from earlier right back in their face.",
+  "Tone Bender: Direct this heated row like two polite aristocrats insulting each other with immaculate manners.",
+  "60-Second Dare: Type three lines where {character1} tries to apologise without actually saying the word 'sorry'.",
+  {
+    "id": "hack_19_writing_feels_sluggish_turn_on_t",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Writing feels sluggish? Turn on Typewriter Centred Scrolling so your active line stays locked dead-centre on screen."
+  },
+  "Stakes Flip: What if {character1} isn't trying to hide the secret in {location}—they're desperately trying to get {character2} to guess it?",
+  "Genre Flip: Play the next five lines like a sci-fi first-contact scene where {character1} and {character2} barely speak the same language.",
+  "1-Min Sprint: Write down five things {character1} wants to throw across {location} right now, then make them calmly fold {prop} instead.",
+  {
+    "id": "hack_20_going_into_a_messy_rewrite_expor",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Going into a messy rewrite? Export a rehearsal MP3 via Table Read and listen to your script like a radio play on a walk."
+  },
+  "Logic Test: Does {character1}'s reaction here match the flaw you gave them, or are they acting out of character just to be convenient?",
+  "Tone Bender: Treat this mundane task with {prop} like a bomb-defusal scene where one slip means catastrophe.",
+  "60-Second Dare: Write four lines where {character1} talks nonstop because they are terrified of what {character2} will say if they pause.",
+  {
+    "id": "hack_21_struggling_to_hit_your_daily_pag",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Struggling to hit your daily page count? Set a 15-minute Focus Sprint with a tiny word target to outrun your inner critic."
+  },
+  "Trap Door: Have {character1} casually agree to {character2}'s demand, only to reveal a catch in the very next line.",
+  "Genre Flip: Rewrite this quiet {time_of_day} beat like a slasher movie where everyone ignores the obvious warning sign.",
+  "2-Min Sprint: List six terrible favours {character2} could ask for in exchange for keeping {character1}'s secret.",
+  {
+    "id": "hack_22_not_sure_what_feeling_your_endin",
+    "isFeatureNudge": true,
+    "featureKey": "audienceEmotion",
+    "text": "App Hack: Not sure what feeling your ending leaves behind? Check the Audience Emotion Tracker badge and pick a target vibe to aim for."
+  },
+  "Role Reversal: Make the usually calm {character1} lose their cool while the usually chaotic {character2} stays eerily composed.",
+  "Tone Bender: Play this breakup or parting in {location} like two business partners dissolving a boring merger.",
+  "60-Second Dare: Type three lines of pure reaction—zero dialogue, just how {character1}'s face and hands betray them.",
+  {
+    "id": "hack_23_need_to_see_the_big_picture_fast",
+    "isFeatureNudge": true,
+    "featureKey": "storyLab",
+    "text": "App Hack: Need to see the big picture fast? Expand your 3-act outline with the Five-Act Expansion Wizard to find your midpoint turn."
+  },
+  "Logic Test: If {character1} had zero dialogue in scene {scene_number}, could we still tell exactly what they want from their actions alone?",
+  "Genre Flip: Play this polite disagreement in {location} like a Regency period drama where every compliment is a veiled dagger.",
+  "60-Second Dare: Write four lines of dialogue where {character1} and {character2} keep repeating each other's last two words.",
+  "1-Min Sprint: List five awful things {character1} could accidentally drop or spill in {location}, then make it happen mid-sentence.",
+  {
+    "id": "hack_24_map_your_whole_story_s_spine_in_",
+    "isFeatureNudge": true,
+    "featureKey": "heroJourney",
+    "text": "App Hack: Map your whole story's spine in minutes using the Hero’s Journey 12-Stage Matrix in Story Lab."
+  },
+  "Tone Bender: Treat this awkward silence in {location} like two snipers waiting for the other to blink first.",
+  "Secret Agenda: Give {character1} a tiny, petty errand in {location} that matters more to them than {character2}'s crisis.",
+  "60-Second Dare: Type three lines where {character1} tries to brag without sounding like they are bragging.",
+  {
+    "id": "hack_25_need_to_see_all_your_scene_beats",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need to see all your scene beats at a glance? Open the Scene Navigator & Search drawer to jump straight to weak spots."
+  },
+  "Logic Test: Check the emotional baton—does the feeling at the end of scene {scene_number} launch the next scene, or just fizzle out?",
+  "Genre Flip: Rewrite {character2}'s arrival in {location} like a superhero landing that nobody in the room is impressed by.",
+  "2-Min Sprint: Jot down six weird things {character1} might notice about {prop} when trying to avoid eye contact.",
+  {
+    "id": "hack_26_curious_how_your_script_looks_on",
+    "isFeatureNudge": true,
+    "featureKey": "titlePage",
+    "text": "App Hack: Curious how your script looks on paper? Generate a Hollywood-standard PDF Title Page and check the opening rhythm."
+  },
+  "Power Shift: Have {character2} calmly hand {prop} to {character1}—turning the tables without saying a word.",
+  "Tone Bender: Play this life-or-death warning like a bored flight attendant reading safety instructions.",
+  "60-Second Dare: Write four lines where {character1} answers every serious question with a cheerful non-sequitur.",
+  {
+    "id": "hack_27_want_to_map_a_messy_b_story_slid",
+    "isFeatureNudge": true,
+    "featureKey": "subPlots",
+    "text": "App Hack: Want to map a messy B-story? Slide open the Side-Slide Subplot Card Overlay in Story Lab to track your secondary arcs."
+  },
+  "Obstacle Flip: What if {character2} actually wants to help {character1} in {location}, and their help makes everything ten times worse?",
+  "Genre Flip: Direct this tense negotiation like two kids trading lunchbox snacks behind the bike sheds.",
+  "1-Min Sprint: List five places in {location} where someone could be eavesdropping right now, then put {character2}'s eyes on one.",
+  {
+    "id": "hack_28_planning_a_shoot_already_drag_sc",
+    "isFeatureNudge": true,
+    "featureKey": "callSheet",
+    "text": "App Hack: Planning a shoot already? Drag scenes onto the Stripboard & Shoot Schedule to see how many filming days your script really takes."
+  },
+  "Logic Test: Are {character1} and {character2} arguing about the real issue, or hiding behind a stupid argument about {prop}?",
+  "Tone Bender: Treat this heartfelt apology in {location} like a slick politician dodging a scandal at a press conference.",
+  "60-Second Dare: Write three lines of pure visual slapstick involving {character1} and {prop}—no dialogue allowed.",
+  {
+    "id": "hack_29_need_a_quick_reality_check_on_yo",
+    "isFeatureNudge": true,
+    "featureKey": "synopsis",
+    "text": "App Hack: Need a quick reality check on your story pitch? Open the Synopsis Editor & Comps Builder to test your runtime and comparable titles."
+  },
+  "Consequence Flip: Have {character1} tell the complete, unvarnished truth in {location}—and watch {character2} refuse to believe a word.",
+  "Genre Flip: Play this {time_of_day} conversation like a Cold War spy handover on a foggy park bench.",
+  "2-Min Sprint: Write seven terrible nicknames {character2} secretly uses for {character1} in their head.",
+  {
+    "id": "hack_30_want_to_save_your_brainstorms_be",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Want to save your brainstorms before deleting them? Toss spare beats into the Idea Vault drawer so nothing gets lost."
+  },
+  "Stakes Escalation: Put a fragile or valuable {prop} right between {character1} and {character2} while they argue.",
+  "Tone Bender: Direct this quiet farewell in {location} like two soldiers parting before an impossible mission.",
+  "60-Second Dare: Type four lines where {character1} tries to end the conversation and {character2} refuses to take the hint.",
+  {
+    "id": "hack_31_need_a_refresher_on_how_the_app_",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need a refresher on how the app works? Open the Interactive Sample Screenplay to see a 6-page masterclass in action."
+  },
+  "Logic Test: Look at {character2}'s last line—did they actually answer {character1}, or did they dodge the question completely?",
+  "Genre Flip: Rewrite this confrontation in {location} like a cheesy 1980s action movie full of terrible one-liners.",
+  "1-Min Sprint: List five things {character1} is hiding in their pockets right now, then make one fall out.",
+  {
+    "id": "hack_32_want_to_test_your_script_s_visua",
+    "isFeatureNudge": true,
+    "featureKey": "callSheet",
+    "text": "App Hack: Want to test your script's visual flow? Check the 24-Hour Gantt Chart Visual Timeline to see how your scenes pace across a shoot day."
+  },
+  "Subtext Swap: Have {character1} aggressively compliment {character2} while clearly plotting their downfall.",
+  "Tone Bender: Play this confession of love or loyalty like a weary accountant reading a spreadsheet.",
+  "60-Second Dare: Write three lines where {character1} uses {prop} to stall because they have completely forgotten their excuse.",
+  {
+    "id": "hack_33_need_to_keep_track_of_every_scen",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need to keep track of every scene {character2} appears in? Check the Automatic Character Scene Tracker in the Bible tab."
+  },
+  "Entry Hook: Start scene {scene_number} with {character1} already halfway through cleaning up a mess in {location}.",
+  "Genre Flip: Stage {character1} and {character2}'s debate like a nature documentary voiceover describing two confused birds.",
+  "2-Min Sprint: List six completely wrong assumptions {character1} has made about why {character2} is in {location}.",
+  {
+    "id": "hack_34_want_your_actors_to_love_you_exp",
+    "isFeatureNudge": true,
+    "featureKey": "actorHighlight",
+    "text": "App Hack: Want your actors to love you? Export a PDF for Actors with pastel dialogue highlights baked straight onto the page."
+  },
+  "Logic Test: If {character1} and {character2} swapped lines for the next four exchanges, would the scene suddenly get way more interesting?",
+  "Tone Bender: Treat this casual chat over {prop} like a medieval royal court where one wrong word means the chopping block.",
+  "60-Second Dare: Type four lines of dialogue without using a single punctuation mark—let the rhythm dictate the breath.",
+  {
+    "id": "hack_35_not_sure_where_your_story_starts",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Not sure where your story starts or ends? Try the Guided 4-Step Story Spark to lock in your opening image and climax."
+  },
+  "Exit Pivot: Have {character1} reach the door of {location}, pause, and drop the one truth they came in to hide.",
+  "Genre Flip: Play this awkward {time_of_day} encounter like a haunted-house thriller where {location} itself feels alive.",
+  "1-Min Sprint: Write down five terrible pieces of advice {character2} could offer right now, then make {character1} actually take one.",
+  {
+    "id": "hack_36_worried_about_losing_a_bold_rewr",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Worried about losing a bold rewrite? Hit the Emergency Fountain Backup button for an instant plain-text copy on your drive."
+  },
+  "Pressure Valve: Give {character1} an uncontrollable physical tic—a cough, a twitch, a sneeze—right at the most serious moment.",
+  "Tone Bender: Direct this bitter rivalry in {location} like two old friends reminiscing about the good old days.",
+  "60-Second Dare: Write three rapid action lines showing {character1} failing miserably at a simple task with {prop}.",
+  {
+    "id": "hack_37_need_to_spot_where_your_scene_dr",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Need to spot where your scene drags? Use the Table Read Speed & Cadence Control to test dialogue-only playback."
+  },
+  "Logic Test: Why is this scene happening during {time_of_day} instead of midday? Let the hour actively mess with {character1}.",
+  "Genre Flip: Rewrite {character1}'s big plea like a sports coach delivering a locker-room halftime speech.",
+  "2-Min Sprint: Jot down six awful things that could happen the exact second {character2} opens {prop}.",
+  {
+    "id": "hack_38_want_to_save_directly_to_your_ha",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Want to save directly to your hard drive without cloud clutter? Turn on File System Access Direct Disk Save."
+  },
+  "Status Trap: Make {character1} beg for something tiny in {location} while pretending they don't care at all.",
+  "Tone Bender: Play this high-stakes blackmail scene like two neighbours arguing over a wheelie bin.",
+  "60-Second Dare: Type four lines where {character1} keeps interrupting themselves to check {prop}.",
+  {
+    "id": "hack_39_need_a_quick_mental_reset_trigge",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need a quick mental reset? Trigger the Pomodoro Timer and play a round of Script Trivia to clear the cobwebs."
+  },
+  "Reverse Logic: Have {character2} forgive {character1} immediately—and watch {character1} spiral because they wanted a fight.",
+  "Genre Flip: Stage this quiet conversation in {location} like a silent-film melodrama with huge, expressive gestures.",
+  "1-Min Sprint: List five secrets hidden inside {location}, then have {character1} accidentally knock one loose.",
+  {
+    "id": "hack_40_visualising_your_scene_s_look_ad",
+    "isFeatureNudge": true,
+    "featureKey": "shots",
+    "text": "App Hack: Visualising your scene's look? Add lens sizes and camera angles in the Scene Shot Planner to sharpen your visual writing."
+  },
+  "Dialogue Cut: Delete {character2}'s next three lines and let them react solely with silence and a sharp look.",
+  "Tone Bender: Treat this tense interrogation like a friendly game-show quiz where the prize is walking out of {location}.",
+  "60-Second Dare: Write three lines where {character1} tries to sound tough while doing something deeply uncool.",
+  {
+    "id": "hack_41_want_to_hear_your_cast_in_full_s",
+    "isFeatureNudge": true,
+    "featureKey": "tableRead",
+    "text": "App Hack: Want to hear your cast in full swing? Export a standalone offline Rehearsal Player package from Table Read."
+  },
+  "Logic Test: Does {character1} leave scene {scene_number} in a worse spot than they entered? If not, throw one more hurdle in their path.",
+  "Genre Flip: Play {character1} and {character2}'s standoff like two exhausted retail workers five minutes before closing time.",
+  "2-Min Sprint: List six terrible excuses for why {prop} is covered in mud, ink, or scratches.",
+  {
+    "id": "hack_42_curious_how_many_pages_your_dial",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Curious how many pages your dialogue is eating up? Check the Script Stats breakdown to spot talk-heavy scenes."
+  },
+  "Mirror Flip: Have {character1} accuse {character2} of the exact mistake {character1} is making right now in {location}.",
+  "Tone Bender: Direct this emotional reunion like two strangers stuck in a broken lift.",
+  "60-Second Dare: Type four lines of rapid banter where every line starts with the word 'And' or 'But'.",
+  {
+    "id": "hack_43_want_to_customise_your_highlight",
+    "isFeatureNudge": true,
+    "featureKey": "actorHighlight",
+    "text": "App Hack: Want to customise your highlighter vibe? Switch to the Hand-Drawn Chisel Highlighter Engine for realistic ink bleed on dialogue."
+  },
+  "Twist Anchor: Let {character2} casually reveal they already fixed the problem {character1} has been panicking about.",
+  "Genre Flip: Rewrite this {time_of_day} confrontation like a gothic horror monologue delivered by candlelight.",
+  "1-Min Sprint: Write five things {character1} wishes they had said yesterday, then blurt the worst one out in {location}.",
+  {
+    "id": "hack_44_juggling_multiple_locations_and_",
+    "isFeatureNudge": true,
+    "featureKey": "callSheet",
+    "text": "App Hack: Juggling multiple locations and crews? Test your scene logistics in the Working Hours & Overflow Calculator."
+  },
+  "Subtext Lever: Have {character1} and {character2} aggressively split the bill or tidy {prop} while deciding someone's fate.",
+  "Tone Bender: Play this dangerous threat like a grandmother offering tea and biscuits.",
+  "60-Second Dare: Write three lines where {character1} tries to whisper a warning across {location} and fails.",
+  {
+    "id": "hack_45_need_to_export_your_script_for_a",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Need to export your script for a collaborator? Use the Multi-Format Export Engine to kick out a clean .docx or Fountain file."
+  },
+  "Logic Test: Check the conflict—if {character1} and {character2} both want the same thing, make them want opposite ways to get it.",
+  "Genre Flip: Treat {character1}'s clumsy lie in {location} like a magician performing a trick that goes horribly wrong.",
+  "2-Min Sprint: Jot down six awful things {character2} could find if they looked behind {prop} right now.",
+  {
+    "id": "hack_46_feeling_overwhelmed_by_scene_det",
+    "isFeatureNudge": true,
+    "featureKey": "general",
+    "text": "App Hack: Feeling overwhelmed by scene details? Collapse the side panels and type distraction-free with Tab & Keyboard Cycling."
+  },
+  "Power Vacuum: Have the person in charge suddenly leave {location}, leaving {character1} and {character2} scrambling for control.",
+  "Tone Bender: Direct this heated betrayal like two chess grandmasters making quiet moves in a library.",
+  "60-Second Dare: Type four lines where {character1} refuses to make eye contact with {character2} no matter what happens.",
+  {
+    "id": "hack_47_writing_a_gritty_night_shoot_run",
+    "isFeatureNudge": true,
+    "featureKey": "riskAssessment",
+    "text": "App Hack: Writing a gritty night shoot? Open the Health & Safety (H&S) suite to scan your script's set hazards and print safety signs."
+  },
+  "Final Beat: End scene {scene_number} on a tiny physical detail—a dropped key, a cooling cup, a locked door—that says everything.",
+  "Genre Flip: Play the next five lines like a sci-fi courtroom trial where {character1} is defending humanity's worst habit.",
+  "1-Min Sprint: List five ways {character1} could walk out of {location} with dignity, then make them trip at the threshold."
+]

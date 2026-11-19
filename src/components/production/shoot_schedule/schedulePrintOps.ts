@@ -4,6 +4,7 @@ import { renderCallSheetShotBadgesHtml } from './printShotBadgesHelper';
 import { formatTruncatedDate } from './exportDateFormatHelper';
 import { filterRowsByUnit, getUnitLabel, getUnitShortLabel } from './multiUnitOps';
 import { UnitPrintMode } from './PrintExportModal';
+import { printHtmlInPlace } from '../../../lib/print/printHtmlInPlace';
 
 export function executeSchedulePrint(
   projectTitle: string,
@@ -14,8 +15,6 @@ export function executeSchedulePrint(
   watermarkLogoUrl?: string,
   unitOption?: { mode: UnitPrintMode; unitNumber?: number }
 ) {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) return;
 
   const totalDays = daysToPrint.length;
   const dateFromFormatted = formatTruncatedDate(callData?.dateFrom || daysToPrint[0]?.dateStr || '');
@@ -55,8 +54,7 @@ export function executeSchedulePrint(
   }).join('');
 
   const documentTitle = `${projectTitle || 'Screenplay'} Call Shooting Schedule`;
-  printWindow.document.write(`<!DOCTYPE html><html><head><title>${documentTitle}</title><style>@page { size: letter landscape; margin: 0; } body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }</style></head><body>${bodyContent}<script>window.onload = function() { window.print(); };</script></body></html>`);
-  printWindow.document.close();
+  printHtmlInPlace(`<!DOCTYPE html><html><head><title>${documentTitle}</title><style>@page { size: letter landscape; margin: 0; } body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }</style></head><body>${bodyContent}</body></html>`);
 }
 
 function renderSingleDayPrintPage(

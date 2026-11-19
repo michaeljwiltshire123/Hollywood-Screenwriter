@@ -31,7 +31,7 @@ export const ProductionSuiteTabs: React.FC<ProductionSuiteTabsProps> = ({
 
   const tabs = [
     { id: 'CALLSHEET' as const, label: 'Shooting Schedule & Call Sheet' },
-    { id: 'RISK' as const, label: 'Risk Assessment & Safety' },
+    { id: 'RISK' as const, label: 'Health & Safety (H&S)' },
     { id: 'RELEASES' as const, label: 'Release Forms' },
   ];
 
