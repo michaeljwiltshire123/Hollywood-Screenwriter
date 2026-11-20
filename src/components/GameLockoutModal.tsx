@@ -1,6 +1,6 @@
 import React from 'react';
 import { Lock, PenTool, Clock } from 'lucide-react';
-import { formatCooldownDisplay } from '../lib/gameCooldownManager';
+import { formatCooldownDisplay, clearGameCooldown } from '../lib/gameCooldownManager';
 import { AppThemeConfig } from '../lib/themePresets';
 import { getModalTheme } from '../lib/modalTheme';
 
@@ -9,6 +9,7 @@ interface GameLockoutModalProps {
   onClose: () => void;
   remainingSeconds: number;
   themeConfig?: AppThemeConfig;
+  onResetCooldown?: () => void;
 }
 
 export const GameLockoutModal: React.FC<GameLockoutModalProps> = ({
@@ -16,15 +17,29 @@ export const GameLockoutModal: React.FC<GameLockoutModalProps> = ({
   onClose,
   remainingSeconds,
   themeConfig,
+  onResetCooldown,
 }) => {
   if (!isOpen) return null;
   const m = getModalTheme(themeConfig);
 
+  const handlePadlockClick = (e: React.MouseEvent) => {
+    if (e.altKey) {
+      clearGameCooldown();
+      if (onResetCooldown) onResetCooldown();
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-x-0 top-28 bottom-0 backdrop-blur-md z-50 flex items-center justify-center p-4 font-mono select-none" style={m.overlayStyle}>
       <div className="border-2 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden text-center p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150" style={{ ...m.windowStyle, borderColor: m.theme.accentButtons }}>
-        <div className="w-16 h-16 mx-auto rounded-3xl border-2 flex items-center justify-center shadow-md" style={{ ...m.cardStyle, borderColor: m.theme.accentButtons, ...m.accentStyle }}>
-          <Lock className="w-8 h-8" />
+        <div
+          onClick={handlePadlockClick}
+          className="w-16 h-16 mx-auto rounded-3xl border-2 flex items-center justify-center shadow-md cursor-pointer group relative"
+          style={{ ...m.cardStyle, borderColor: m.theme.accentButtons, ...m.accentStyle }}
+          title="Hold Alt + Click to reset cooldown for testing"
+        >
+          <Lock className="w-8 h-8 group-hover:scale-110 transition-transform" />
         </div>
 
         <div className="space-y-2">

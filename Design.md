@@ -254,5 +254,12 @@
     - `SynopsisTimelineDrawer.tsx`: Collapsible reference drawer rendering act beats and Hero's Journey stages with insert buttons (default off).
     - `SynopsisExportActions.tsx`: Action bar providing Copy, Print/PDF, Email, Download Word, Cancel, and Save triggers.
     - `synopsisExportOps.ts`: Pure export helper functions for clipboard, Word .doc, direct print, and email dispatch.
+- `src/components/break_games/`: Modular 12-Game Focus Break Suite (<100 lines per file):
+  * `BreakGameModal.tsx`: Main compact modal container with 3 category tabs ('Arcade', 'Word and Trivia', 'Logic and Puzzle') and 2x2 grid layout.
+  * `BreakGameRouter.tsx`, `BreakGameEndOverlay.tsx`, & `breakGameConstants.ts`: Game routing, shared end screen, and game definitions.
+  * `breakAudio.ts`: Web Audio API sound generator for popping (noise transient + sine thump) and feedback.
+  * Arcade: `BlockStackerGame.tsx`, `blockStackerRender.ts`, `BubbleWrapGame.tsx`, `bubbleWrapShapes.ts`, `bubbleWrapRenderer.ts`, `bubbleSpriteCache.ts`, `TargetTapGame.tsx`, `targetTapRender.ts`, `MarbleMazeGame.tsx`, `marbleMazeGen.ts`.
+  * Word & Trivia: `WordUnscrambleGame.tsx`, `wordUnscrambleData.ts`, `WordSearchGame.tsx`, `wordSearchGen.ts`, `scriptWordHarvester.ts`, `wordCooldownTracker.ts`, `TriviaBlitzGame.tsx`, `triviaData.ts`, `EmojiPlotterGame.tsx`, `emojiMoviesData.ts`, `emojiFuzzyMatch.ts` (backed by `src/data/break_words/wordBank.json`, lazy-loaded 558-question `src/data/break_words/triviaBank.json`, and lazy-loaded 1,070-title `src/data/break_words/emojiMediaBank.json`).
+  * Logic & Puzzle: `SlidingPuzzleGame.tsx`, `slidingPosterArt.ts`, `MemoryMatchGame.tsx`, `MiniSudokuGame.tsx`, `SudokuBoardGrid.tsx`, `miniSudokuGen.ts`, `SimonSaysGame.tsx`.
 - `scripts/verify-db.js`: Verification script ensuring IndexedDB schema, store names, and backup keys align.
 

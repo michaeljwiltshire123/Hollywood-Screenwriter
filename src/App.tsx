@@ -31,12 +31,14 @@ import { RevisionHistoryModal } from './components/RevisionHistoryModal';
 import { SettingsModal } from './components/SettingsModal';
 import { DebugDashboardModal } from './components/DebugDashboardModal';
 import { PomodoroAlertModal } from './components/PomodoroAlertModal';
-import { BreakGameModal } from './components/BreakGameModal';
+import { BreakGameModal } from './components/break_games/BreakGameModal';
+import { harvestScriptWords } from './components/break_games/scriptWordHarvester';
 import { GameLockoutModal } from './components/GameLockoutModal';
 import {
   getStoredGameCooldownUntil,
   setGameCooldown,
   calculateRemainingCooldown,
+  clearGameCooldown,
 } from './lib/gameCooldownManager';
 import { TableReadModal } from './components/TableReadModal';
 import { ProductionScheduleModal } from './components/production/ProductionScheduleModal';
@@ -1100,6 +1102,7 @@ export default function App() {
           }
         }}
         themeConfig={themeConfig}
+        scriptWords={isBreakGameOpen ? harvestScriptWords(script.elements) : []}
       />
 
       <GameLockoutModal
@@ -1107,6 +1110,11 @@ export default function App() {
         onClose={() => setIsGameLockoutOpen(false)}
         remainingSeconds={gameCooldownSeconds}
         themeConfig={themeConfig}
+        onResetCooldown={() => {
+          setGameCooldownUntil(0);
+          setGameCooldownSeconds(0);
+          clearGameCooldown();
+        }}
       />
 
       <TableReadModal
